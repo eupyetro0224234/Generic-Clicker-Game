@@ -1,9 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: Configurar o diretório do repositório local (ajuste conforme seu caminho)
 set "REPO_DIR=C:\Users\pyetr\OneDrive\Desktop\unitypy"
-
 cd /d "%REPO_DIR%"
 
 :menu
@@ -19,7 +17,6 @@ if "%escolha%"=="0" exit
 goto menu
 
 :backup
-
 :: Criar arquivo excluir.tmp antes para listar o que não copiar
 (
     echo .git\
