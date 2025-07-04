@@ -9,7 +9,8 @@ from menu import ConfigMenu
 
 def main():
     pasta_do_projeto = os.path.dirname(os.path.abspath(__file__))
-    pasta_de_backups = os.path.join(pasta_do_projeto, "backups")
+    pasta_de_backups = r"C:\Users\pyetr\OneDrive\Desktop\unitypy\backups"
+
     fazer_backup(pasta_do_projeto, pasta_de_backups)
 
     pygame.init()
@@ -29,6 +30,7 @@ def main():
     config_menu.controls_menu.visible = controls_visible
 
     clock = pygame.time.Clock()
+
     running = True
     while running:
         mouse_pos = pygame.mouse.get_pos()
@@ -39,6 +41,7 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                # Verifica se o clique está permitido conforme config
                 if config_menu.settings_menu.is_click_allowed(event.button):
                     if button.is_clicked(event.pos):
                         button.click()
