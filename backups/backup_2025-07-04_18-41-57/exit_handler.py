@@ -10,21 +10,7 @@ class ExitHandler:
         self.user_text = ""
         self.font = pygame.font.SysFont(None, 32)
         self.prompt_font = pygame.font.SysFont(None, 28)
-
-        self.bg_rect = pygame.Rect(
-            (width - 780) // 2,
-            (height - 240) // 2,
-            780,
-            240
-        )
-
-        self.input_rect = pygame.Rect(
-            self.bg_rect.x + (self.bg_rect.width - 260) // 2,
-            self.bg_rect.y + 100,
-            260,
-            40
-        )
-
+        self.input_rect = pygame.Rect(width // 2 - 130, height // 2 + 40, 260, 40)
         self.alpha = 0
         self.fading_out = False
         self.fade_speed = 8
@@ -32,6 +18,8 @@ class ExitHandler:
         self.prompt = "Tem certeza que deseja sair? Digite 'sim' para confirmar e 'esc' pra cancelar:"
         self.box_color = (255, 255, 255)
         self.bg_box_color = (180, 210, 255)
+        # Caixa grande posicionada no lado esquerdo, mesma altura e largura
+        self.bg_rect = pygame.Rect(20, height // 2 - 100, 780, 240)
 
     def start(self):
         self.active = True
@@ -51,7 +39,6 @@ class ExitHandler:
             if event.key == pygame.K_BACKSPACE:
                 self.user_text = self.user_text[:-1]
             elif event.key == pygame.K_RETURN:
-                # Só aceita "sim" para sair, qualquer outra coisa limpa texto (não inclui "não")
                 if self.user_text.strip().lower() == "sim":
                     self.fading_out = True
                 else:
@@ -60,9 +47,8 @@ class ExitHandler:
                 self.active = False
             else:
                 if len(event.unicode) == 1 and event.unicode.isprintable():
-                    if event.unicode != '~':  # evita dead key til separado
-                        if len(self.user_text) < 20:
-                            self.user_text += event.unicode
+                    if len(self.user_text) < 20:
+                        self.user_text += event.unicode
             return True
         return False
 

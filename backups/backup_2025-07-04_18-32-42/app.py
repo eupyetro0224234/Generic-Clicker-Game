@@ -20,7 +20,14 @@ def main():
 
     # Tela de loading
     loading_screen = LoadingScreen(screen, WIDTH, HEIGHT)
-    steps = [("Carregando imagens...", 50), ("Inicializando menus...", 80), ("Quase lá...", 95), ("Concluído!", 100)]
+
+    steps = [
+        ("Carregando imagens...", 50),
+        ("Inicializando menus...", 80),
+        ("Quase lá...", 95),
+        ("Concluído!", 100)
+    ]
+
     for msg, percent in steps:
         loading_screen.draw(percent, msg)
         pygame.time.delay(700)
@@ -47,6 +54,7 @@ def main():
     while running:
         mouse_pos = pygame.mouse.get_pos()
 
+        # Atualiza fade out do exit handler
         if config_menu.exit_handler.update_fade_out():
             pygame.display.flip()
             clock.tick(60)
@@ -67,9 +75,12 @@ def main():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if config_menu.settings_menu.is_click_allowed(event.button):
                     if button.is_clicked(event.pos):
-                        button.click()
-                        score += 1
-                        effects.append(ClickEffect(event.pos[0], event.pos[1]))
+                        # Garante que não está pressionando múltiplos botões ao mesmo tempo
+                        pressed = pygame.mouse.get_pressed()
+                        if sum(pressed) == 1:  # Apenas um botão pressionado
+                            button.click()
+                            score += 1
+                            effects.append(ClickEffect(event.pos[0], event.pos[1]))
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
@@ -78,13 +89,6 @@ def main():
         draw_background(screen)
         button.draw(screen)
 
-        # Efeitos +1
-        for effect in effects[:]:
-            effect.update()
-            effect.draw(screen)
-            if effect.finished:
-                effects.remove(effect)
-
         box_x, box_y = 20, 20
         box_w, box_h = 220, 60
         score_manager.draw_score_box(screen, box_x, box_y, box_w, box_h)
@@ -92,6 +96,13 @@ def main():
         score_text = FONT.render(f"Pontos: {score}", True, TEXT_COLOR_SCORE)
         score_rect = score_text.get_rect(center=(box_x + box_w // 2, box_y + box_h // 2))
         screen.blit(score_text, score_rect)
+
+        # Atualiza e desenha efeitos de "+1"
+        for effect in effects[:]:
+            effect.update()
+            effect.draw(screen)
+            if effect.finished:
+                effects.remove(effect)
 
         config_menu.draw_icon()
         config_menu.draw()

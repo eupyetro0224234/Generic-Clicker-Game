@@ -7,7 +7,6 @@ from button import AnimatedButton
 from score_manager import ScoreManager
 from menu import ConfigMenu
 from loading import LoadingScreen
-from click_effect import ClickEffect
 
 def main():
     pasta_do_projeto = os.path.dirname(os.path.abspath(__file__))
@@ -20,10 +19,18 @@ def main():
 
     # Tela de loading
     loading_screen = LoadingScreen(screen, WIDTH, HEIGHT)
-    steps = [("Carregando imagens...", 50), ("Inicializando menus...", 80), ("Quase lá...", 95), ("Concluído!", 100)]
+
+    # Simula carregamento com atualizações na tela de loading (sem backup)
+    steps = [
+        ("Carregando imagens...", 50),
+        ("Inicializando menus...", 80),
+        ("Quase lá...", 95),
+        ("Concluído!", 100)
+    ]
+
     for msg, percent in steps:
         loading_screen.draw(percent, msg)
-        pygame.time.delay(700)
+        pygame.time.delay(700)  # Simula delay, substitua pelo código real
 
     FONT = pygame.font.SysFont(None, 48)
     TEXT_COLOR_SCORE = (40, 40, 60)
@@ -42,25 +49,28 @@ def main():
 
     clock = pygame.time.Clock()
     running = True
-    effects = []
 
     while running:
         mouse_pos = pygame.mouse.get_pos()
 
+        # Atualiza fade out do exit handler e se estiver ativo, trava o jogo até fechar
         if config_menu.exit_handler.update_fade_out():
+            # fade rolando e no fim fecha o jogo, não processa eventos
             pygame.display.flip()
             clock.tick(60)
             continue
 
         for event in pygame.event.get():
+            # Se o menu exit_handler está ativo, ele consome todos os eventos
             if config_menu.exit_handler.active:
                 config_menu.exit_handler.handle_event(event)
                 continue
 
             if config_menu.handle_event(event):
-                continue
+                continue  # evento consumido pelo menu, ignora o resto
 
             if event.type == pygame.QUIT:
+                # Ao tentar fechar pelo botão X, abre menu sair
                 config_menu.exit_handler.start()
                 continue
 
@@ -69,7 +79,6 @@ def main():
                     if button.is_clicked(event.pos):
                         button.click()
                         score += 1
-                        effects.append(ClickEffect(event.pos[0], event.pos[1]))
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
@@ -77,13 +86,6 @@ def main():
 
         draw_background(screen)
         button.draw(screen)
-
-        # Efeitos +1
-        for effect in effects[:]:
-            effect.update()
-            effect.draw(screen)
-            if effect.finished:
-                effects.remove(effect)
 
         box_x, box_y = 20, 20
         box_w, box_h = 220, 60
@@ -100,6 +102,7 @@ def main():
         clock.tick(60)
 
     score_manager.save_data(score, config_menu.controls_menu.visible)
+
     pygame.quit()
     sys.exit()
 
