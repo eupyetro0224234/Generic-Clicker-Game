@@ -14,8 +14,15 @@ for /d %%F in (backups\*) do (
     if exist "%%F\.git" rd /s /q "%%F\.git"
 )
 
-echo Adicionando todos os arquivos da pasta backups...
-git add --all
+echo Adicionando arquivos manualmente de cada subpasta de backup...
+for /d %%F in (backups\*) do (
+    git add "%%F\*"
+)
+
+:: Também adiciona arquivos de nível superior modificados, se desejar:
+git add auto_commit.bat
+git add *.py
+git add requirements.txt
 
 :: Mensagem de commit com data e hora
 for /f "tokens=1-3 delims=/ " %%a in ('date /t') do (
