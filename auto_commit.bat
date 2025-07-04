@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 :: Diretório do repositório
-set "REPO_DIR=C:\Users\pyetr\OneDrive\Desktop\unitypy"
+set "REPO_DIR=C:\Users\pyetr\OneDrive\Desktop\unitypy\backups"
 
 cd /d "%REPO_DIR%"
 
