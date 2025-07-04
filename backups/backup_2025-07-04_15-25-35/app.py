@@ -17,16 +17,18 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Just Another Generic Clicker Game, But With References")
 
+    # Tela de loading
     loading_screen = LoadingScreen(screen, WIDTH, HEIGHT)
 
     steps = [
-        ("Carregando imagens...", 40),
-        ("Inicializando menus...", 60),
+        ("Carregando imagens...", 50),
+        ("Inicializando menus...", 80),
+        ("Quase lá...", 95),
+        ("Concluído!", 100)
     ]
-
     for msg, percent in steps:
         loading_screen.draw(percent, msg)
-        pygame.time.delay(500)
+        pygame.time.delay(700)  # Simula delay, troque para código real se quiser
 
     FONT = pygame.font.SysFont(None, 48)
     TEXT_COLOR_SCORE = (40, 40, 60)
@@ -34,30 +36,20 @@ def main():
     button = AnimatedButton(WIDTH // 2, HEIGHT // 2, 200, 200,
                             "https://minecraft.wiki/images/Enchanted_Book.gif?b21c4")
 
-    loading_screen.draw(80, "Carregando botão...")
-
     score_manager = ScoreManager()
     score, controls_visible = score_manager.load_data()
 
-    def loading_callback(percent, msg):
-        loading_screen.draw(percent, msg)
-
-    config_menu = ConfigMenu(screen, WIDTH, HEIGHT, loading_callback=loading_callback)
+    config_menu = ConfigMenu(screen, WIDTH, HEIGHT)
     config_menu.controls_menu.visible = controls_visible
-
-    loading_screen.draw(100, "Concluído!")
-    pygame.time.delay(500)
 
     clock = pygame.time.Clock()
     running = True
     while running:
-        if config_menu.exit_handler.update_fade_out():
-            continue
-
         mouse_pos = pygame.mouse.get_pos()
+
         for event in pygame.event.get():
             if config_menu.handle_event(event):
-                continue
+                continue  # evento consumido pelo menu, ignora o resto
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -82,6 +74,10 @@ def main():
 
         config_menu.draw_icon()
         config_menu.draw()
+
+        # Atualiza fade out da saída; se true, bloqueia resto do loop e continua fade
+        if config_menu.exit_handler.update_fade_out():
+            continue
 
         pygame.display.flip()
         clock.tick(60)

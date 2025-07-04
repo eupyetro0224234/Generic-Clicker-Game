@@ -3,7 +3,6 @@ import os
 import urllib.request
 from controles import ControlsMenu
 from config import FullSettingsMenu
-from exit_handler import ExitHandler
 
 class ConfigMenu:
     def __init__(self, screen, window_width, window_height, loading_callback=None):
@@ -11,7 +10,7 @@ class ConfigMenu:
         self.font = pygame.font.SysFont(None, 24)
         self.bg_color = (180, 210, 255)
         self.option_color = (255, 255, 255)
-        self.option_border = (80, 120, 255)
+        self.option_border = (200, 220, 250)
         self.text_color = (40, 40, 60)
 
         self.option_height = 38
@@ -30,15 +29,22 @@ class ConfigMenu:
         self.icon_url = "https://i.postimg.cc/hGf3VRqY/image-removebg-preview-5.png"
         self.icon_path = os.path.join(self.assets_folder, "config_icon.png")
 
+        self.loading_callback = loading_callback
+
         if not os.path.isfile(self.icon_path):
             try:
-                if loading_callback:
-                    loading_callback(10, "Baixando ícone de config...")
+                if self.loading_callback:
+                    self.loading_callback(0, "Baixando ícone de configurações...")
+
                 urllib.request.urlretrieve(self.icon_url, self.icon_path)
-                if loading_callback:
-                    loading_callback(30, "Ícone baixado!")
+
+                if self.loading_callback:
+                    self.loading_callback(100, "Ícone baixado!")
+
             except Exception as e:
                 print("Erro ao baixar ícone de configurações:", e)
+                if self.loading_callback:
+                    self.loading_callback(100, "Falha no download do ícone.")
 
         self.icon_image = None
         try:
@@ -50,14 +56,11 @@ class ConfigMenu:
         self.icon_rect = self.icon_image.get_rect() if self.icon_image else pygame.Rect(0, 0, 48, 48)
         self.icon_rect.topright = (window_width - 6, 6)
 
-        self.options = ["Configurações", "Controles", "Sair"]
+        self.options = ["Configurações", "Controles"]
         self.max_height = len(self.options) * (self.option_height + self.spacing)
 
         self.controls_menu = ControlsMenu(screen, window_width, window_height)
         self.settings_menu = FullSettingsMenu(screen, window_width, window_height)
-
-        # Handler de saída com fade-out
-        self.exit_handler = ExitHandler(screen, window_width, window_height)
 
     def draw_icon(self):
         if self.icon_image:
@@ -114,16 +117,15 @@ class ConfigMenu:
             self.controls_menu.draw()
         if self.settings_menu.visible:
             self.settings_menu.draw()
-        if self.exit_handler.confirming:
-            self.exit_handler.draw_confirmation()
 
     def handle_event(self, event):
-        if self.exit_handler.handle_event(event):
-            return True
-        if self.settings_menu.visible and self.settings_menu.handle_event(event):
-            return True
-        if self.controls_menu.visible and self.controls_menu.handle_event(event):
-            return True
+        # Primeiro deixa o submenu (configurações/controles) tentar tratar o evento
+        if self.settings_menu.visible:
+            if self.settings_menu.handle_event(event):
+                return True
+        if self.controls_menu.visible:
+            if self.controls_menu.handle_event(event):
+                return True
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.icon_rect.collidepoint(event.pos):
@@ -146,15 +148,16 @@ class ConfigMenu:
                     if 0 <= index < len(self.options):
                         selected = self.options[index]
                         if selected == "Controles":
+                            # alterna visibilidade dos controles e fecha configurações
                             self.controls_menu.visible = not self.controls_menu.visible
                             self.settings_menu.visible = False
                         elif selected == "Configurações":
+                            # alterna visibilidade das configurações e fecha controles
                             self.settings_menu.visible = not self.settings_menu.visible
                             self.controls_menu.visible = False
-                        elif selected == "Sair":
-                            self.exit_handler.start_exit()
                     return True
                 else:
+                    # Clique fora do menu principal fecha ele (não fecha submenus)
                     self.is_open = False
                     return True
 

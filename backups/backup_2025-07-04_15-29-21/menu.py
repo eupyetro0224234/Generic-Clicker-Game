@@ -3,7 +3,34 @@ import os
 import urllib.request
 from controles import ControlsMenu
 from config import FullSettingsMenu
-from exit_handler import ExitHandler
+
+class ExitHandler:
+    def __init__(self, screen, width, height):
+        self.screen = screen
+        self.fade_surface = pygame.Surface((width, height))
+        self.fade_surface.fill((0, 0, 0))
+        self.alpha = 0
+        self.fading_out = False
+
+    def start_fade_out(self):
+        self.alpha = 0
+        self.fading_out = True
+
+    def update_fade_out(self):
+        if self.fading_out:
+            self.alpha += 10
+            if self.alpha >= 255:
+                self.alpha = 255
+                self.screen.blit(self.fade_surface, (0, 0))
+                pygame.display.flip()
+                pygame.quit()
+                sys.exit()
+            self.fade_surface.set_alpha(self.alpha)
+            self.screen.blit(self.fade_surface, (0, 0))
+            pygame.display.flip()
+            pygame.time.delay(30)
+            return True
+        return False
 
 class ConfigMenu:
     def __init__(self, screen, window_width, window_height, loading_callback=None):
@@ -11,7 +38,7 @@ class ConfigMenu:
         self.font = pygame.font.SysFont(None, 24)
         self.bg_color = (180, 210, 255)
         self.option_color = (255, 255, 255)
-        self.option_border = (80, 120, 255)
+        self.option_border = (200, 220, 250)
         self.text_color = (40, 40, 60)
 
         self.option_height = 38
@@ -23,6 +50,8 @@ class ConfigMenu:
         self.animation_progress = 0.0
         self.animation_speed = 0.12
 
+        self.exit_handler = ExitHandler(screen, window_width, window_height)
+
         localappdata = os.getenv("LOCALAPPDATA")
         self.assets_folder = os.path.join(localappdata, ".assests")
         os.makedirs(self.assets_folder, exist_ok=True)
@@ -33,10 +62,8 @@ class ConfigMenu:
         if not os.path.isfile(self.icon_path):
             try:
                 if loading_callback:
-                    loading_callback(10, "Baixando ícone de config...")
+                    loading_callback(20, "Baixando ícone...")
                 urllib.request.urlretrieve(self.icon_url, self.icon_path)
-                if loading_callback:
-                    loading_callback(30, "Ícone baixado!")
             except Exception as e:
                 print("Erro ao baixar ícone de configurações:", e)
 
@@ -55,9 +82,6 @@ class ConfigMenu:
 
         self.controls_menu = ControlsMenu(screen, window_width, window_height)
         self.settings_menu = FullSettingsMenu(screen, window_width, window_height)
-
-        # Handler de saída com fade-out
-        self.exit_handler = ExitHandler(screen, window_width, window_height)
 
     def draw_icon(self):
         if self.icon_image:
@@ -114,12 +138,8 @@ class ConfigMenu:
             self.controls_menu.draw()
         if self.settings_menu.visible:
             self.settings_menu.draw()
-        if self.exit_handler.confirming:
-            self.exit_handler.draw_confirmation()
 
     def handle_event(self, event):
-        if self.exit_handler.handle_event(event):
-            return True
         if self.settings_menu.visible and self.settings_menu.handle_event(event):
             return True
         if self.controls_menu.visible and self.controls_menu.handle_event(event):
@@ -152,7 +172,11 @@ class ConfigMenu:
                             self.settings_menu.visible = not self.settings_menu.visible
                             self.controls_menu.visible = False
                         elif selected == "Sair":
-                            self.exit_handler.start_exit()
+                            from tkinter import messagebox, Tk
+                            root = Tk()
+                            root.withdraw()
+                            if messagebox.askyesno("Sair", "Tem certeza que deseja sair?"):
+                                self.exit_handler.start_fade_out()
                     return True
                 else:
                     self.is_open = False

@@ -11,7 +11,7 @@ class ConfigMenu:
         self.font = pygame.font.SysFont(None, 24)
         self.bg_color = (180, 210, 255)
         self.option_color = (255, 255, 255)
-        self.option_border = (80, 120, 255)
+        self.option_border = (200, 220, 250)
         self.text_color = (40, 40, 60)
 
         self.option_height = 38
@@ -33,10 +33,8 @@ class ConfigMenu:
         if not os.path.isfile(self.icon_path):
             try:
                 if loading_callback:
-                    loading_callback(10, "Baixando ícone de config...")
+                    loading_callback(10, "Baixando ícone de configurações...")
                 urllib.request.urlretrieve(self.icon_url, self.icon_path)
-                if loading_callback:
-                    loading_callback(30, "Ícone baixado!")
             except Exception as e:
                 print("Erro ao baixar ícone de configurações:", e)
 
@@ -56,8 +54,13 @@ class ConfigMenu:
         self.controls_menu = ControlsMenu(screen, window_width, window_height)
         self.settings_menu = FullSettingsMenu(screen, window_width, window_height)
 
-        # Handler de saída com fade-out
-        self.exit_handler = ExitHandler(screen, window_width, window_height)
+        # exit handler para confirmação e fade out
+        self.exit_handler = ExitHandler(screen)
+
+        # fade in control (apenas 1 vez)
+        self.fade_in_alpha = 255
+        self.fade_in_speed = 10
+        self.fading_in = True
 
     def draw_icon(self):
         if self.icon_image:
@@ -108,22 +111,40 @@ class ConfigMenu:
 
         self.screen.blit(menu_surface, (x, y))
 
+        # Se estiver confirmando saída, desenha o modal
+        if self.exit_handler.confirm_exit:
+            self.exit_handler.draw_confirm_exit()
+
+        # Desenha fade in da abertura (apenas uma vez, até fade_in_alpha 0)
+        if self.fading_in:
+            fade_surface = pygame.Surface(self.screen.get_size())
+            fade_surface.fill((0, 0, 0))
+            fade_surface.set_alpha(self.fade_in_alpha)
+            self.screen.blit(fade_surface, (0, 0))
+            self.fade_in_alpha -= self.fade_in_speed
+            if self.fade_in_alpha <= 0:
+                self.fading_in = False
+
     def draw(self):
         self.draw_menu()
         if self.controls_menu.visible:
             self.controls_menu.draw()
         if self.settings_menu.visible:
             self.settings_menu.draw()
-        if self.exit_handler.confirming:
-            self.exit_handler.draw_confirmation()
 
     def handle_event(self, event):
-        if self.exit_handler.handle_event(event):
-            return True
-        if self.settings_menu.visible and self.settings_menu.handle_event(event):
-            return True
-        if self.controls_menu.visible and self.controls_menu.handle_event(event):
-            return True
+        # Prioridade: exit_handler (modal de saída)
+        if self.exit_handler.confirm_exit:
+            if self.exit_handler.handle_event(event):
+                return True
+
+        # Submenus
+        if self.settings_menu.visible:
+            if self.settings_menu.handle_event(event):
+                return True
+        if self.controls_menu.visible:
+            if self.controls_menu.handle_event(event):
+                return True
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.icon_rect.collidepoint(event.pos):
@@ -152,7 +173,7 @@ class ConfigMenu:
                             self.settings_menu.visible = not self.settings_menu.visible
                             self.controls_menu.visible = False
                         elif selected == "Sair":
-                            self.exit_handler.start_exit()
+                            self.exit_handler.start_confirm()
                     return True
                 else:
                     self.is_open = False
@@ -160,6 +181,9 @@ class ConfigMenu:
 
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
+                if self.exit_handler.confirm_exit:
+                    self.exit_handler.confirm_exit = False
+                    return True
                 if self.settings_menu.visible:
                     self.settings_menu.visible = False
                     return True

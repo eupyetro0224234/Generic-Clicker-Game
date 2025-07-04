@@ -8,6 +8,20 @@ from score_manager import ScoreManager
 from menu import ConfigMenu
 from loading import LoadingScreen
 
+def fade_in(screen, duration=1000):
+    clock = pygame.time.Clock()
+    overlay = pygame.Surface(screen.get_size())
+    overlay.fill((0, 0, 0))
+    alpha = 255
+    step = 255 / (duration / 16)
+
+    while alpha > 0:
+        overlay.set_alpha(int(alpha))
+        screen.blit(overlay, (0, 0))
+        pygame.display.flip()
+        clock.tick(60)
+        alpha -= step
+
 def main():
     pasta_do_projeto = os.path.dirname(os.path.abspath(__file__))
     pasta_de_backups = os.path.join(pasta_do_projeto, "backups")
@@ -47,6 +61,7 @@ def main():
 
     loading_screen.draw(100, "Concluído!")
     pygame.time.delay(500)
+    fade_in(screen)
 
     clock = pygame.time.Clock()
     running = True
