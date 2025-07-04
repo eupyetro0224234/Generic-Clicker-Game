@@ -1,15 +1,20 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: Diretório do repositório
-set "REPO_DIR=C:\Users\pyetr\OneDrive\Desktop\unitypy\backups"
+:: Caminho do repositório
+set "REPO_DIR=C:\Users\pyetr\OneDrive\Desktop\unitypy"
 
 cd /d "%REPO_DIR%"
 
 echo Atualizando repositório remoto...
 git pull origin main
 
-echo Adicionando arquivos modificados e novos...
+echo Removendo repositórios internos dos backups...
+for /d %%F in (backups\*) do (
+    if exist "%%F\.git" rd /s /q "%%F\.git"
+)
+
+echo Adicionando todos os arquivos da pasta backups...
 git add --all
 
 :: Mensagem de commit com data e hora
