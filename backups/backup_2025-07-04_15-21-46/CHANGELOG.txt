@@ -1,0 +1,4 @@
+# Mudanças entre backup_2025-07-04_15-19-15 → backup_2025-07-04_15-21-46
+
+- Arquivo removido: CHANGELOG.txt
+- Arquivo alterado: menu.py

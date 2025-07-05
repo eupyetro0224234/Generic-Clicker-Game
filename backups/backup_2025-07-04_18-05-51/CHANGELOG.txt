@@ -1,0 +1,4 @@
+# Mudanças entre backup_2025-07-04_18-04-30 → backup_2025-07-04_18-05-51
+
+- Arquivo removido: CHANGELOG.txt
+- Arquivo alterado: exit_handler.py

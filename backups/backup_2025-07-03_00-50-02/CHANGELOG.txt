@@ -1,0 +1,4 @@
+# Mudanças entre backup_2025-07-03_00-48-59 → backup_2025-07-03_00-50-02
+
+- Arquivo removido: CHANGELOG.txt
+- Arquivo alterado: button.py

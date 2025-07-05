@@ -1,0 +1,4 @@
+# Mudanças entre backup_2025-07-04_13-59-26 → backup_2025-07-04_14-25-16
+
+- Arquivo removido: CHANGELOG.txt
+- Novo arquivo: server.py

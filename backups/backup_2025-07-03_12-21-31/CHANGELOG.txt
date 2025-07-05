@@ -1,0 +1,4 @@
+# Mudanças entre backup_2025-07-03_12-19-04 → backup_2025-07-03_12-21-31
+
+- Arquivo removido: CHANGELOG.txt
+- Arquivo alterado: controles.py

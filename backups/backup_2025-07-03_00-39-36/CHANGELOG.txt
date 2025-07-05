@@ -1,0 +1,4 @@
+# Mudanças entre backup_2025-07-03_00-38-51 → backup_2025-07-03_00-39-36
+
+- Arquivo removido: CHANGELOG.txt
+- Arquivo alterado: background.py

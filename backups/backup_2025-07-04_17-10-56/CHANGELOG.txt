@@ -1,0 +1,3 @@
+# Mudanças entre backup_2025-07-04_15-39-32 → backup_2025-07-04_17-10-56
+
+- Arquivo removido: CHANGELOG.txt

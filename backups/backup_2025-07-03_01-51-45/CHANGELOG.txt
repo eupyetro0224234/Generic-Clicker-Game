@@ -1,0 +1,4 @@
+# Mudanças entre backup_2025-07-03_01-50-27 → backup_2025-07-03_01-51-45
+
+- Arquivo removido: CHANGELOG.txt
+- Arquivo alterado: app.py

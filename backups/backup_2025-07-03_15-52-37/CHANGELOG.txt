@@ -1,0 +1,7 @@
+# Mudanças entre backup_2025-07-03_15-49-27 → backup_2025-07-03_15-52-37
+
+- Arquivo removido: CHANGELOG.txt
+- Arquivo alterado: app.py
+- Arquivo removido: menu.py
+- Novo arquivo: menu1.py
+- Novo arquivo: menu2.py
