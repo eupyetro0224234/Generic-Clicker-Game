@@ -53,8 +53,16 @@ Entre na pasta
 cd just-another-generic-clicker-game-but-with-references
 ```
 
-# Instale as dependências
-npm install  # ou pip install -r requirements.txt, etc.
+Instale as dependências
+
+```bash
+pip install -r requirements.txt
+```
+*ou, caso queria instalar manualmente
+
+```bash
+pip install certifi==2025.6.15 charset-normalizer==3.4.2 idna==3.10 pillow==11.3.0 pygame==2.6.1 requests==2.32.4 urllib3==2.5.0
+```
 
 # Rode o projeto
 npm start  # ou python main.py, etc.
