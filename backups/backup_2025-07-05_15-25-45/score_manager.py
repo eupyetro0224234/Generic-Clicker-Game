@@ -15,9 +15,11 @@ class ScoreManager:
     def _xor_encrypt(self, data: bytes) -> bytes:
         return bytes([b ^ self.key for b in data])
 
-    def save_data(self, score: int, controls_visible: bool, achievements):
-        # Achievements separados por vírgula (string)
-        achievements_str = ",".join(achievements)
+    def save_data(self, score: int, controls_visible: bool, unlocked_achievements=None):
+        if unlocked_achievements is None:
+            unlocked_achievements = []
+        # Salvamos como: score|controls_visible|ach1,ach2,ach3
+        achievements_str = ",".join(unlocked_achievements)
         data_str = f"{score}|{int(controls_visible)}|{achievements_str}"
         data = data_str.encode("utf-8")
         encrypted = self._xor_encrypt(data)
@@ -34,13 +36,11 @@ class ScoreManager:
             parts = decrypted.split("|")
             score = int(parts[0]) if len(parts) > 0 else 0
             controls_visible = bool(int(parts[1])) if len(parts) > 1 else False
-            achievements = parts[2].split(",") if len(parts) > 2 and parts[2] else []
-            return score, controls_visible, achievements
+            unlocked_achievements = parts[2].split(",") if len(parts) > 2 and parts[2] else []
+            return score, controls_visible, unlocked_achievements
         except Exception:
             return 0, False, []
 
     def draw_score_box(self, screen, x, y, w, h):
-        rect = pygame.Rect(x, y, w, h)
-        pygame.draw.rect(screen, (255, 192, 203), rect, border_radius=12)  # rosa claro
-        shadow_rect = pygame.Rect(x+4, y+4, w, h)
-        pygame.draw.rect(screen, (200, 160, 180), shadow_rect, border_radius=12, width=0)
+        # Desenho de fundo e sombra aqui, mantenha seu código atual
+        pass

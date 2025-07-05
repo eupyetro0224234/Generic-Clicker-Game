@@ -4,7 +4,32 @@ import urllib.request
 from controles import ControlsMenu
 from config import FullSettingsMenu
 from exit_handler import ExitHandler
-from conquistas import AchievementsMenu  # importa o menu conquistas
+
+class AchievementsMenu:
+    def __init__(self, screen, window_width, window_height):
+        self.screen = screen
+        self.width = window_width
+        self.height = window_height
+        self.visible = False
+        self.bg_color = (180, 210, 255)
+        self.text_color = (40, 40, 60)
+        self.font = pygame.font.SysFont(None, 28)
+
+    def draw(self):
+        if not self.visible:
+            return
+        self.screen.fill(self.bg_color)
+        text = self.font.render("Conquistas (em breve)", True, self.text_color)
+        rect = text.get_rect(center=(self.width // 2, self.height // 2))
+        self.screen.blit(text, rect)
+
+    def handle_event(self, event):
+        if not self.visible:
+            return False
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            self.visible = False
+            return True
+        return False
 
 class ConfigMenu:
     def __init__(self, screen, window_width, window_height, loading_callback=None):
@@ -51,14 +76,13 @@ class ConfigMenu:
         self.icon_rect = self.icon_image.get_rect() if self.icon_image else pygame.Rect(0, 0, 48, 48)
         self.icon_rect.topright = (window_width - 6, 6)
 
-        # Adiciona a opção Conquistas no menu
+        # Adiciona "Conquistas" na lista de opções
         self.options = ["Configurações", "Controles", "Conquistas", "Sair"]
         self.max_height = len(self.options) * (self.option_height + self.spacing)
 
         self.controls_menu = ControlsMenu(screen, window_width, window_height)
         self.settings_menu = FullSettingsMenu(screen, window_width, window_height)
-        self.achievements_menu = AchievementsMenu(screen, window_width, window_height)  # cria o menu conquistas
-
+        self.achievements_menu = AchievementsMenu(screen, window_width, window_height)
         self.exit_handler = ExitHandler(screen, window_width, window_height)
 
     def draw_icon(self):
@@ -157,20 +181,20 @@ class ConfigMenu:
                         if selected == "Controles":
                             self.controls_menu.visible = not self.controls_menu.visible
                             self.settings_menu.visible = False
-                            self.achievements_menu.visible = False
                             self.exit_handler.active = False
+                            self.achievements_menu.visible = False
                         elif selected == "Configurações":
                             self.settings_menu.visible = not self.settings_menu.visible
                             self.controls_menu.visible = False
-                            self.achievements_menu.visible = False
                             self.exit_handler.active = False
+                            self.achievements_menu.visible = False
                         elif selected == "Conquistas":
                             self.achievements_menu.visible = not self.achievements_menu.visible
                             self.settings_menu.visible = False
                             self.controls_menu.visible = False
                             self.exit_handler.active = False
                         elif selected == "Sair":
-                            self.exit_handler.active = True  # ATIVA DIÁLOGO DE SAÍDA AQUI
+                            self.exit_handler.active = True  # ativa diálogo de saída
                             self.is_open = False
                             self.settings_menu.visible = False
                             self.controls_menu.visible = False

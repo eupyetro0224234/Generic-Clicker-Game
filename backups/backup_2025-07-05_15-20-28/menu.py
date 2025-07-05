@@ -4,7 +4,6 @@ import urllib.request
 from controles import ControlsMenu
 from config import FullSettingsMenu
 from exit_handler import ExitHandler
-from conquistas import AchievementsMenu  # importa o menu conquistas
 
 class ConfigMenu:
     def __init__(self, screen, window_width, window_height, loading_callback=None):
@@ -51,13 +50,11 @@ class ConfigMenu:
         self.icon_rect = self.icon_image.get_rect() if self.icon_image else pygame.Rect(0, 0, 48, 48)
         self.icon_rect.topright = (window_width - 6, 6)
 
-        # Adiciona a opção Conquistas no menu
-        self.options = ["Configurações", "Controles", "Conquistas", "Sair"]
+        self.options = ["Configurações", "Controles", "Sair"]
         self.max_height = len(self.options) * (self.option_height + self.spacing)
 
         self.controls_menu = ControlsMenu(screen, window_width, window_height)
         self.settings_menu = FullSettingsMenu(screen, window_width, window_height)
-        self.achievements_menu = AchievementsMenu(screen, window_width, window_height)  # cria o menu conquistas
 
         self.exit_handler = ExitHandler(screen, window_width, window_height)
 
@@ -116,8 +113,6 @@ class ConfigMenu:
             self.controls_menu.draw()
         if self.settings_menu.visible:
             self.settings_menu.draw()
-        if self.achievements_menu.visible:
-            self.achievements_menu.draw()
         self.exit_handler.draw()
 
     def handle_event(self, event):
@@ -129,9 +124,6 @@ class ConfigMenu:
                 return True
         if self.controls_menu.visible:
             if self.controls_menu.handle_event(event):
-                return True
-        if self.achievements_menu.visible:
-            if self.achievements_menu.handle_event(event):
                 return True
 
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -157,16 +149,9 @@ class ConfigMenu:
                         if selected == "Controles":
                             self.controls_menu.visible = not self.controls_menu.visible
                             self.settings_menu.visible = False
-                            self.achievements_menu.visible = False
                             self.exit_handler.active = False
                         elif selected == "Configurações":
                             self.settings_menu.visible = not self.settings_menu.visible
-                            self.controls_menu.visible = False
-                            self.achievements_menu.visible = False
-                            self.exit_handler.active = False
-                        elif selected == "Conquistas":
-                            self.achievements_menu.visible = not self.achievements_menu.visible
-                            self.settings_menu.visible = False
                             self.controls_menu.visible = False
                             self.exit_handler.active = False
                         elif selected == "Sair":
@@ -174,7 +159,6 @@ class ConfigMenu:
                             self.is_open = False
                             self.settings_menu.visible = False
                             self.controls_menu.visible = False
-                            self.achievements_menu.visible = False
                     return True
                 else:
                     self.is_open = False
@@ -191,9 +175,6 @@ class ConfigMenu:
                     return True
                 if self.controls_menu.visible:
                     self.controls_menu.visible = False
-                    return True
-                if self.achievements_menu.visible:
-                    self.achievements_menu.visible = False
                     return True
                 if self.is_open:
                     self.is_open = False

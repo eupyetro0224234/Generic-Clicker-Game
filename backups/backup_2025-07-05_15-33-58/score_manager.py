@@ -16,7 +16,7 @@ class ScoreManager:
         return bytes([b ^ self.key for b in data])
 
     def save_data(self, score: int, controls_visible: bool, achievements):
-        # Achievements separados por vírgula (string)
+        # Achievements separados por vírgula
         achievements_str = ",".join(achievements)
         data_str = f"{score}|{int(controls_visible)}|{achievements_str}"
         data = data_str.encode("utf-8")
@@ -40,7 +40,9 @@ class ScoreManager:
             return 0, False, []
 
     def draw_score_box(self, screen, x, y, w, h):
+        # Caixa rosa clara
         rect = pygame.Rect(x, y, w, h)
         pygame.draw.rect(screen, (255, 192, 203), rect, border_radius=12)  # rosa claro
+        # Sombra opcional (simples)
         shadow_rect = pygame.Rect(x+4, y+4, w, h)
         pygame.draw.rect(screen, (200, 160, 180), shadow_rect, border_radius=12, width=0)
