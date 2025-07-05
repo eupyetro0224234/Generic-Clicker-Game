@@ -39,9 +39,12 @@ Também pode inserir links, por exemplo: [Google](https://www.google.com)
 
 Siga os passos abaixo para rodar o projeto localmente:
 
+Certifique-se de ter pelo menos o Python 3.11 instalado (recomendo o 3.11.9) ea versão mais recente do Git
+
 Clone o repositório
 ```bash
-git clone https://github.com/seuusuario/seuprojeto.git
+git clone https://github.com/eupyetro0224234/just-another-generic-clicker-game-but-with-references.git
+```
 
 # Entre na pasta
 cd seuprojeto
