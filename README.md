@@ -37,7 +37,7 @@ Também pode inserir links, por exemplo: [Google](https://www.google.com)
 
 ## Instalação
 
-Siga os passos abaixo para rodar o projeto localmente:
+Siga os passos abaixo para rodar o projeto localmente (caso prefira, vá em releases e baixe o executável mais recente):
 
 <span style="font-size:22px; color:red;"><b><i>Certifique-se de ter pelo menos o Python 3.11 instalado (recomendo o 3.11.9) e a versão mais recente do Git</i></b></span>
 
