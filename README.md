@@ -95,7 +95,8 @@ git push origin minha-feature
 
 5. Abra um Pull Request
 
-Envie suas sugestões e contribuições
+## Envie suas sugestões e contribuições
+
 Se você quiser contribuir com alguma parte do código ou tiver sugestões para melhorar o projeto, por favor, preencha este formulário:
 
 Formulário de Contribuição e Sugestões
