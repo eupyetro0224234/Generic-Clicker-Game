@@ -1,5 +1,0 @@
-# Mudanças entre backup_2025-07-04_17-10-56 → backup_2025-07-04_17-14-49
-
-- Arquivo removido: CHANGELOG.txt
-- Arquivo alterado: app.py
-- Novo arquivo: click_effect.py

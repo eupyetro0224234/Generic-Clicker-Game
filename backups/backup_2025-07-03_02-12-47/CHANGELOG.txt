@@ -1,6 +1,0 @@
-# Mudanças entre backup_2025-07-03_02-09-14 → backup_2025-07-03_02-12-47
-
-- Arquivo removido: CHANGELOG.txt
-- Arquivo alterado: app.py
-- Arquivo alterado: menu.py
-- Arquivo alterado: score_manager.py
