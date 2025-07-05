@@ -13,7 +13,7 @@
 - [Instalação](#instalacao)  
 - [Uso](#uso)  
 - [Exemplos](#exemplos)  
-- [Contribuição](#contribuicao)  
+- [Contribuição](#contribuição)
 - [Licença Customizada](#licenca-customizada)  
 - [Contato](#contato)  
 
