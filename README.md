@@ -42,6 +42,7 @@ Também pode inserir links, por exemplo: [Google](https://www.google.com)
 Siga os passos abaixo para rodar o projeto localmente:
 
 ```bash
+
 # Clone o repositório
 git clone https://github.com/seuusuario/seuprojeto.git
 
@@ -54,7 +55,7 @@ npm install  # ou pip install -r requirements.txt, etc.
 # Rode o projeto
 npm start  # ou python main.py, etc.
 
-```bash
+---
 
 ## Contribuição
 
