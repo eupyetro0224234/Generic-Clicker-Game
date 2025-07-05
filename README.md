@@ -54,6 +54,8 @@ npm install  # ou pip install -r requirements.txt, etc.
 # Rode o projeto
 npm start  # ou python main.py, etc.
 
+---
+
 ## Contribuição
 
 Contribuições são muito bem-vindas! Siga esses passos:
