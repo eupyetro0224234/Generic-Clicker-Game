@@ -81,19 +81,19 @@ Contribuições são muito bem-vindas! Siga esses passos:
 2. Crie uma branch com sua feature:  
 ```bash
 git checkout -b minha-feature
-Faça commits das suas alterações:
+```
 
-bash
-Copiar
-Editar
+3. Faça commits das suas alterações:
+```bash
 git commit -m 'Minha nova feature'
-Dê push na branch:
+```
 
-bash
-Copiar
-Editar
+4. Dê push na branch:
+```bash
 git push origin minha-feature
-Abra um Pull Request
+```
+
+5. Abra um Pull Request
 
 Envie suas sugestões e contribuições
 Se você quiser contribuir com alguma parte do código ou tiver sugestões para melhorar o projeto, por favor, preencha este formulário:
