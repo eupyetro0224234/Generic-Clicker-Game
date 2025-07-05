@@ -78,14 +78,20 @@ Contribuições são muito bem-vindas! Siga esses passos:
 
 1. Faça um fork do projeto  
 
-2. Crie uma branch com sua feature:  
-   `git checkout -b minha-feature`  
+2. Crie uma branch com sua feature:
+```bash
+git checkout -b minha-feature
+```
 
-3. Faça commits das suas alterações:  
-   `git commit -m 'Minha nova feature'`  
+3. Faça commits das suas alterações: 
+```bash
+git commit -m 'Minha nova feature'
+```
 
 4. Dê push na branch:  
-   `git push origin minha-feature`  
+```bash
+git push origin minha-feature
+```
 
 5. Abra um Pull Request
 
