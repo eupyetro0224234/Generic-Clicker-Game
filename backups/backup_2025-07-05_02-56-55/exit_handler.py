@@ -10,17 +10,22 @@ class ExitHandler:
         self.user_text = ""
         self.font = pygame.font.SysFont(None, 32)
         self.prompt_font = pygame.font.SysFont(None, 28)
-        self.input_rect = pygame.Rect(0, 0, 260, 40)
+
+        # Caixa input
+        self.input_rect = pygame.Rect(width // 2 - 130, height // 2 + 40, 260, 40)
+
+        # Caixa azul maior (fundo da janela)
+        self.bg_rect = pygame.Rect(width // 2 - 320, height // 2 - 80, 780, 200)
+
         self.alpha = 0
         self.fading_out = False
         self.fade_speed = 8
+
         self.text_color = (40, 40, 60)
         self.prompt = "Tem certeza que deseja sair? Digite 'sim' para confirmar e 'esc' pra cancelar:"
+
         self.box_color = (255, 255, 255)
         self.bg_box_color = (180, 210, 255)
-
-        # Fundo azul maior e centralizado
-        self.bg_rect = pygame.Rect(width // 2 - 390, height // 2 - 55, 780, 120)
 
     def start(self):
         self.active = True
@@ -72,22 +77,41 @@ class ExitHandler:
 
         return True
 
+    def _blur_surface(self, surface, scale_factor=0.1):
+        """Simula blur simples reduzindo e aumentando a surface."""
+        size = surface.get_size()
+        small_size = (max(1, int(size[0] * scale_factor)), max(1, int(size[1] * scale_factor)))
+
+        small_surface = pygame.transform.smoothscale(surface, small_size)
+        blurred_surface = pygame.transform.smoothscale(small_surface, size)
+        return blurred_surface
+
     def draw(self):
         if not self.active:
             return
 
+        # Pega a área do fundo onde a caixa vai ficar
+        background_area = self.screen.subsurface(self.bg_rect).copy()
+
+        # Aplica blur simples no fundo
+        blurred_background = self._blur_surface(background_area, scale_factor=0.08)
+
+        # Desenha o fundo borrado
+        self.screen.blit(blurred_background, self.bg_rect.topleft)
+
+        # Desenha a caixa azul atrás da janela
         pygame.draw.rect(self.screen, self.bg_box_color, self.bg_rect, border_radius=12)
 
+        # Texto do prompt
         prompt_surface = self.prompt_font.render(self.prompt, True, self.text_color)
-        prompt_rect = prompt_surface.get_rect(center=(self.width // 2, self.bg_rect.y + 35))
+        prompt_rect = prompt_surface.get_rect(center=(self.width // 2, self.bg_rect.y + 40))
         self.screen.blit(prompt_surface, prompt_rect)
 
-        self.input_rect.centerx = self.width // 2
-        self.input_rect.top = prompt_rect.bottom + 8
-
+        # Caixa de input
         pygame.draw.rect(self.screen, self.box_color, self.input_rect, border_radius=6)
         pygame.draw.rect(self.screen, (200, 200, 200), self.input_rect, 2, border_radius=6)
 
+        # Texto digitado pelo usuário
         user_text_surface = self.font.render(self.user_text, True, self.text_color)
         text_pos = self.input_rect.x + 10, self.input_rect.y + (self.input_rect.height - user_text_surface.get_height()) // 2
         self.screen.blit(user_text_surface, text_pos)

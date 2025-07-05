@@ -10,7 +10,21 @@ class ExitHandler:
         self.user_text = ""
         self.font = pygame.font.SysFont(None, 32)
         self.prompt_font = pygame.font.SysFont(None, 28)
-        self.input_rect = pygame.Rect(0, 0, 260, 40)
+
+        self.bg_rect = pygame.Rect(
+            (width - 780) // 2,
+            (height - 240) // 2,
+            780,
+            240
+        )
+
+        self.input_rect = pygame.Rect(
+            self.bg_rect.x + (self.bg_rect.width - 260) // 2,
+            self.bg_rect.y + 100,
+            260,
+            40
+        )
+
         self.alpha = 0
         self.fading_out = False
         self.fade_speed = 8
@@ -18,9 +32,6 @@ class ExitHandler:
         self.prompt = "Tem certeza que deseja sair? Digite 'sim' para confirmar e 'esc' pra cancelar:"
         self.box_color = (255, 255, 255)
         self.bg_box_color = (180, 210, 255)
-
-        # Fundo azul maior e centralizado
-        self.bg_rect = pygame.Rect(width // 2 - 390, height // 2 - 55, 780, 120)
 
     def start(self):
         self.active = True
@@ -40,6 +51,7 @@ class ExitHandler:
             if event.key == pygame.K_BACKSPACE:
                 self.user_text = self.user_text[:-1]
             elif event.key == pygame.K_RETURN:
+                # Só aceita "sim" para sair, qualquer outra coisa limpa texto (não inclui "não")
                 if self.user_text.strip().lower() == "sim":
                     self.fading_out = True
                 else:
@@ -48,8 +60,9 @@ class ExitHandler:
                 self.active = False
             else:
                 if len(event.unicode) == 1 and event.unicode.isprintable():
-                    if len(self.user_text) < 20:
-                        self.user_text += event.unicode
+                    if event.unicode != '~':  # evita dead key til separado
+                        if len(self.user_text) < 20:
+                            self.user_text += event.unicode
             return True
         return False
 
@@ -79,11 +92,8 @@ class ExitHandler:
         pygame.draw.rect(self.screen, self.bg_box_color, self.bg_rect, border_radius=12)
 
         prompt_surface = self.prompt_font.render(self.prompt, True, self.text_color)
-        prompt_rect = prompt_surface.get_rect(center=(self.width // 2, self.bg_rect.y + 35))
+        prompt_rect = prompt_surface.get_rect(center=(self.bg_rect.centerx, self.bg_rect.y + 40))
         self.screen.blit(prompt_surface, prompt_rect)
-
-        self.input_rect.centerx = self.width // 2
-        self.input_rect.top = prompt_rect.bottom + 8
 
         pygame.draw.rect(self.screen, self.box_color, self.input_rect, border_radius=6)
         pygame.draw.rect(self.screen, (200, 200, 200), self.input_rect, 2, border_radius=6)

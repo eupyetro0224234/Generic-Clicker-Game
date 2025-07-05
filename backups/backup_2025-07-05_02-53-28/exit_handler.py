@@ -19,8 +19,8 @@ class ExitHandler:
         self.box_color = (255, 255, 255)
         self.bg_box_color = (180, 210, 255)
 
-        # Fundo azul maior e centralizado
-        self.bg_rect = pygame.Rect(width // 2 - 390, height // 2 - 55, 780, 120)
+        # Caixa azul mais larga e menor em altura, centralizada
+        self.bg_rect = pygame.Rect(width // 2 - 350, height // 2 - 55, 700, 120)
 
     def start(self):
         self.active = True
@@ -82,6 +82,7 @@ class ExitHandler:
         prompt_rect = prompt_surface.get_rect(center=(self.width // 2, self.bg_rect.y + 35))
         self.screen.blit(prompt_surface, prompt_rect)
 
+        # Centraliza input logo abaixo do texto, com pouco espaço
         self.input_rect.centerx = self.width // 2
         self.input_rect.top = prompt_rect.bottom + 8
 

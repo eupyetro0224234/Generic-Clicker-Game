@@ -10,6 +10,7 @@ class ExitHandler:
         self.user_text = ""
         self.font = pygame.font.SysFont(None, 32)
         self.prompt_font = pygame.font.SysFont(None, 28)
+        # Inicialmente a input_rect é posicionada centralizada no meio vertical, será ajustada no draw
         self.input_rect = pygame.Rect(0, 0, 260, 40)
         self.alpha = 0
         self.fading_out = False
@@ -19,8 +20,8 @@ class ExitHandler:
         self.box_color = (255, 255, 255)
         self.bg_box_color = (180, 210, 255)
 
-        # Fundo azul maior e centralizado
-        self.bg_rect = pygame.Rect(width // 2 - 390, height // 2 - 55, 780, 120)
+        # Caixa azul menor e mais compacta, centralizada
+        self.bg_rect = pygame.Rect(width // 2 - 280, height // 2 - 60, 560, 140)
 
     def start(self):
         self.active = True
@@ -47,6 +48,7 @@ class ExitHandler:
             elif event.key == pygame.K_ESCAPE:
                 self.active = False
             else:
+                # Evita acentos sendo tratados como dead keys
                 if len(event.unicode) == 1 and event.unicode.isprintable():
                     if len(self.user_text) < 20:
                         self.user_text += event.unicode
@@ -82,8 +84,9 @@ class ExitHandler:
         prompt_rect = prompt_surface.get_rect(center=(self.width // 2, self.bg_rect.y + 35))
         self.screen.blit(prompt_surface, prompt_rect)
 
+        # Centraliza a caixa de texto abaixo do prompt, com pouco espaço entre eles
         self.input_rect.centerx = self.width // 2
-        self.input_rect.top = prompt_rect.bottom + 8
+        self.input_rect.top = prompt_rect.bottom + 10
 
         pygame.draw.rect(self.screen, self.box_color, self.input_rect, border_radius=6)
         pygame.draw.rect(self.screen, (200, 200, 200), self.input_rect, 2, border_radius=6)

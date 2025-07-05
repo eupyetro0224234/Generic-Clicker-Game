@@ -24,7 +24,7 @@ def main():
         ("Carregando imagens...", 50),
         ("Inicializando menus...", 80),
         ("Quase lá...", 95),
-        ("Concluído! Iniciando o jogo", 100)
+        ("Concluído!", 100)
     ]
 
     for msg, percent in steps:
