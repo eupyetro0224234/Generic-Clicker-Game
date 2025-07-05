@@ -12,6 +12,7 @@
 - [Funcionalidades](#funcionalidades)
 - [Instalação](#instalação)
 - [Contribuições](#contribuições)
+- [Envie suas sugestões e contribuições](#envie-suas-sugestões-e-contribuições)
 - [Licença Customizada](#licença-customizada)
 - [Contato](#contato)
 
