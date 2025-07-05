@@ -76,15 +76,18 @@ python app.py
 
 Contribuições são muito bem-vindas! Siga esses passos:
 
-Faça um fork do projeto,
+1. Faça um fork do projeto  
 
-Crie uma branch com sua feature: git checkout -b minha-feature,
+2. Crie uma branch com sua feature:  
+   `git checkout -b minha-feature`  
 
-Faça commits das suas alterações: git commit -m 'Minha nova feature',
+3. Faça commits das suas alterações:  
+   `git commit -m 'Minha nova feature'`  
 
-Dê push na branch: git push origin minha-feature,
+4. Dê push na branch:  
+   `git push origin minha-feature`  
 
-Abra um Pull Request.
+5. Abra um Pull Request
 
 ## Licença Customizada
 
