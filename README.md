@@ -39,8 +39,8 @@ Também pode inserir links, por exemplo: [Google](https://www.google.com)
 
 Siga os passos abaixo para rodar o projeto localmente:
 
+Clone o repositório
 ```bash
-# Clone o repositório
 git clone https://github.com/seuusuario/seuprojeto.git
 
 # Entre na pasta
