@@ -58,14 +58,16 @@ Instale as dependências
 ```bash
 pip install -r requirements.txt
 ```
-*ou, caso queria instalar manualmente
+*ou, caso prefira instalar manualmente
 
 ```bash
 pip install certifi==2025.6.15 charset-normalizer==3.4.2 idna==3.10 pillow==11.3.0 pygame==2.6.1 requests==2.32.4 urllib3==2.5.0
 ```
 
-# Rode o projeto
-npm start  # ou python main.py, etc.
+Rode o projeto
+
+```bash
+python app.py
 ```
 
 ---
