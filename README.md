@@ -53,54 +53,26 @@ npm install  # ou pip install -r requirements.txt, etc.
 
 # Rode o projeto
 npm start  # ou python main.py, etc.
-Uso
-Explique aqui como usar o projeto, com comandos e exemplos.
 
-Por exemplo, se for um script em Python:
+## Contribuição
 
-python
-Copiar
-Editar
-from meu_modulo import funcao_principal
-
-resultado = funcao_principal(param1='valor')
-print(resultado)
-Ou linha de comando:
-
-bash
-Copiar
-Editar
-./meuscript --opcao valor
-Exemplos
-Aqui você pode colocar imagens, gifs, vídeos para mostrar o projeto em ação:
-
-
-Contribuição
 Contribuições são muito bem-vindas! Siga esses passos:
 
-Faça um fork do projeto
+Faça um fork do projeto,
 
-Crie uma branch com sua feature: git checkout -b minha-feature
+Crie uma branch com sua feature: git checkout -b minha-feature,
 
-Faça commits das suas alterações: git commit -m 'Minha nova feature'
+Faça commits das suas alterações: git commit -m 'Minha nova feature',
 
-Dê push na branch: git push origin minha-feature
+Dê push na branch: git push origin minha-feature,
 
-Abra um Pull Request
+Abra um Pull Request.
 
-Licença Customizada
+## Licença Customizada
+
 Você tem permissão para usar e modificar este projeto livremente.
 No entanto, a publicação de quaisquer versões modificadas ou derivadas do projeto só pode ser feita mediante minha autorização prévia e expressa.
-
 Ou seja, alterações são permitidas para uso pessoal ou interno, mas para distribuir ou publicar essas modificações, você deve obter minha permissão.
 
-Contato
-Seu Nome — @seutwitter — email@exemplo.com
-
-Link do projeto: https://github.com/seuusuario/seuprojeto
-
-css
-Copiar
-Editar
-
-Se quiser que eu faça mais alguma alteração ou inclusão, é só avisar!
+## Contato
+Pyetro — eu.pyetro.022@gmail.com
