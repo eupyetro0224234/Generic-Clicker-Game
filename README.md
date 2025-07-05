@@ -11,7 +11,7 @@
 - [Sobre](#sobre)
 - [Funcionalidades](#funcionalidades)
 - [Instalação](#instalação)
-- [Contribuição](#contribuição)
+- [Contribuições](#contribuições)
 - [Licença Customizada](#licença-customizada)
 - [Contato](#contato)
 
@@ -72,7 +72,7 @@ python app.py
 
 ---
 
-## Contribuição
+## Contribuições
 
 Contribuições são muito bem-vindas! Siga esses passos:
 
