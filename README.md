@@ -1,6 +1,6 @@
 # Just Another Generic Clicker Game, But With References
 
-![Badge de versão](https://img.shields.io/badge/version-1.0.0-blue) ![Badge de licença](https://img.shields.io/badge/license-MIT-green)
+![Badge de versão](https://img.shields.io/badge/version-0.0.01-blue) ![Badge de licença](https://img.shields.io/badge/license-MIT-green)
 
 > _Descrição breve e inspiradora do projeto._
 
