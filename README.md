@@ -14,7 +14,7 @@
 - [Uso](#uso)  
 - [Exemplos](#exemplos)  
 - [Contribuição](#contribuicao)  
-- [Licença](#licenca)  
+- [Licença Customizada](#licenca-customizada)  
 - [Contato](#contato)  
 
 ---
