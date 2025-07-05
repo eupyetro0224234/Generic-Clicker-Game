@@ -10,7 +10,7 @@
 
 - [Sobre](#sobre)  
 - [Funcionalidades](#funcionalidades)  
-- [Instalação](#instalacao)  
+- [Instalação](#instalação)  
 - [Uso](#uso)  
 - [Exemplos](#exemplos)  
 - [Contribuição](#contribuição)
