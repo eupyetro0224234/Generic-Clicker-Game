@@ -54,7 +54,7 @@ npm install  # ou pip install -r requirements.txt, etc.
 
 # Rode o projeto
 npm start  # ou python main.py, etc.
-```` ``` ````
+```
 
 ---
 
