@@ -99,7 +99,7 @@ git push origin minha-feature
 
 Se você quiser contribuir com alguma parte do código ou tiver sugestões para melhorar o projeto, por favor, preencha este formulário:
 
-Formulário de Contribuição e Sugestões
+[Formulário de Contribuição e Sugestões](https://forms.gle/FShiHvzMqAvsM7UbA)
 
 Sua participação é muito importante para o crescimento e melhoria contínua do projeto!
 
