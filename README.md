@@ -8,14 +8,12 @@
 
 ## Sumário
 
-- [Sobre](#sobre)  
-- [Funcionalidades](#funcionalidades)  
-- [Instalação](#instalação)  
-- [Uso](#uso)  
-- [Exemplos](#exemplos)  
+- [Sobre](#sobre)
+- [Funcionalidades](#funcionalidades)
+- [Instalação](#instalação)
 - [Contribuição](#contribuição)
-- [Licença Customizada](#licenca-customizada)  
-- [Contato](#contato)  
+- [Licença Customizada](#licença-customizada)
+- [Contato](#contato)
 
 ---
 
