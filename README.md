@@ -2,7 +2,7 @@
 
 ![Badge de versão](https://img.shields.io/badge/version-0.0.01-blue) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
 
-> _Descrição breve e inspiradora do projeto._
+> _Just Another Generic Clicker Game, But With References é um projeto que nasceu com a minha curiosidade e para o meu aprendizado. Como grande fâ de jogos como Stardew Valley e Minecraft, quis criar um jogo de clicker para ir evoluindo com o tempo._
 
 ---
 
@@ -100,7 +100,7 @@ git push origin minha-feature
 
 Se você quiser contribuir com alguma parte do código ou tiver sugestões para melhorar o projeto, por favor, preencha este formulário:
 
-[Formulário de Contribuição e Sugestões](https://forms.gle/FShiHvzMqAvsM7UbA)
+[Formulário de Contribuição e Sugestões](https://forms.gle/fh1ZR7tAoz226bpT8)
 
 Sua participação é muito importante para o crescimento e melhoria contínua do projeto!
 
