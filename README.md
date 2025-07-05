@@ -15,6 +15,7 @@
 - [Envie suas sugestões e contribuições](#envie-suas-sugestões-e-contribuições)
 - [Licença Customizada](#licença-customizada)
 - [Contato](#contato)
+- [Créditos](#créditos)
 
 ---
 
@@ -112,3 +113,7 @@ Ou seja, alterações são permitidas para uso pessoal ou interno, mas para dist
 
 ## Contato
 Pyetro — eu.pyetro.022@gmail.com
+
+## Créditos
+* Minecraft Wiki: [Gif do Livro Encantado](https://pt.minecraft.wiki/w/Livro_Encantado)
+* Stardew Valley Wiki: [Ícone de configurações](https://pt.stardewvalleywiki.com/Controles_m%C3%B3veis)
