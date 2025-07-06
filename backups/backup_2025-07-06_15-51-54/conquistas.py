@@ -22,9 +22,10 @@ class AchievementTracker:
         self.popup_time = 0
         self.popup_duration = 3.0
         self.font = pygame.font.SysFont(None, 28)
-        self.bg_color = (255, 192, 203)  # rosa claro
+        self.bg_color = (255, 192, 203)  # rosa claro para popup
 
     def load_unlocked(self, titles: list[str]):
+        """Marca as conquistas carregadas como desbloqueadas."""
         for ach in self.achievements:
             if ach.title in titles:
                 ach.unlocked = True
@@ -46,7 +47,7 @@ class AchievementTracker:
             self.popup_text = ""
             return
 
-        w, h = 460, 50
+        w, h = 400, 50
         x = (self.screen.get_width() - w) // 2
         y = 80
         rect = pygame.Rect(x, y, w, h)
@@ -60,53 +61,48 @@ class AchievementsMenu:
         self.screen = screen
         self.width = width
         self.height = height
-        self.visible = False
-        self.tracker = None  # será definido no app.py
 
+        self.font = pygame.font.SysFont(None, 26)
         self.title_font = pygame.font.SysFont(None, 36, bold=True)
-        self.font = pygame.font.SysFont(None, 24)
-        self.desc_font = pygame.font.SysFont(None, 20)
         self.bg_color = (245, 225, 240)
-        self.text_color = (60, 0, 60)
+        self.text_color = (80, 0, 60)
         self.border_color = (180, 150, 180)
+
+        self.visible = False
+        self.tracker = None  # será atribuído no app.py
 
     def draw(self):
         if not self.visible or not self.tracker:
             return
 
-        w, h = 560, 340
+        w, h = 500, 300
         x = (self.width - w) // 2
         y = (self.height - h) // 2
         box = pygame.Rect(x, y, w, h)
         pygame.draw.rect(self.screen, self.bg_color, box, border_radius=16)
         pygame.draw.rect(self.screen, self.border_color, box, 2, border_radius=16)
 
-        title = self.title_font.render("Conquistas", True, self.text_color)
-        self.screen.blit(title, (x + 20, y + 20))
+        title_surf = self.title_font.render("Conquistas", True, self.text_color)
+        self.screen.blit(title_surf, (x + 20, y + 20))
 
         start_y = y + 70
-        spacing_y = 55
-
+        line_h = 30
         for i, ach in enumerate(self.tracker.achievements):
             status = "✓" if ach.unlocked else "✗"
-            status_color = (40, 180, 100) if ach.unlocked else (120, 120, 120)
-
-            # Título da conquista
-            title_text = f"{status} {ach.title}"
-            title_surface = self.font.render(title_text, True, status_color)
-            self.screen.blit(title_surface, (x + 30, start_y + i * spacing_y))
-
-            # Descrição menor e mais clara
-            desc_surface = self.desc_font.render(ach.description, True, (100, 100, 100))
-            self.screen.blit(desc_surface, (x + 50, start_y + i * spacing_y + 25))
+            color = (40, 180, 100) if ach.unlocked else (120, 120, 120)
+            text_line = f"{status} {ach.title}"
+            self.screen.blit(self.font.render(text_line, True, color),
+                             (x + 30, start_y + i * line_h))
+            desc_surf = self.font.render(ach.description, True, (100, 100, 100))
+            self.screen.blit(desc_surf, (x + 50, start_y + i * line_h + 18))
 
     def handle_event(self, event):
         if not self.visible:
             return False
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            # Fecha se clicar fora da janela
-            w, h = 560, 340
+            # Fecha se clicar fora da janela de conquistas
+            w, h = 500, 300
             x = (self.width - w) // 2
             y = (self.height - h) // 2
             if not pygame.Rect(x, y, w, h).collidepoint(event.pos):
