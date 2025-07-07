@@ -17,7 +17,7 @@ class UpgradeMenu:
 
         self.x = 10
         self.y = 10
-        self.width = 280  # aumentei para caber melhor os textos e área clicável
+        self.width = 220  # Largura do painel aumentada para caber melhor os textos
         self.visible = False
         self.animation = 0.0
         self.speed = 0.12
@@ -31,15 +31,15 @@ class UpgradeMenu:
             Upgrade("mega", "Mega Clique", 75000, 4),
         ]
 
-        # Cores do menu (como antes)
+        # Cores para o fundo e opções, inspirado no menu principal
         self.bg_color = (180, 210, 255)
         self.option_color = (255, 255, 255)
-        self.option_border = (100, 149, 237)
+        self.option_border = (100, 149, 237)  # cornflower blue para borda
         self.text_color = (40, 40, 60)
 
         self.option_height = 38
         self.option_radius = 10
-        self.padding_x = 14  # mais padding horizontal para encaixar
+        self.padding_x = 10
         self.spacing = 8
 
         self.icon_url = "https://i.postimg.cc/yxVZWpPk/image-removebg-preview-6.png"
@@ -75,8 +75,10 @@ class UpgradeMenu:
             pygame.draw.rect(self.screen, (150, 100, 100), self.icon_rect)
 
     def draw(self, score=0):
+        # Desenha o ícone sempre
         self.draw_icon()
 
+        # Animação para aparecer/desaparecer
         if self.visible:
             self.animation = min(1.0, self.animation + self.speed)
         else:
@@ -88,7 +90,6 @@ class UpgradeMenu:
         display = [f"{u.name} (${u.cost})" for u in self.upgrades]
         full_h = len(display) * (self.option_height + self.spacing) - self.spacing + 12
         height = int(full_h * self.animation)
-
         panel = pygame.Surface((self.width, height), pygame.SRCALPHA)
         pygame.draw.rect(panel, self.bg_color, (0, 0, self.width, height), border_radius=12)
 
@@ -112,7 +113,6 @@ class UpgradeMenu:
                 return score, self.purchased
 
             if self.visible:
-                # Checa se clicou dentro de alguma opção do painel (área clicável)
                 for i, upg in enumerate(self.upgrades):
                     upg_rect = pygame.Rect(
                         self.x + self.padding_x,

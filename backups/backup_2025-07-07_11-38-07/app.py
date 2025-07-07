@@ -50,10 +50,12 @@ def main():
     upgrade_menu = UpgradeMenu(screen, WIDTH, HEIGHT)
     upgrade_menu.load_upgrades(saved_upgrades)
 
-    click_effects = []
-    auto_click_counter = 0
+    # Adiciona o botão de upgrade ao lado do botão de configurações
+    config_menu.add_extra_icon(upgrade_menu.get_icon_rect(), upgrade_menu.toggle_visibility)
 
+    click_effects = []
     running = True
+
     while running:
         if config_menu.exit_handler.fading_out:
             if config_menu.exit_handler.update_fade_out():
@@ -76,7 +78,7 @@ def main():
                     tracker.unlocked.clear()
                     for ach in tracker.achievements:
                         ach.unlocked = False
-                    upgrade_menu.purchased.clear()
+                    upgrade_menu.reset_upgrades()
                     continue
 
                 if event.key == pygame.K_ESCAPE:
@@ -111,60 +113,20 @@ def main():
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 button._update_rect()
-
-                # Se o menu de upgrades estiver aberto:
-                if upgrade_menu.visible:
-                    # Verifica se clicou dentro do painel de upgrades ou no ícone
-                    inside_panel = False
-
-                    # Calcula a altura do painel atual (animado)
-                    full_h = len(upgrade_menu.upgrades) * (upgrade_menu.option_height + upgrade_menu.spacing) - upgrade_menu.spacing + 12
-                    current_height = int(full_h * upgrade_menu.animation)
-                    panel_rect = pygame.Rect(
-                        upgrade_menu.x,
-                        upgrade_menu.y + 60,
-                        upgrade_menu.width,
-                        current_height
-                    )
-
-                    if panel_rect.collidepoint(event.pos) or upgrade_menu.icon_rect.collidepoint(event.pos):
-                        inside_panel = True
-
-                    if inside_panel:
-                        # Trata clique no menu normalmente (comprar upgrades, toggle)
-                        res = upgrade_menu.handle_event(event, score)
-                        if isinstance(res, tuple):
-                            score, _ = res
-                            continue
-                        elif res:
-                            continue
-                    else:
-                        # Clique fora do menu fecha o menu de upgrades
-                        upgrade_menu.visible = False
+                if config_menu.settings_menu.is_click_allowed(event.button):
+                    if button.is_clicked(event.pos):
+                        button.click()
+                        score += upgrade_menu.get_bonus()
+                        click_effects.append(ClickEffect(event.pos[0], event.pos[1], "+1"))
+                        tracker.check_unlock(score)
                         continue
 
-                # Só permite clicar no botão se nenhum menu estiver aberto
-                if not (
-                    config_menu.settings_menu.visible or
-                    config_menu.achievements_menu.visible or
-                    upgrade_menu.visible
-                ):
-                    if config_menu.settings_menu.is_click_allowed(event.button):
-                        if button.is_clicked(event.pos):
-                            button.click()
-                            score += upgrade_menu.get_bonus()
-                            click_effects.append(ClickEffect(event.pos[0], event.pos[1], "+1"))
-                            tracker.check_unlock(score)
-                            continue
-
-                # Caso o menu de upgrades esteja fechado, mas o clique seja no ícone, abre o menu
-                if not upgrade_menu.visible:
-                    res = upgrade_menu.handle_event(event, score)
-                    if isinstance(res, tuple):
-                        score, _ = res
-                        continue
-                    elif res:
-                        continue
+                res = upgrade_menu.handle_event(event, score)
+                if isinstance(res, tuple):
+                    score, _ = res
+                    continue
+                elif res:
+                    continue
 
         config_menu.achievements_menu.tracker = tracker
         config_menu.achievements_menu.achievements = tracker.achievements
@@ -173,27 +135,21 @@ def main():
         draw_background(screen)
         button.draw(screen)
 
-        # Auto Clicker — só funciona se comprado
-        if upgrade_menu.auto_click_enabled():
-            auto_click_counter += 1
-            if auto_click_counter >= 40:  # a cada 40 frames (aprox 0.67s)
-                auto_click_counter = 0
-                score += upgrade_menu.get_bonus()
-                tracker.check_unlock(score)
-                click_effects.append(ClickEffect(WIDTH // 2, HEIGHT // 2, "+1 (Auto)"))
-
-        # Pontuação centralizada (caixa maior e mais alto)
+        # Pontuação centralizada acima do botão
         score_surf = FONT.render(str(score), True, TEXT_COLOR_SCORE)
-        score_rect = score_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 140))
+        score_rect = score_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 130))
         screen.blit(score_surf, score_rect)
 
-        # Desenha o menu de upgrades e ícone
-        upgrade_menu.draw(score)
+        # Auto clique automático a cada 1 segundo
+        if upgrade_menu.auto_click_enabled():
+            upgrade_menu.auto_click_timer += clock.get_time()
+            if upgrade_menu.auto_click_timer >= 1000:
+                score += 1
+                upgrade_menu.auto_click_timer = 0
 
-        # Desenha o menu de configurações e ícone
+        upgrade_menu.draw(score)
         config_menu.draw_icon()
         config_menu.draw()
-
         tracker.draw_popup()
 
         for eff in click_effects[:]:
@@ -205,7 +161,7 @@ def main():
         pygame.display.flip()
         clock.tick(60)
 
-        # Salva dados periodicamente
+        # Salvar progresso em cada loop (você pode mover isso para somente ao sair, se quiser)
         score_manager.save_data(
             score,
             config_menu.controls_menu.visible,

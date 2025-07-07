@@ -17,7 +17,7 @@ class UpgradeMenu:
 
         self.x = 10
         self.y = 10
-        self.width = 280  # aumentei para caber melhor os textos e área clicável
+        self.width = 200
         self.visible = False
         self.animation = 0.0
         self.speed = 0.12
@@ -26,21 +26,20 @@ class UpgradeMenu:
         self.auto_click_timer = 0
 
         self.upgrades = [
-            Upgrade("auto_click", "Auto Clique", 5000, 0),  # preço maior
-            Upgrade("double", "Pontos em Dobro", 20000, 1),
-            Upgrade("mega", "Mega Clique", 75000, 4),
+            Upgrade("auto_click", "Auto Clique", 500, 0),  # ativa clique automático
+            Upgrade("double", "Pontos em Dobro", 2000, 1),
+            Upgrade("mega", "Mega Clique", 7500, 4),
         ]
 
-        # Cores do menu (como antes)
         self.bg_color = (180, 210, 255)
         self.option_color = (255, 255, 255)
-        self.option_border = (100, 149, 237)
+        self.option_border = (200, 220, 250)
         self.text_color = (40, 40, 60)
 
         self.option_height = 38
         self.option_radius = 10
-        self.padding_x = 14  # mais padding horizontal para encaixar
-        self.spacing = 8
+        self.padding_x = 6
+        self.spacing = 5
 
         self.icon_url = "https://i.postimg.cc/yxVZWpPk/image-removebg-preview-6.png"
         localappdata = os.getenv("LOCALAPPDATA")
@@ -68,15 +67,14 @@ class UpgradeMenu:
     def toggle(self):
         self.toggle_visibility()
 
-    def draw_icon(self):
+    def draw(self, score=0):
+        # Ícone
         if self.icon:
             self.screen.blit(self.icon, self.icon_rect)
         else:
             pygame.draw.rect(self.screen, (150, 100, 100), self.icon_rect)
 
-    def draw(self, score=0):
-        self.draw_icon()
-
+        # Animação
         if self.visible:
             self.animation = min(1.0, self.animation + self.speed)
         else:
@@ -88,7 +86,6 @@ class UpgradeMenu:
         display = [f"{u.name} (${u.cost})" for u in self.upgrades]
         full_h = len(display) * (self.option_height + self.spacing) - self.spacing + 12
         height = int(full_h * self.animation)
-
         panel = pygame.Surface((self.width, height), pygame.SRCALPHA)
         pygame.draw.rect(panel, self.bg_color, (0, 0, self.width, height), border_radius=12)
 
@@ -99,7 +96,7 @@ class UpgradeMenu:
             rect = pygame.Rect(self.padding_x, oy, self.width - 2 * self.padding_x, self.option_height)
             color = (170, 250, 170) if upg.id in self.purchased else self.option_color
             pygame.draw.rect(panel, color, rect, border_radius=self.option_radius)
-            pygame.draw.rect(panel, self.option_border, rect, width=2, border_radius=self.option_radius)
+            pygame.draw.rect(panel, self.option_border, rect, width=1, border_radius=self.option_radius)
             txt = self.font.render(f"{upg.name} (${upg.cost})", True, self.text_color)
             panel.blit(txt, txt.get_rect(center=rect.center))
 
@@ -112,7 +109,6 @@ class UpgradeMenu:
                 return score, self.purchased
 
             if self.visible:
-                # Checa se clicou dentro de alguma opção do painel (área clicável)
                 for i, upg in enumerate(self.upgrades):
                     upg_rect = pygame.Rect(
                         self.x + self.padding_x,

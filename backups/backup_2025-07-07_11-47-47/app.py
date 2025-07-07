@@ -111,39 +111,6 @@ def main():
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 button._update_rect()
-
-                # Se o menu de upgrades estiver aberto:
-                if upgrade_menu.visible:
-                    # Verifica se clicou dentro do painel de upgrades ou no ícone
-                    inside_panel = False
-
-                    # Calcula a altura do painel atual (animado)
-                    full_h = len(upgrade_menu.upgrades) * (upgrade_menu.option_height + upgrade_menu.spacing) - upgrade_menu.spacing + 12
-                    current_height = int(full_h * upgrade_menu.animation)
-                    panel_rect = pygame.Rect(
-                        upgrade_menu.x,
-                        upgrade_menu.y + 60,
-                        upgrade_menu.width,
-                        current_height
-                    )
-
-                    if panel_rect.collidepoint(event.pos) or upgrade_menu.icon_rect.collidepoint(event.pos):
-                        inside_panel = True
-
-                    if inside_panel:
-                        # Trata clique no menu normalmente (comprar upgrades, toggle)
-                        res = upgrade_menu.handle_event(event, score)
-                        if isinstance(res, tuple):
-                            score, _ = res
-                            continue
-                        elif res:
-                            continue
-                    else:
-                        # Clique fora do menu fecha o menu de upgrades
-                        upgrade_menu.visible = False
-                        continue
-
-                # Só permite clicar no botão se nenhum menu estiver aberto
                 if not (
                     config_menu.settings_menu.visible or
                     config_menu.achievements_menu.visible or
@@ -157,14 +124,12 @@ def main():
                             tracker.check_unlock(score)
                             continue
 
-                # Caso o menu de upgrades esteja fechado, mas o clique seja no ícone, abre o menu
-                if not upgrade_menu.visible:
-                    res = upgrade_menu.handle_event(event, score)
-                    if isinstance(res, tuple):
-                        score, _ = res
-                        continue
-                    elif res:
-                        continue
+                res = upgrade_menu.handle_event(event, score)
+                if isinstance(res, tuple):
+                    score, _ = res
+                    continue
+                elif res:
+                    continue
 
         config_menu.achievements_menu.tracker = tracker
         config_menu.achievements_menu.achievements = tracker.achievements
@@ -173,24 +138,27 @@ def main():
         draw_background(screen)
         button.draw(screen)
 
-        # Auto Clicker — só funciona se comprado
+        # Auto Clicker
         if upgrade_menu.auto_click_enabled():
             auto_click_counter += 1
-            if auto_click_counter >= 40:  # a cada 40 frames (aprox 0.67s)
+            if auto_click_counter >= 40:  # aproximadamente a cada 0.67 segundos (40 frames)
                 auto_click_counter = 0
                 score += upgrade_menu.get_bonus()
                 tracker.check_unlock(score)
                 click_effects.append(ClickEffect(WIDTH // 2, HEIGHT // 2, "+1 (Auto)"))
 
-        # Pontuação centralizada (caixa maior e mais alto)
+        # Pontuação (centralizada e caixa um pouco maior)
         score_surf = FONT.render(str(score), True, TEXT_COLOR_SCORE)
-        score_rect = score_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 140))
+        score_rect = score_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 140))  # subiu um pouco mais para não cortar texto
         screen.blit(score_surf, score_rect)
 
-        # Desenha o menu de upgrades e ícone
+        # Ícone do upgrade
+        upgrade_menu.draw_icon()
+
+        # Menu de upgrades
         upgrade_menu.draw(score)
 
-        # Desenha o menu de configurações e ícone
+        # Menus da direita (configurações, conquistas)
         config_menu.draw_icon()
         config_menu.draw()
 
@@ -205,7 +173,6 @@ def main():
         pygame.display.flip()
         clock.tick(60)
 
-        # Salva dados periodicamente
         score_manager.save_data(
             score,
             config_menu.controls_menu.visible,

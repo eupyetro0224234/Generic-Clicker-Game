@@ -112,37 +112,6 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 button._update_rect()
 
-                # Se o menu de upgrades estiver aberto:
-                if upgrade_menu.visible:
-                    # Verifica se clicou dentro do painel de upgrades ou no ícone
-                    inside_panel = False
-
-                    # Calcula a altura do painel atual (animado)
-                    full_h = len(upgrade_menu.upgrades) * (upgrade_menu.option_height + upgrade_menu.spacing) - upgrade_menu.spacing + 12
-                    current_height = int(full_h * upgrade_menu.animation)
-                    panel_rect = pygame.Rect(
-                        upgrade_menu.x,
-                        upgrade_menu.y + 60,
-                        upgrade_menu.width,
-                        current_height
-                    )
-
-                    if panel_rect.collidepoint(event.pos) or upgrade_menu.icon_rect.collidepoint(event.pos):
-                        inside_panel = True
-
-                    if inside_panel:
-                        # Trata clique no menu normalmente (comprar upgrades, toggle)
-                        res = upgrade_menu.handle_event(event, score)
-                        if isinstance(res, tuple):
-                            score, _ = res
-                            continue
-                        elif res:
-                            continue
-                    else:
-                        # Clique fora do menu fecha o menu de upgrades
-                        upgrade_menu.visible = False
-                        continue
-
                 # Só permite clicar no botão se nenhum menu estiver aberto
                 if not (
                     config_menu.settings_menu.visible or
@@ -157,14 +126,13 @@ def main():
                             tracker.check_unlock(score)
                             continue
 
-                # Caso o menu de upgrades esteja fechado, mas o clique seja no ícone, abre o menu
-                if not upgrade_menu.visible:
-                    res = upgrade_menu.handle_event(event, score)
-                    if isinstance(res, tuple):
-                        score, _ = res
-                        continue
-                    elif res:
-                        continue
+                # Evento para o menu de upgrades (se estiver aberto, permite comprar)
+                res = upgrade_menu.handle_event(event, score)
+                if isinstance(res, tuple):
+                    score, _ = res
+                    continue
+                elif res:
+                    continue
 
         config_menu.achievements_menu.tracker = tracker
         config_menu.achievements_menu.achievements = tracker.achievements
