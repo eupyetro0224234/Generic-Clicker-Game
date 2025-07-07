@@ -15,6 +15,7 @@
 - [Instalação](#instalação)
 - [Contribuições](#contribuições)
 - [Mods e Texturas](#mods-e-texturas)
+- [Questões Comuns](#questões-comuns)
 - [Envie suas sugestões e contribuições](#envie-suas-sugestões-e-contribuições)
 - [Licença Customizada](#licença-customizada)
 - [Contato](#contato)
@@ -138,6 +139,17 @@ Ou seja, alterações são permitidas para uso pessoal ou interno, mas para dist
 ## Mods e Texturas
 
 Atualmente, esse projeto suporta apenas modificações diretas no código. Eu sei que isso não é nada prático, mas estou trabalhando em um jeito menos complexo de criar e carregar mods.
+
+## Questões Comuns
+
+- Por que meu antivírus apita ou bloqueia meu programa mesmo ele sendo seguro?
+**Antivírus usam técnicas para identificar comportamentos ou códigos suspeitos, mesmo em programas legítimos. Isso pode causar falsos positivos, quando o antivírus sinaliza algo como vírus sem que haja ameaça real. Isso acontece porque o software pode conter padrões ou operações parecidas com malware, ou por ser um arquivo novo e desconhecido.**
+
+- Quando será lançada a versão 1.0?
+**Essa é uma pergunta que eu não sei responder. Só lançarei a versão final quando esse jogo tiver cumprindo minhas expectativas.**
+
+- Você pretende ir lançando atualizações frequentes?
+**Como uma pessoa só trabalhando, as versões iniciais serão lançadas ao poucos. Então sim, o jogo não acabará na 1.0. Mesmo assim, ferramentas de modding serão disponíveis para a comunidade trabalhar e melhorar o meu jogo**
 
 ## Contato
 Pyetro — eu.pyetro.022@gmail.com
