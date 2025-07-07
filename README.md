@@ -33,9 +33,32 @@ Também pode inserir links, por exemplo: [Google](https://www.google.com)
 
 ## Funcionalidades
 
-- ✅ Funcionalidade 1  
-- ✅ Funcionalidade 2  
-- ✅ Funcionalidade 3  
+✅**Clique para ganhar pontos**
+- O jogador clica no botão central para acumular pontos.
+
+✅**Sistema de upgrades**
+- Com os pontos acumulados, o jogador pode comprar upgrades que aumentam a quantidade de pontos por clique, como "Auto Clique", "Pontos em dobro" e "Mega clique".
+
+✅**Sistema de conquistas**
+- Conquistas são desbloqueadas automaticamente conforme o jogador atinge determinados marcos, e podem ser visualizadas em um menu específico.
+
+✅**Menus interativos**
+- Menus de Configurações, Controles, Conquistas e Upgrades, acessíveis por ícones no canto da tela, com animações de abertura e fechamento.
+
+✅**Efeitos visuais de clique**
+- Pequenas animações aparecem ao clicar, mostrando "+1" para dar feedback visual ao jogador.
+
+✅**Sistema de salvamento automático**
+- Pontuação, conquistas desbloqueadas, upgrades adquiridos e configurações são salvos automaticamente para que o progresso seja mantido entre sessões.
+
+✅**Tela de carregamento animada**
+- Apresenta mensagens e uma barra de progresso enquanto o jogo carrega, melhorando a experiência do usuário.
+
+✅**Controle por teclado**
+- Permite usar atalhos como ESC para fechar menus e R para resetar a pontuação e conquistas.
+
+✅**Interface responsiva e estilizada**
+- Usa imagens externas para ícones e botões, animações suaves, e disposição intuitiva dos elementos na tela.
 
 ---
 
