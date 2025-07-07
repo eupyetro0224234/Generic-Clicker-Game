@@ -1,7 +1,6 @@
 import pygame
 import sys
 import os
-from backup import fazer_backup
 from background import draw_background, WIDTH, HEIGHT
 from button import AnimatedButton
 from score_manager import ScoreManager
@@ -14,9 +13,6 @@ from console import Console
 from exit_handler import ExitHandler
 
 def main():
-    pasta = os.path.dirname(os.path.abspath(__file__))
-    fazer_backup(pasta, os.path.join(pasta, "backups"))
-
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Just Another Generic Clicker Game, But With References")
@@ -45,7 +41,7 @@ def main():
         ("Carregando imagens...", load_images),
         ("Inicializando menus...", init_menus),
         ("Quase lá...", other_init),
-        ("Concluído! Iniciando o jogo", lambda: None),
+        ("Carregamento concluído! Iniciando o jogo...", lambda: None),
     ]
 
     for i, (msg, func) in enumerate(etapas, start=1):
@@ -61,9 +57,10 @@ def main():
     FONT = pygame.font.SysFont(None, 64)
     TEXT_COLOR_SCORE = (40, 40, 60)
 
+    # Agora o caminho da imagem é relativo à pasta .assets
+    button_image_path = os.path.join(os.getenv("LOCALAPPDATA", "."), ".assets", "button.gif")
     button = AnimatedButton(
-        WIDTH // 2, HEIGHT // 2, 200, 200,
-        "https://minecraft.wiki/images/Enchanted_Book.gif?b21c4"
+        WIDTH // 2, HEIGHT // 2, 200, 200, button_image_path
     )
 
     score_manager = ScoreManager()
