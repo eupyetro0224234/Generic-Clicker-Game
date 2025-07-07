@@ -9,7 +9,6 @@ from menu import ConfigMenu
 from loading import LoadingScreen
 from click_effect import ClickEffect
 from conquistas import AchievementTracker
-from upgrades import UpgradeMenu  # novo
 
 def main():
     # --- Backup inicial ---
@@ -46,22 +45,19 @@ def main():
     score_manager = ScoreManager()
     score, controls_visible, saved_achievements = score_manager.load_data()
 
-    # --- ConfigMenu ---
+    # --- ConfigMenu e sincronização de controles ---
     config_menu = ConfigMenu(screen, WIDTH, HEIGHT, loading_callback=loading.draw)
     config_menu.controls_menu.visible = controls_visible
 
-    # --- AchievementTracker ---
+    # --- AchievementTracker e conquistas carregadas ---
     tracker = AchievementTracker(screen)
     tracker.load_unlocked(saved_achievements)
-
-    # --- UpgradeMenu (20,90 fica abaixo da pontuação: y=20+60+10) ---
-    upgrade_menu = UpgradeMenu(screen, 20, 90)
 
     click_effects = []
 
     running = True
     while running:
-        # Fade-out de saída
+        # fade-out de saída
         if config_menu.exit_handler.fading_out:
             if config_menu.exit_handler.update_fade_out():
                 pygame.display.flip()
@@ -69,12 +65,12 @@ def main():
                 continue
 
         for event in pygame.event.get():
-            # Diálogo de saída
+            # diálogo de saída
             if config_menu.exit_handler.active:
                 config_menu.exit_handler.handle_event(event)
                 continue
 
-            # Submenus tratam primeiro
+            # submenus
             if config_menu.settings_menu.visible and config_menu.settings_menu.handle_event(event):
                 continue
             if config_menu.controls_menu.visible and config_menu.controls_menu.handle_event(event):
@@ -82,91 +78,67 @@ def main():
             if config_menu.achievements_menu.visible and config_menu.achievements_menu.handle_event(event):
                 continue
 
-            # UpgradeMenu trata clique e compra
-            consumed, delta = upgrade_menu.handle_event(event, score)
-            if consumed:
-                score += delta
-                continue
-
-            # Menu principal
+            # menu principal
             if config_menu.handle_event(event):
                 continue
 
-            # Fechar janela
+            # sair
             if event.type == pygame.QUIT:
                 config_menu.exit_handler.start()
                 continue
 
-            # Clique no botão principal
+            # clique do mouse
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if (config_menu.settings_menu.is_click_allowed(event.button)
-                    and not (config_menu.settings_menu.visible 
-                             or config_menu.achievements_menu.visible)):
-                    if button.is_clicked(event.pos):
-                        button.click()
-                        increment = upgrade_menu.get_click_increment()
-                        score += increment
-                        click_effects.append(ClickEffect(event.pos[0], event.pos[1], f"+{increment:.1f}"))
-                        tracker.check_unlock(score)
+                # verifica permissão no config antes de contar clique
+                if config_menu.settings_menu.is_click_allowed(event.button):
+                    # só conta se nenhum submenu estiver aberto
+                    if (not config_menu.settings_menu.visible and
+                        not config_menu.controls_menu.visible and
+                        not config_menu.achievements_menu.visible):
+                        if button.is_clicked(event.pos):
+                            button.click()
+                            score += 1
+                            click_effects.append(ClickEffect(event.pos[0], event.pos[1], "+1"))
+                            tracker.check_unlock(score)
 
-            # Reset de pontos (tecla R)
+            # reset de pontos
             if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
                 score = 0
-                tracker.unlocked.clear()
-                for ach in tracker.achievements:
-                    ach.unlocked = False
-                # também resetar upgrade (se quiser):
-                # upgrade_menu.click_bonus = 0.0
-                # upgrade_menu.upgrade["bought"] = False
 
-        # Sincroniza conquistas no menu
-        config_menu.achievements_menu.tracker = tracker
-        config_menu.achievements_menu.achievements = tracker.achievements
-        config_menu.achievements_menu.unlocked = tracker.unlocked
-
-        # Desenha
+        # desenho da cena
         draw_background(screen)
         button.draw(screen)
 
-        # Caixa de score
+        # caixa de score
         bx, by, bw, bh = 20, 20, 220, 60
         score_manager.draw_score_box(screen, bx, by, bw, bh)
-        score_surf = FONT.render(f"Pontos: {score:.1f}", True, TEXT_COLOR_SCORE)
-        screen.blit(score_surf, score_surf.get_rect(center=(bx + bw//2, by + bh//2)))
+        txt = FONT.render(f"Pontos: {score}", True, TEXT_COLOR_SCORE)
+        screen.blit(txt, txt.get_rect(center=(bx + bw//2, by + bh//2)))
 
-        # Desenha upgrade menu (ícone e painel)
-        upgrade_menu.draw()
-
-        # Desenha menus
+        # desenha menus
         config_menu.draw_icon()
         config_menu.draw()
 
-        # Popup de conquista
+        # notificação de conquistas
         tracker.draw_popup()
 
-        # Efeitos de clique
+        # efeitos de clique
         for eff in click_effects[:]:
             eff.update()
             eff.draw(screen)
             if eff.finished:
                 click_effects.remove(eff)
 
+        # sincroniza conquistas no menu para a contagem aparecer
+        config_menu.achievements_menu.tracker = tracker
+
         pygame.display.flip()
         clock.tick(60)
 
-        # Salva dados a cada loop
-        score_manager.save_data(
-            score,
-            config_menu.controls_menu.visible,
-            list(tracker.unlocked)
-        )
-
-    # Salvamento final
-    score_manager.save_data(
-        score,
-        config_menu.controls_menu.visible,
-        list(tracker.unlocked)
-    )
+    # salvamento final
+    score_manager.save_data(score,
+                            config_menu.controls_menu.visible,
+                            list(tracker.unlocked))
 
     pygame.quit()
     sys.exit()

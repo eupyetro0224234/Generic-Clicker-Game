@@ -61,8 +61,7 @@ class AchievementsMenu:
         self.width = width
         self.height = height
         self.visible = False
-        self.unlocked = set()
-        self.achievements = []  # <- AQUI ESTÁ A CORREÇÃO IMPORTANTE!
+        self.unlocked = set()  # atualizado pelo app.py
 
         self.title_font = pygame.font.SysFont(None, 36, bold=True)
         self.font = pygame.font.SysFont(None, 24)
@@ -86,6 +85,15 @@ class AchievementsMenu:
 
         start_y = y + 70
         line_h = 55
+        # exibe na mesma ordem de definição
+        for i, ach in enumerate(self.screen and []): pass
+        for i, ach in enumerate(self.screen and []): break  # placeholder
+
+        # CORREÇÃO: iterar via screen não faz sentido; vamos iterar passado pelo app
+        # Em app.py, faça: menu.unlocked = tracker.unlocked; e menu.achievements = tracker.achievements
+        # Aqui simplificamos exibindo conquest por ID:
+
+        # Na integração com app.py, atribua em menu: menu.achievements = tracker.achievements
         for i, ach in enumerate(self.achievements):
             status = "✓" if ach.id in self.unlocked else "✗"
             color = (40,180,100) if ach.id in self.unlocked else (120,120,120)
