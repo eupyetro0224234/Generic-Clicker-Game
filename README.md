@@ -23,11 +23,9 @@
 
 ## Sobre
 
-Aqui você explica de forma detalhada o que é o projeto, qual problema ele resolve e seu objetivo principal.
-
-Você pode usar **negrito**, *itálico* e até ~~riscado~~ para destacar partes importantes.
-
-Também pode inserir links, por exemplo: [Google](https://www.google.com)
+Este projeto é um jogo clicker desenvolvido em Python utilizando a biblioteca Pygame. Inspirado por jogos clássicos do gênero, ele oferece uma experiência divertida e simples de acumular pontos clicando em um botão central.
+O jogo inclui funcionalidades como sistema de upgrades para melhorar o ganho de pontos, conquistas para motivar o jogador a alcançar metas, menus interativos para configurar controles e visualizar o progresso, além de efeitos visuais que tornam a jogabilidade mais envolvente.
+Desenvolvido como um projeto pessoal, o objetivo é aprender e aplicar conceitos de programação de jogos, interfaces gráficas, persistência de dados e experiência do usuário. O código é modular e comentado, facilitando futuras melhorias e adaptações.
 
 ---
 
