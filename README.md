@@ -20,7 +20,7 @@
 - [Licença Customizada](#licença-customizada)
 - [Contato](#contato)
 - [Créditos](#créditos)
-- [Changelog](#changelog)
+- [Changelogs](#changelogs)
 ---
 
 ## Sobre
@@ -163,7 +163,7 @@ Pyetro — eu.pyetro.022@gmail.com
 * Stardew Valley Wiki: [Ícone de configurações](https://pt.stardewvalleywiki.com/Controles_m%C3%B3veis)
 * Potion Permit Wiki: [Botão do menu de upgrades](https://potion-permit.fandom.com/pt-br/wiki/Di%C3%A1rio_M%C3%A9dico)
 
-## Changelog
+## Changelogs
 
 <details>
   <summary>0.0.02 - 07/07/25</summary>
