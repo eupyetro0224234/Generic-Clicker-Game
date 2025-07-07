@@ -163,12 +163,23 @@ Pyetro — eu.pyetro.022@gmail.com
 * Stardew Valley Wiki: [Ícone de configurações](https://pt.stardewvalleywiki.com/Controles_m%C3%B3veis)
 * Potion Permit Wiki: [Botão do menu de upgrades](https://potion-permit.fandom.com/pt-br/wiki/Di%C3%A1rio_M%C3%A9dico)
 
+## Changelog
 
 <details>
-  <summary>Clique aqui para ver mais</summary>
+  <summary>0.0.01 - 04/07/25</summary>
   
-  Aqui está o conteúdo oculto que você quer mostrar depois de clicar.
+Lançamento inicial.
+
+</details>
+
+<details>
+  <summary>0.0.02 - 07/07/25</summary>
   
-  Pode ser um texto longo, uma lista ou até um código.
+Ajustes e otimizações de código, reduzindo por volta de 4mb do tamanho do arquivo.
+
+- Sistema para baixar arquivos novo,
+- Menu de upgrades
+- > ![Console e comandos]
+
 
 </details>
