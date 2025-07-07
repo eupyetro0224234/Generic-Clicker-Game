@@ -20,7 +20,7 @@
 - [Licença Customizada](#licença-customizada)
 - [Contato](#contato)
 - [Créditos](#créditos)
-
+- [Changelog](#changelog)
 ---
 
 ## Sobre
@@ -178,8 +178,11 @@ Lançamento inicial.
 Ajustes e otimizações de código, reduzindo por volta de 4mb do tamanho do arquivo.
 
 - Sistema para baixar arquivos novo,
-- Menu de upgrades
-- > ![Console e comandos]
-
+- Menu de upgrades,
+- Comandos e console,
+- Novo menu para conquistas,
+- Novos menus: Conquistas e Sair,
+- Fade Off ao clicar sair,
+- Confirmação de saída.
 
 </details>
