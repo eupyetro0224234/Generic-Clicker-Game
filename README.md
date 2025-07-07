@@ -1,6 +1,6 @@
 # Just Another Generic Clicker Game, But With References
 
-![Badge de versão](https://img.shields.io/badge/version-0.0.01-blue) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
+![Badge de versão](https://img.shields.io/badge/version-0.0.02-blue) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
 
 **Desative o tradutor do seu navegador ao ler**
 
