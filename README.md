@@ -166,13 +166,6 @@ Pyetro — eu.pyetro.022@gmail.com
 ## Changelog
 
 <details>
-  <summary>0.0.01 - 04/07/25</summary>
-  
-Lançamento inicial.
-
-</details>
-
-<details>
   <summary>0.0.02 - 07/07/25</summary>
   
 Ajustes e otimizações de código, reduzindo por volta de 4mb do tamanho do arquivo.
@@ -182,7 +175,14 @@ Ajustes e otimizações de código, reduzindo por volta de 4mb do tamanho do arq
 - Comandos e console,
 - Novo menu para conquistas,
 - Novos menus: Conquistas e Sair,
-- Fade Off ao clicar sair,
+- Fade Off ao clicar para sair,
 - Confirmação de saída.
+
+</details>
+
+<details>
+  <summary>0.0.01 - 04/07/25</summary>
+  
+Lançamento inicial.
 
 </details>
