@@ -1,6 +1,6 @@
 # Just Another Generic Clicker Game, But With References
 
-![Badge de versão](https://img.shields.io/badge/version-0.0.02-blue) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
+![Badge de versão](https://img.shields.io/badge/version-0.0.02.1-blue) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
 
 **Desative o tradutor do seu navegador ao ler**
 
@@ -155,6 +155,14 @@ Atualmente, esse projeto suporta apenas modificações diretas no código. Eu se
 
 **Como uma pessoa só trabalhando, as versões iniciais serão lançadas ao poucos. Então sim, o jogo não acabará na 1.0. Mesmo assim, ferramentas de modding serão disponíveis para a comunidade trabalhar e melhorar o meu jogo**
 
+- Somente o Windows receberá o jogo ou outros sistemas também?
+
+**Por ser complicado ir portando o código conforme eu vou o modificando, por um bom tempo somente o windows terá suporte. Após o lançamento da 1.0 e de ter um sistema agradável pra mods, eu pensarei na portabilidade.**
+
+- Preciso do Python instalado?
+
+**Baixando o .exe das releases, não. Mas caso você clome o repositório e queira o executar no seu pc, sim.**
+
 ## Contato
 Pyetro — eu.pyetro.022@gmail.com
 
@@ -167,9 +175,11 @@ Pyetro — eu.pyetro.022@gmail.com
 ## Changelogs
 
 <details>
-  <summary>0.0.02.1 - 04/07/25</summary>
+  <summary>0.0.02.1 - 07/07/25</summary>
   
-- Aviso de update disponível adicionado. Funcionando apenas dessa versão pra mais recentes. Pras antigas, infelizmente não funciona.
+- Aviso de update disponível adicionado.
+
+Funcionando apenas dessa versão pra mais recentes. Pras anteriores, infelizmente não funciona.
 
 </details>
 

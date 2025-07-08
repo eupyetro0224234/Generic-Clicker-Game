@@ -1,4 +1,5 @@
 import pygame
+import os
 
 class Console:
     def __init__(self, screen, width, height, on_exit_callback=None, tracker=None, config_menu=None, upgrade_manager=None):
@@ -60,7 +61,7 @@ class Console:
 
     def execute_command(self, command):
         cmd = command.strip().lower()
-        self.lines = []  # Limpa as linhas anteriores
+        self.lines = [] # Limpa as linhas anteriores
 
         if cmd == "help":
             self.lines.extend([ 
@@ -93,7 +94,7 @@ class Console:
             if len(parts) == 3 and parts[2].isdigit():
                 n = int(parts[2])
                 if self.get_score and self.set_score:
-                    new_score = self.get_score() - n
+                    new_score = max(0, self.get_score() - n)
                     self.set_score(new_score)
                     self.lines.append(f"Removido {n} pontos. Pontos: {new_score}")
                 else:
@@ -101,50 +102,79 @@ class Console:
             else:
                 self.lines.append("Uso: remove points <n>")
 
-        elif cmd == "reset achievements":
-            self.reset_achievements()
+        elif cmd.startswith("reset"):
+            parts = cmd.split()
+            if len(parts) == 2:
+                if parts[1] == "achievements":
+                    # Resetando as conquistas no tracker
+                    self.lines.append("Conquistas resetadas.")
+                    self.reset_achievements()
+                    # Atualiza o menu de conquistas
+                    if self.config_menu and self.tracker:
+                        self.config_menu.achievements_menu.update(self.tracker)
+                elif parts[1] == "points":
+                    # Resetar pontos
+                    self.set_score(0)
+                    self.lines.append("Pontos resetados.")
+                elif parts[1] == "upgrades":
+                    # Resetar upgrades
+                    self.lines.append("Upgrades resetados.")
+                    self.reset_upgrades()
+                elif parts[1] == "-a":
+                    # Resetar tudo
+                    self.set_score(0)
+                    self.lines.append("Tudo resetado (pontos, conquistas, upgrades).")
+                    self.reset_achievements()
+                    self.reset_upgrades()
 
-        elif cmd == "reset points":
-            self.set_score(0)
-            self.lines.append("Pontos resetados.")
-
-        elif cmd == "reset upgrades":
-            self.reset_upgrades()
-
-        elif cmd == "reset -a":
-            self.set_score(0)
-            self.reset_achievements()
-            self.reset_upgrades()
-            self.lines.append("Tudo resetado!")
+                else:
+                    self.lines.append("Comando inválido. Uso: reset <categoria>")
+            else:
+                self.lines.append("Uso: reset <categoria> (achievements, points, upgrades, -a)")
 
         elif cmd == "exit":
+            # Fecha o console completamente e notifica o ConfigMenu
             self.visible = False
+            self.lines.append("Console fechado.")
             if self.on_exit_callback:
                 self.on_exit_callback()
 
         else:
-            self.lines.append("Comando não reconhecido. Use 'help' para listar comandos.")
+            self.lines.append(f"Comando desconhecido: {cmd}")
 
-    def reset_upgrades(self):
-        """Reseta os upgrades no UpgradeMenu."""
-        if self.upgrade_manager:
-            self.upgrade_manager.reset_upgrades()  # Chama a função no UpgradeMenu
-            self.lines.append("Upgrades resetados com sucesso!")
+        # Mantém no máximo max_lines linhas
+        if len(self.lines) > self.max_lines:
+            self.lines = self.lines[-self.max_lines:]
 
     def reset_achievements(self):
-        """Reseta as conquistas no AchievementTracker."""
+        """Reseta as conquistas no tracker."""
         if self.tracker:
             self.tracker.unlocked.clear()
-            self.tracker.check_unlock(self.get_score())
-            self.lines.append("Conquistas resetadas com sucesso!")
+            for ach in self.tracker.achievements:
+                ach.unlocked = False
+
+    def reset_upgrades(self):
+        """Reseta os upgrades (implementação fictícia)."""
+        if self.upgrade_manager:
+            self.upgrade_manager.reset_upgrades()
+            self.lines.append("Upgrades resetados com sucesso!")
 
     def draw(self):
-        if self.visible:
-            # Exibe as linhas do console na tela
-            y_offset = 10
-            for line in self.lines:
-                text = self.font.render(line, True, (255, 255, 255))
-                self.screen.blit(text, (10, y_offset))
-                y_offset += self.font.get_height()
-            input_text = self.font.render(f"> {self.input_text}", True, (255, 255, 255))
-            self.screen.blit(input_text, (10, y_offset))
+        if not self.visible:
+            return
+
+        console_rect = pygame.Rect(20, self.height // 2, self.width - 40, self.height // 2 - 20)  # Aumentado a altura
+        pygame.draw.rect(self.screen, (20, 20, 40), console_rect, border_radius=10)
+        pygame.draw.rect(self.screen, (100, 100, 200), console_rect, 2, border_radius=10)
+
+        # Desenha linhas da última saída
+        for i, line in enumerate(self.lines):
+            text = self.font.render(line, True, (200, 200, 255))
+            self.screen.blit(text, (console_rect.x + 10, console_rect.y + 10 + i * 25))  # Ajuste no espaçamento
+
+        # Desenha linha atual de input
+        input_surface = self.font.render("> " + self.input_text, True, (200, 255, 200))
+        self.screen.blit(
+            input_surface,
+            (console_rect.x + 10, console_rect.y + 10 + len(self.lines) * 25)  # Ajuste no espaçamento
+        )
