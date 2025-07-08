@@ -159,6 +159,10 @@ Atualmente, esse projeto suporta apenas modificações diretas no código. Eu se
 
 **Por ser complicado ir portando o código conforme eu vou o modificando, por um bom tempo somente o windows terá suporte. Após o lançamento da 1.0 e de ter um sistema agradável pra mods, eu pensarei na portabilidade.**
 
+- Preciso do Python instalado?
+
+**Baixando o .exe das releases, não. Mas caso você clome o repositório e queira o executar no seu pc, sim.**
+
 ## Contato
 Pyetro — eu.pyetro.022@gmail.com
 
@@ -174,11 +178,7 @@ Pyetro — eu.pyetro.022@gmail.com
   
 - Aviso de update disponível adicionado.
 
-Funcionando apenas dessa versão pra mais recentes. Pras antigas, infelizmente não funciona.
-
-- Preciso do Python instalado?
-
-**Baixando o .exe das releases, não. Mas caso você clome o repositório e queira o executar no seu pc, sim.**
+Funcionando apenas dessa versão pra mais recentes. Pras anteriores, infelizmente não funciona.
 
 </details>
 
