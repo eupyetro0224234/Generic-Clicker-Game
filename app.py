@@ -5,13 +5,13 @@ from background import draw_background, WIDTH, HEIGHT
 from button import AnimatedButton
 from score_manager import ScoreManager
 from menu import ConfigMenu
-from loading import LoadingScreen, download_assets  # IMPORTANTE: download_assets para verificar/baixar assets
+from loading import LoadingScreen, download_assets
 from click_effect import ClickEffect
 from conquistas import AchievementTracker
 from upgrades import UpgradeMenu
 from console import Console
 from exit_handler import ExitHandler
-import updates  # Importa seu módulo de updates
+import updates  # seu módulo updates.py
 
 def main():
     pygame.init()
@@ -19,47 +19,13 @@ def main():
     pygame.display.set_caption("Just Another Generic Clicker Game, But With References")
     clock = pygame.time.Clock()
 
-    # Tela de loading com progresso real
     loading = LoadingScreen(screen, WIDTH, HEIGHT)
-
-    # ** VERIFICA E BAIXA ASSETS ANTES DE CONTINUAR **
     download_assets(screen, WIDTH, HEIGHT)
-
-    # CHECA ATUALIZAÇÃO
-    atualizou, versao_online = updates.checar_atualizacao()
-    if atualizou:
-        aviso_update = f"ATUALIZAÇÃO DISPONÍVEL! Versão {versao_online}"
-    else:
-        aviso_update = None
-
-    # Funções simulando carregamento real das etapas (substitua pelo carregamento real)
-    def load_images():
-        pass
-
-    def init_menus():
-        pass
-
-    def other_init():
-        pass
-
-    etapas = [
-        ("Carregando imagens...", load_images),
-        ("Inicializando menus...", init_menus),
-        ("Quase lá...", other_init),
-        ("Concluído! Iniciando o jogo", lambda: None),
-    ]
-
-    for i, (msg, func) in enumerate(etapas, start=1):
-        func()
-        pct = i / len(etapas) * 100
-        loading.draw(pct, msg)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
 
     FONT = pygame.font.SysFont(None, 64)
     TEXT_COLOR_SCORE = (40, 40, 60)
+    fonte_update = pygame.font.SysFont(None, 48)
+    fonte_aviso = pygame.font.SysFont(None, 28)  # Fonte para aviso reinício
 
     button = AnimatedButton(
         WIDTH // 2, HEIGHT // 2, 200, 200,
@@ -98,8 +64,23 @@ def main():
     config_menu.achievements_menu.tracker = tracker
     config_menu.console_instance = console
 
+    aviso_update = False
+    texto_update = ""
+
+    # === NOVO: Verifica atualização APENAS UMA VEZ no início ===
+    if config_menu.settings_menu.get_option("Verificar atualizações"):
+        atualizou, versao_online = updates.checar_atualizacao()
+        if atualizou:
+            aviso_update = True
+            texto_update = f"Nova versão disponível: {versao_online}!"
+        else:
+            aviso_update = False
+            texto_update = ""
+    else:
+        aviso_update = False
+        texto_update = ""
+
     while True:
-        # Fade-out para sair
         if exit_handler.fading_out:
             if exit_handler.update_fade_out():
                 pygame.display.flip()
@@ -114,7 +95,7 @@ def main():
                         tracker.unlock_secret("console")
                         exit_handler.detected_console = False
                         exit_handler.active = False
-                continue
+                    continue
 
             if event.type == pygame.QUIT:
                 if not exit_handler.active and not exit_handler.fading_out:
@@ -211,6 +192,18 @@ def main():
         score_rect = score_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 140))
         screen.blit(score_surf, score_rect)
 
+        if aviso_update:
+            text_surf = fonte_update.render(texto_update, True, (255, 50, 50))
+            text_rect = text_surf.get_rect(center=(WIDTH // 2, 100))
+            screen.blit(text_surf, text_rect)
+
+        # Exibe aviso para reiniciar se a opção "Verificar atualizações" foi alterada
+        if config_menu.settings_menu.precisa_reiniciar:
+            aviso_reiniciar_texto = "Para aplicar a mudança em 'Verificar atualizações', reinicie o jogo."
+            aviso_surf = fonte_aviso.render(aviso_reiniciar_texto, True, (255, 165, 0))
+            aviso_rect = aviso_surf.get_rect(center=(WIDTH // 2, HEIGHT - 50))
+            screen.blit(aviso_surf, aviso_rect)
+
         upgrade_menu.draw(score)
         config_menu.draw_icon()
         config_menu.draw()
@@ -218,13 +211,6 @@ def main():
             console.draw()
         exit_handler.draw()
         tracker.draw_popup()
-
-        # Exibe aviso de atualização no topo da tela
-        if aviso_update:
-            fonte_update = pygame.font.SysFont(None, 48)
-            texto_update = fonte_update.render(aviso_update, True, (255, 0, 0))
-            rect_update = texto_update.get_rect(center=(WIDTH // 2, 50))
-            screen.blit(texto_update, rect_update)
 
         for eff in click_effects[:]:
             eff.update()
@@ -241,6 +227,9 @@ def main():
             list(tracker.unlocked),
             upgrade_menu.purchased
         )
+
+    pygame.quit()
+    sys.exit()
 
 if __name__ == "__main__":
     main()

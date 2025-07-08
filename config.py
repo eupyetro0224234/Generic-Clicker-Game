@@ -27,11 +27,13 @@ class FullSettingsMenu:
             "Clique Botão do Meio": True,
             "Rolagem do Mouse": True,
             "Ativar Mods": False,
-            "Ativar Texturas": False
+            "Ativar Texturas": False,
+            "Verificar atualizações": True    # <-- NOVA OPÇÃO
         }
 
         self.visible = False
         self.options = {}
+        self.precisa_reiniciar = False  # Flag para avisar reinício ao mudar opção
         self.load_config()
 
         self.title_font = pygame.font.SysFont(None, 36)
@@ -141,7 +143,8 @@ class FullSettingsMenu:
         y = self.draw_section_title("Outros", x, y)
         outros_keys = [
             "Ativar Mods",
-            "Ativar Texturas"
+            "Ativar Texturas",
+            "Verificar atualizações"  # <-- adicionada na sessão "Outros"
         ]
         y = self.draw_options(outros_keys, x, y)
 
@@ -161,10 +164,6 @@ class FullSettingsMenu:
             title_surf = self.title_font.render("Configurações", True, self.text_color)
             y += title_surf.get_height() + 40
 
-            # Ajuste: para o clique funcionar, devemos considerar
-            # que o primeiro título "Controles" ocupa option_height + spacing
-            # as opções começam abaixo dele
-
             y = self._handle_options_click([
                 "Clique Esquerdo",
                 "Clique Direito",
@@ -172,11 +171,12 @@ class FullSettingsMenu:
                 "Rolagem do Mouse"
             ], mouse_pos, x, y + self.option_height + self.spacing)
 
-            y += 30  # Espaço entre sessões
+            y += 30
 
             y = self._handle_options_click([
                 "Ativar Mods",
-                "Ativar Texturas"
+                "Ativar Texturas",
+                "Verificar atualizações"  # <-- clicável também
             ], mouse_pos, x, y + self.option_height + self.spacing)
 
             return True
@@ -187,6 +187,9 @@ class FullSettingsMenu:
         for key in keys:
             option_rect = pygame.Rect(x, y, self.width - 2 * x, self.option_height)
             if option_rect.collidepoint(mouse_pos):
+                # Se mudar a opção "Verificar atualizações", sinaliza que precisa reiniciar
+                if key == "Verificar atualizações":
+                    self.precisa_reiniciar = True
                 self.options[key] = not self.options[key]
                 self.save_config()
                 break

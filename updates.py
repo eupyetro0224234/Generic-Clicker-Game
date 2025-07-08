@@ -1,8 +1,8 @@
 import requests
 
-VERSAO_ATUAL = "0.0.03"  # Mude aqui para a versão atual do seu jogo
+VERSAO_ATUAL = "0.0.02"
 
-URL_VERSAO = "https://raw.githubusercontent.com/eupyetro0224234/just-another-generic-clicker-game-but-with-references/main/version.txt"  # Link raw para o version.txt no GitHub
+URL_VERSAO = "https://raw.githubusercontent.com/eupyetro0224234/just-another-generic-clicker-game-but-with-references/main/version.txt"
 
 def checar_atualizacao():
     try:
@@ -17,10 +17,3 @@ def checar_atualizacao():
     except Exception as e:
         print(f"Erro ao verificar atualização: {e}")
         return False, None
-
-if __name__ == "__main__":
-    atualizou, versao = checar_atualizacao()
-    if atualizou:
-        print(f"Nova versão disponível: {versao} (Você está na {VERSAO_ATUAL})")
-    else:
-        print("Você já está usando a versão mais recente.")
