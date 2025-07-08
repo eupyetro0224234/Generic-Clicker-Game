@@ -1,7 +1,8 @@
 import os
 import pygame
-import random  # Certifique-se de importar o random
+import random
 import json
+import sys
 from background import draw_background, WIDTH, HEIGHT
 from button import AnimatedButton
 from score_manager import ScoreManager
@@ -13,7 +14,7 @@ from upgrades import UpgradeMenu
 from console import Console
 from exit_handler import ExitHandler
 import updates
-from mini_event import MiniEvent  # Certifique-se de importar o MiniEvent corretamente
+from mini_event import MiniEvent
 
 def main():
     pygame.init()
@@ -49,13 +50,21 @@ def main():
     click_effects = []
     auto_click_counter = 0
 
-    console = Console(screen, WIDTH, HEIGHT, on_exit_callback=config_menu.disable_console, tracker=tracker, config_menu=config_menu)
+    # Inicialize o Console corretamente, passando o upgrade_manager
+    console = Console(
+        screen, 
+        WIDTH, 
+        HEIGHT, 
+        on_exit_callback=config_menu.disable_console, 
+        tracker=tracker, 
+        config_menu=config_menu, 
+        upgrade_manager=upgrade_menu  # Passando o upgrade_menu aqui
+    )
     console.visible = False
 
     exit_handler = ExitHandler(screen, WIDTH, HEIGHT)
     config_menu.exit_handler = exit_handler
 
-    # Adicionando o MiniEvent
     mini_event = None
 
     def get_score():
@@ -89,6 +98,7 @@ def main():
 
     verificar_update()
 
+    last_save_time = pygame.time.get_ticks()  # Variável para controlar o tempo de salvamento
     running = True
     while running:
         if exit_handler.fading_out:
@@ -120,7 +130,20 @@ def main():
                     for ach in tracker.achievements:
                         ach.unlocked = False
                     upgrade_menu.reset_upgrades()
-                    config_menu.enable_console()
+                    # REMOVIDO: Não abre mais o console aqui
+                    continue
+
+                if event.key == pygame.K_u and not console.visible:
+                    # Resetando os upgrades (adicionado)
+                    print("Resetando upgrades...")  # Depuração
+                    upgrade_menu.purchased.clear()  # Limpa os upgrades
+                    score_manager.save_data(
+                        score,
+                        config_menu.controls_menu.visible,
+                        list(tracker.unlocked),
+                        upgrade_menu.purchased,
+                        last_mini_event_click_time
+                    )
                     continue
 
                 if event.key == pygame.K_ESCAPE:
@@ -168,28 +191,32 @@ def main():
                             click_effects.append(
                                 ClickEffect(event.pos[0], event.pos[1], f"+{upgrade_menu.get_bonus()}")
                             )
+                            # Salvar dados após o clique no botão
+                            score_manager.save_data(
+                                score,
+                                config_menu.controls_menu.visible,
+                                list(tracker.unlocked),
+                                upgrade_menu.purchased,
+                                last_mini_event_click_time
+                            )
                             continue
 
-                # Lógica de clique no mini evento
                 if mini_event and mini_event.visible:
                     score, upgrade = mini_event.handle_click(event.pos, score, upgrade_menu)
-                    if upgrade:  # Se o jogador obteve upgrade
+                    if upgrade:
                         tracker.check_unlock(score)
                         click_effects.append(
                             ClickEffect(event.pos[0], event.pos[1], "Upgrade Obtido!"))
                 
-                # Comando para mostrar o tempo do mini evento
                 if console.visible:
                     console.handle_event(event)
 
             if config_menu.handle_event(event):
                 continue
 
-        # Atualiza conquistas para o menu
         config_menu.achievements_menu.achievements = tracker.achievements
         config_menu.achievements_menu.unlocked = tracker.unlocked
 
-        # Auto Clicker
         if upgrade_menu.auto_click_enabled():
             auto_click_counter += 1
             if auto_click_counter >= 40:
@@ -200,15 +227,12 @@ def main():
                 click_effects.append(
                     ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{bonus_auto} (Auto)"))
 
-        # Atualiza o MiniEvent
-        if random.random() < 0.1 and not mini_event:  # 10% de chance de gerar o mini evento
-            print("Mini evento gerado!")  # Debug para confirmar geração
+        if random.random() < 0.1 and not mini_event:
             mini_event = MiniEvent(screen, WIDTH, HEIGHT)
 
         if mini_event:
             mini_event.update()
 
-        # Desenha o tempo para o mini-evento se o comando foi ativado
         if mini_event and mini_event.visible:
             mini_event.draw()
 
@@ -224,7 +248,6 @@ def main():
             text_rect = text_surf.get_rect(center=(WIDTH // 2, 100))
             screen.blit(text_surf, text_rect)
 
-        # Mostra aviso para reiniciar só se a flag existir e for True
         if hasattr(config_menu.settings_menu, "precisa_reiniciar") and config_menu.settings_menu.precisa_reiniciar:
             aviso = fonte_aviso.render("Reinicie o jogo para aplicar mudanças", True, (200, 0, 0))
             aviso_rect = aviso.get_rect(center=(WIDTH // 2, HEIGHT - 30))
@@ -248,13 +271,17 @@ def main():
         pygame.display.flip()
         clock.tick(60)
 
-        score_manager.save_data(
-            score,
-            config_menu.controls_menu.visible,
-            list(tracker.unlocked),
-            upgrade_menu.purchased,
-            last_mini_event_click_time  # Passa o tempo do mini evento
-        )
+        # Salvamento automático a cada 5 segundos
+        current_time = pygame.time.get_ticks()
+        if current_time - last_save_time >= 5000:  # 5000 ms = 5 segundos
+            score_manager.save_data(
+                score,
+                config_menu.controls_menu.visible,
+                list(tracker.unlocked),
+                upgrade_menu.purchased,
+                last_mini_event_click_time  # Passa o tempo do mini evento
+            )
+            last_save_time = current_time  # Atualiza o tempo do último salvamento
 
     pygame.quit()
     sys.exit()

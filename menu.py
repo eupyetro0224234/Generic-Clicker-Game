@@ -7,7 +7,7 @@ from conquistas import AchievementsMenu
 from console import Console  # Importa a classe Console correta
 
 class ConfigMenu:
-    def __init__(self, screen, window_width, window_height, loading_callback=None):
+    def __init__(self, screen, window_width, window_height, loading_callback=None, score_manager=None):
         self.screen = screen
         self.font = pygame.font.SysFont(None, 24)
         self.bg_color = (180, 210, 255)
@@ -55,6 +55,9 @@ class ConfigMenu:
         self.exit_handler = ExitHandler(screen, window_width, window_height)
 
         self.extra_icons = []
+
+        # Atribui o score_manager
+        self.score_manager = score_manager
 
         # Funções para acessar pontuação, setadas externamente
         self.get_score_callback = None

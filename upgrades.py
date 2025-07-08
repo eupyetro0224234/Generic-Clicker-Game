@@ -1,5 +1,6 @@
 import pygame
 import os
+import json
 
 class Upgrade:
     def __init__(self, id, name, cost, bonus):
@@ -53,6 +54,9 @@ class UpgradeMenu:
             self.icon = None
 
         self.icon_rect = pygame.Rect(self.x, self.y, 50, 50)
+
+        # Caminho do arquivo de upgrades
+        self.upgrades_file = os.path.join(self.assets_path, "upgrades.json")
 
     def get_icon_rect(self):
         return self.icon_rect
@@ -126,10 +130,20 @@ class UpgradeMenu:
         return score, self.purchased
 
     def load_upgrades(self, upgrades: dict):
+        """Carrega os upgrades salvos."""
         if not upgrades:
             self.purchased = {}
         else:
             self.purchased = upgrades
+
+    def save_upgrades(self):
+        """Salva os upgrades no arquivo JSON."""
+        try:
+            with open(self.upgrades_file, "w") as file:
+                json.dump(self.purchased, file, indent=4)  # Salva no formato JSON
+            print("Upgrades salvos com sucesso!")
+        except Exception as e:
+            print("Erro ao salvar upgrades:", e)
 
     def get_bonus(self):
         bonus = 1  # clique normal sempre dá 1 ponto base
@@ -149,4 +163,6 @@ class UpgradeMenu:
     def reset_upgrades(self):
         """Reseta os upgrades comprados e retorna o bônus a 0"""
         self.purchased.clear()
-        print("Upgrades resetados com sucesso!")  # Mensagem de confirmação
+        self.auto_click_timer = 0  # Zera o temporizador do auto clicker
+        print("Upgrades resetados com sucesso!")
+        self.save_upgrades()  # Salva os upgrades resetados

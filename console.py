@@ -61,7 +61,7 @@ class Console:
 
     def execute_command(self, command):
         cmd = command.strip().lower()
-        self.lines = [] # Limpa as linhas anteriores
+        self.lines = []  # Limpa as linhas anteriores
 
         if cmd == "help":
             self.lines.extend([ 
@@ -102,6 +102,15 @@ class Console:
             else:
                 self.lines.append("Uso: remove points <n>")
 
+        elif cmd == "reset upgrades":
+            self.lines.append("Resetando upgrades...")
+            if self.upgrade_manager:
+                # Chama o método reset_upgrades do upgrade_manager
+                self.upgrade_manager.reset_upgrades()
+                self.lines.append("Upgrades resetados com sucesso!")
+            else:
+                self.lines.append("Erro: upgrade_manager não configurado.")
+
         elif cmd.startswith("reset"):
             parts = cmd.split()
             if len(parts) == 2:
@@ -116,17 +125,13 @@ class Console:
                     # Resetar pontos
                     self.set_score(0)
                     self.lines.append("Pontos resetados.")
-                elif parts[1] == "upgrades":
-                    # Resetar upgrades
-                    self.lines.append("Upgrades resetados.")
-                    self.reset_upgrades()
                 elif parts[1] == "-a":
                     # Resetar tudo
                     self.set_score(0)
                     self.lines.append("Tudo resetado (pontos, conquistas, upgrades).")
                     self.reset_achievements()
-                    self.reset_upgrades()
-
+                    if self.upgrade_manager:
+                        self.upgrade_manager.reset_upgrades()
                 else:
                     self.lines.append("Comando inválido. Uso: reset <categoria>")
             else:
@@ -152,12 +157,6 @@ class Console:
             self.tracker.unlocked.clear()
             for ach in self.tracker.achievements:
                 ach.unlocked = False
-
-    def reset_upgrades(self):
-        """Reseta os upgrades (implementação fictícia)."""
-        if self.upgrade_manager:
-            self.upgrade_manager.reset_upgrades()
-            self.lines.append("Upgrades resetados com sucesso!")
 
     def draw(self):
         if not self.visible:
