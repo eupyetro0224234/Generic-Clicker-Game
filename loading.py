@@ -73,7 +73,8 @@ def download_assets(screen, width, height):
         ("https://minecraft.wiki/images/Enchanted_Book.gif?b21c4", os.path.join(assets_path, "button.gif")),
         ("https://i.postimg.cc/hGf3VRqY/image-removebg-preview-5.png", os.path.join(assets_path, "menu.png")),
         ("https://i.postimg.cc/yxVZWpPk/image-removebg-preview-6.png", os.path.join(assets_path, "upgrades.png")),
-        ("https://i.postimg.cc/MKwpfL8Z/image-removebg-preview-7.png", os.path.join(assets_path, "mini-event.png")),  # Nova imagem
+        ("https://i.postimg.cc/MKwpfL8Z/image-removebg-preview-7.png", os.path.join(assets_path, "mini-event.png")),
+        ("https://drive.google.com/uc?export=download&id=1plzz02JEt1p0puxuZtoEnLAhrcj1O0RG", os.path.join(assets_path, "complete-quest.ogg")),
     ]
 
     total = len(assets)
@@ -83,11 +84,9 @@ def download_assets(screen, width, height):
             end_pct = i / total * 100
             download_file_requests(url, path, loading_screen, start_pct, end_pct)
         else:
-            # Se arquivo já existe, só mostra progresso rápido
             pct = i / total * 100
             loading_screen.draw(pct, f"Arquivo já existe: {os.path.basename(path)}")
             pygame.time.delay(500)
 
-    # Finaliza carregamento e exibe mensagem de conclusão
     loading_screen.draw(100, "Carregamento concluído! Iniciando o jogo...")
-    pygame.time.delay(1000)  # Exibe por 1 segundo antes de continuar
+    pygame.time.delay(1000)

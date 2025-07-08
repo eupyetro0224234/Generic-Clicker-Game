@@ -24,7 +24,7 @@ class ExitHandler:
     def start(self):
         self.active = True
         self.user_text = ""
-        self.detected_console = False  # Reseta a flag ao iniciar
+        self.detected_console = False
         self.alpha = 0
         self.fading_out = False
 
@@ -40,28 +40,28 @@ class ExitHandler:
                 txt = self.user_text.strip().lower()
                 if txt == "sim":
                     self.fading_out = True
-                    self.active = False  # Fecha automaticamente se "sim" for digitado
+                    self.active = False
+                    return True
                 elif txt == "console":
-                    # Só ativa o console se o texto for exatamente 'console' ao pressionar Enter
                     self.detected_console = True
-                    self.active = False  # Fecha a caixa de diálogo após digitar o comando 'console'
+                    self.active = False
+                    return True
                 else:
-                    # Comando inválido: limpa texto
-                    self.user_text = ""
-                
-                # Limpa o texto após pressionar Enter
-                self.user_text = ""
+                    # Qualquer outra entrada diferente de "sim" ou "console" simplesmente fecha o diálogo
+                    self.active = False
+                    return True
 
             elif event.key == pygame.K_ESCAPE:
                 self.active = False
                 self.user_text = ""
+                return True
 
             else:
-                # Só aceita caracteres imprimíveis e limite de 20 caracteres
                 if len(event.unicode) == 1 and event.unicode.isprintable() and len(self.user_text) < 20:
                     self.user_text += event.unicode
+                    return True
 
-        return True
+        return False
 
     def update_fade_out(self):
         if not self.fading_out:

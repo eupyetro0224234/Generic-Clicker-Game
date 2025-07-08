@@ -4,7 +4,7 @@ from controles import ControlsMenu
 from config import FullSettingsMenu
 from exit_handler import ExitHandler
 from conquistas import AchievementsMenu
-from console import Console  # Importa a classe Console correta
+from console import Console
 
 class ConfigMenu:
     def __init__(self, screen, window_width, window_height, loading_callback=None, score_manager=None):
@@ -24,26 +24,22 @@ class ConfigMenu:
         self.animation_progress = 0.0
         self.animation_speed = 0.12
 
-        self.console_enabled = False  # Flag para ativar opção Console
-        self.console_instance = None  # Guarda a instância do console
+        self.console_enabled = False
+        self.console_instance = None
 
-        # Pasta .assets dentro do LOCALAPPDATA para ícone
         localappdata = os.getenv("LOCALAPPDATA")
         self.assets_folder = os.path.join(localappdata, ".assets")
         os.makedirs(self.assets_folder, exist_ok=True)
 
         self.icon_path = os.path.join(self.assets_folder, "menu.png")
         
-        # Carrega a imagem se existir, caso contrário None (não tenta baixar)
         try:
             self.icon_image = pygame.image.load(self.icon_path).convert_alpha()
             self.icon_image = pygame.transform.smoothscale(self.icon_image, (42, 42))
         except Exception:
             self.icon_image = None
 
-        self.icon_rect = (
-            self.icon_image.get_rect() if self.icon_image else pygame.Rect(0, 0, 48, 48)
-        )
+        self.icon_rect = self.icon_image.get_rect() if self.icon_image else pygame.Rect(0, 0, 48, 48)
         self.icon_rect.topright = (window_width - 6, 6)
 
         self.base_options = ["Configurações", "Controles", "Conquistas", "Sair"]
@@ -51,51 +47,64 @@ class ConfigMenu:
 
         self.controls_menu = ControlsMenu(screen, window_width, window_height)
         self.settings_menu = FullSettingsMenu(screen, window_width, window_height)
-        self.achievements_menu = AchievementsMenu(screen, window_width, window_height)
+        self.achievements_menu = AchievementsMenu(screen, window_width, window_height, self)
         self.exit_handler = ExitHandler(screen, window_width, window_height)
 
         self.extra_icons = []
-
-        # Atribui o score_manager
         self.score_manager = score_manager
-
-        # Funções para acessar pontuação, setadas externamente
         self.get_score_callback = None
         self.set_score_callback = None
 
+        # Verifica se deve habilitar console por configuração
+        if hasattr(self.settings_menu, 'get_option') and self.settings_menu.get_option("Manter console aberto"):
+            self.enable_console()
+
     def set_score_accessors(self, get_score_func, set_score_func):
-        """Define funções para pegar e alterar a pontuação usadas pelo console"""
         self.get_score_callback = get_score_func
         self.set_score_callback = set_score_func
 
-    def enable_console(self):
+    def enable_console(self, add_option=False):
         if not self.console_enabled:
             self.console_enabled = True
             if "Console" not in self.options:
-                idx_sair = self.options.index("Sair") if "Sair" in self.options else len(self.options)
-                self.options.insert(idx_sair, "Console")
+                self.options.insert(len(self.options)-1, "Console")
 
             if self.console_instance is None and self.get_score_callback and self.set_score_callback:
                 self.console_instance = Console(
                     self.screen,
                     self.screen.get_width(),
                     self.screen.get_height(),
-                    on_exit_callback=self.disable_console
+                    on_exit_callback=lambda: self.disable_console(remove_option=True),
+                    tracker=getattr(self.achievements_menu, 'tracker', None),
+                    config_menu=self,
+                    upgrade_manager=None
                 )
                 self.console_instance.set_score_accessors(
                     self.get_score_callback,
                     self.set_score_callback
                 )
-            elif self.console_instance:
-                self.console_instance.visible = True
+            
+            if add_option and hasattr(self, 'settings_menu'):
+                if "Manter console aberto" not in self.settings_menu.options:
+                    self.settings_menu.default_config["Manter console aberto"] = False
+                    self.settings_menu.options["Manter console aberto"] = False
+                    self.settings_menu.save_config()
 
-    def disable_console(self):
+        if self.console_instance:
+            self.console_instance.visible = True
+
+    def disable_console(self, remove_option=False):
         if self.console_enabled:
             self.console_enabled = False
             if "Console" in self.options:
                 self.options.remove("Console")
             if self.console_instance:
                 self.console_instance.visible = False
+            
+            if remove_option and hasattr(self, 'settings_menu'):
+                if "Manter console aberto" in self.settings_menu.options:
+                    del self.settings_menu.options["Manter console aberto"]
+                    self.settings_menu.save_config()
 
     def add_extra_icon(self, icon_rect, toggle_function):
         self.extra_icons.append((icon_rect, toggle_function))
@@ -120,11 +129,7 @@ class ConfigMenu:
         if self.animation_progress <= 0:
             return
 
-        unlocked_count = (
-            len(self.achievements_menu.tracker.unlocked)
-            if hasattr(self.achievements_menu, "tracker")
-            else 0
-        )
+        unlocked_count = len(self.achievements_menu.tracker.unlocked) if hasattr(self.achievements_menu, "tracker") else 0
 
         display = [
             f"Conquistas ({unlocked_count})" if opt == "Conquistas" else opt
@@ -172,10 +177,12 @@ class ConfigMenu:
 
         if self.exit_handler.active:
             result = self.exit_handler.handle_event(event)
-
-            if self.exit_handler.user_text.strip().lower() == "console":
-                self.enable_console()
+            if self.exit_handler.user_text.lower() == "console":
+                self.enable_console(add_option=True)
+                if hasattr(self.achievements_menu, 'tracker'):
+                    self.achievements_menu.tracker.unlock_secret("console")
                 self.exit_handler.active = False
+                self.exit_handler.user_text = ""
                 return True
             return result
 
@@ -223,7 +230,7 @@ class ConfigMenu:
                                 self.console_instance.open()
                             else:
                                 if self.get_score_callback and self.set_score_callback:
-                                    self.enable_console()
+                                    self.enable_console(add_option=True)
                                     if self.console_instance:
                                         self.console_instance.open()
                         self.is_open = False

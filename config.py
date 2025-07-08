@@ -21,6 +21,7 @@ class FullSettingsMenu:
         os.makedirs(self.assets_folder, exist_ok=True)
         self.config_path = os.path.join(self.assets_folder, "config.json")
 
+        # Configurações padrão (sem a opção do console inicialmente)
         self.default_config = {
             "Clique Esquerdo": True,
             "Clique Direito": True,
@@ -28,39 +29,44 @@ class FullSettingsMenu:
             "Rolagem do Mouse": True,
             "Ativar Mods": False,
             "Ativar Texturas": False,
-            "Verificar atualizações": True
+            "Verificar atualizações": True,
+            "Mostrar conquistas ocultas": False
         }
 
         self.visible = False
         self.options = {}
         self.load_config()
 
-        self.valor_original_update = self.options["Verificar atualizações"]
+        self.valor_original_update = self.options.get("Verificar atualizações", True)
         self.precisa_reiniciar = False
 
         self.title_font = pygame.font.SysFont(None, 36)
         self.font = pygame.font.SysFont(None, 28)
 
     def load_config(self):
-        if os.path.isfile(self.config_path):
-            try:
+        try:
+            if os.path.isfile(self.config_path):
                 with open(self.config_path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    for k, v in self.default_config.items():
-                        self.options[k] = data.get(k, v)
-            except Exception as e:
-                print("Erro ao carregar config.json:", e)
+                    loaded_options = json.load(f)
+                    
+                    # Carrega apenas as opções padrão + opção do console se existir
+                    self.options = {**self.default_config}
+                    for key in loaded_options:
+                        if key in self.default_config or key == "Manter console aberto":
+                            self.options[key] = loaded_options[key]
+            else:
                 self.options = self.default_config.copy()
-        else:
+                self.save_config()
+        except Exception as e:
+            print(f"Erro ao carregar configurações: {e}")
             self.options = self.default_config.copy()
-            self.save_config()
 
     def save_config(self):
         try:
             with open(self.config_path, "w", encoding="utf-8") as f:
                 json.dump(self.options, f, indent=4)
         except Exception as e:
-            print("Erro ao salvar config.json:", e)
+            print(f"Erro ao salvar configurações: {e}")
 
     def get_option(self, key):
         return self.options.get(key, False)
@@ -68,6 +74,18 @@ class FullSettingsMenu:
     def set_option(self, key, value):
         self.options[key] = bool(value)
         self.save_config()
+
+    def add_console_option(self):
+        """Adiciona a opção do console se não existir"""
+        if "Manter console aberto" not in self.options:
+            self.options["Manter console aberto"] = False
+            self.save_config()
+
+    def remove_console_option(self):
+        """Remove a opção do console se existir"""
+        if "Manter console aberto" in self.options:
+            del self.options["Manter console aberto"]
+            self.save_config()
 
     def is_click_allowed(self, button):
         if button == 1:
@@ -146,8 +164,14 @@ class FullSettingsMenu:
         outros_keys = [
             "Ativar Mods",
             "Ativar Texturas",
-            "Verificar atualizações"
+            "Verificar atualizações",
+            "Mostrar conquistas ocultas"
         ]
+        
+        # Adiciona a opção do console apenas se existir
+        if "Manter console aberto" in self.options:
+            outros_keys.append("Manter console aberto")
+            
         y = self.draw_options(outros_keys, x, y)
 
     def handle_event(self, event):
@@ -175,11 +199,16 @@ class FullSettingsMenu:
 
             y += 30
 
-            y = self._handle_options_click([
+            outros_keys = [
                 "Ativar Mods",
                 "Ativar Texturas",
-                "Verificar atualizações"
-            ], mouse_pos, x, y + self.option_height + self.spacing)
+                "Verificar atualizações",
+                "Mostrar conquistas ocultas"
+            ]
+            if "Manter console aberto" in self.options:
+                outros_keys.append("Manter console aberto")
+                
+            y = self._handle_options_click(outros_keys, mouse_pos, x, y + self.option_height + self.spacing)
 
             return True
 

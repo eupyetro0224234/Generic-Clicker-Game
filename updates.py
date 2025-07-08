@@ -15,5 +15,4 @@ def checar_atualizacao():
         else:
             return False, versao_online
     except Exception as e:
-        print(f"Erro ao verificar atualização: {e}")
         return False, None

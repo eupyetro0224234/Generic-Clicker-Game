@@ -32,7 +32,6 @@ class ScoreManager:
             encrypted_data = base64.b64encode(iv + ct_bytes).decode('utf-8')
             return encrypted_data
         except Exception as e:
-            print(f"Erro ao criptografar dados: {e}")
             return None
 
     def decrypt_data(self, encrypted_data):
@@ -46,7 +45,6 @@ class ScoreManager:
             pt = unpad(cipher.decrypt(ct), AES.block_size)
             return json.loads(pt.decode('utf-8'))
         except Exception as e:
-            print(f"Erro ao descriptografar dados: {e}")
             return None
 
     def save_data(self, score: int, controls_visible: bool, achievements: list[str], upgrades: dict[str, int], last_mini_event_click_time: int):
@@ -86,5 +84,4 @@ class ScoreManager:
 
             return score, controls_visible, achievements, upgrades, last_mini_event_click_time
         except Exception as e:
-            print("Erro ao carregar dados:", e)
             return 0, False, [], {}, 0

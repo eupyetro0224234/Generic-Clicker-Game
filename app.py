@@ -9,7 +9,7 @@ from score_manager import ScoreManager
 from menu import ConfigMenu
 from loading import LoadingScreen, download_assets
 from click_effect import ClickEffect
-from conquistas import AchievementTracker
+from conquistas import AchievementTracker, AchievementsMenu
 from upgrades import UpgradeMenu
 from console import Console
 from exit_handler import ExitHandler
@@ -21,6 +21,9 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Just Another Generic Clicker Game, But With References")
     clock = pygame.time.Clock()
+    
+    # Inicializar o mixer de áudio
+    pygame.mixer.init()
 
     loading = LoadingScreen(screen, WIDTH, HEIGHT)
     download_assets(screen, WIDTH, HEIGHT)
@@ -43,6 +46,7 @@ def main():
 
     tracker = AchievementTracker(screen)
     tracker.load_unlocked(saved_achievements)
+    tracker.load_sound()
 
     upgrade_menu = UpgradeMenu(screen, WIDTH, HEIGHT)
     upgrade_menu.load_upgrades(saved_upgrades)
@@ -50,32 +54,36 @@ def main():
     click_effects = []
     auto_click_counter = 0
 
-    # Inicialize o Console corretamente, passando o upgrade_manager
     console = Console(
         screen, 
         WIDTH, 
         HEIGHT, 
-        on_exit_callback=config_menu.disable_console, 
-        tracker=tracker, 
-        config_menu=config_menu, 
+        on_exit_callback=lambda: config_menu.disable_console(),
+        tracker=tracker,
+        config_menu=config_menu,
         upgrade_manager=upgrade_menu
     )
-    console.visible = False
+    
+    # Verifica se deve iniciar com console aberto
+    if config_menu.settings_menu.get_option("Manter console aberto"):
+        config_menu.enable_console()
+        if config_menu.console_instance:
+            config_menu.console_instance.open()
 
     exit_handler = ExitHandler(screen, WIDTH, HEIGHT)
     config_menu.exit_handler = exit_handler
 
+    config_menu.achievements_menu = AchievementsMenu(screen, WIDTH, HEIGHT, config_menu)
+    config_menu.achievements_menu.achievements = tracker.achievements
+    config_menu.achievements_menu.unlocked = tracker.unlocked
+
     mini_event = None
-    last_mini_event_time = pygame.time.get_ticks()  # Tempo do último mini evento
+    last_mini_event_time = pygame.time.get_ticks()
     mini_event_cooldown = 30000  # 30 segundos entre eventos
 
-    # Chance de 50% de spawn no início do jogo
     if random.random() < 0.1:
         mini_event = MiniEvent(screen, WIDTH, HEIGHT)
         last_mini_event_time = pygame.time.get_ticks()
-        print("Mini evento spawnado no início do jogo!")
-    else:
-        print("Não spawnou mini evento no início")
 
     def get_score():
         return score
@@ -108,7 +116,7 @@ def main():
 
     verificar_update()
 
-    last_save_time = pygame.time.get_ticks()  # Variável para controlar o tempo de salvamento
+    last_save_time = pygame.time.get_ticks()
     running = True
     while running:
         if exit_handler.fading_out:
@@ -119,12 +127,17 @@ def main():
 
         for event in pygame.event.get():
             if exit_handler.active:
-                if exit_handler.handle_event(event):
-                    if exit_handler.detected_console:
-                        config_menu.enable_console()
-                        tracker.unlock_secret("console")
-                        exit_handler.detected_console = False
-                        exit_handler.active = False
+                result = exit_handler.handle_event(event)
+                
+                # Verifica se digitou "console" (sem dar Enter automático)
+                if exit_handler.user_text.lower() == "console":
+                    config_menu.enable_console()
+                    tracker.unlock_secret("console")
+                    exit_handler.active = False
+                    exit_handler.user_text = ""
+                    continue
+                
+                if result:
                     continue
 
             if event.type == pygame.QUIT:
@@ -134,7 +147,6 @@ def main():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r and not console.visible:
-                    # Resetando o jogo
                     score = 0
                     tracker.unlocked.clear()
                     for ach in tracker.achievements:
@@ -143,8 +155,6 @@ def main():
                     continue
 
                 if event.key == pygame.K_u and not console.visible:
-                    # Resetando os upgrades
-                    print("Resetando upgrades...")
                     upgrade_menu.purchased.clear()
                     score_manager.save_data(
                         score,
@@ -200,7 +210,6 @@ def main():
                             click_effects.append(
                                 ClickEffect(event.pos[0], event.pos[1], f"+{upgrade_menu.get_bonus()}")
                             )
-                            # Salvar dados após o clique no botão
                             score_manager.save_data(
                                 score,
                                 config_menu.controls_menu.visible,
@@ -216,7 +225,7 @@ def main():
                         tracker.check_unlock(score)
                         click_effects.append(
                             ClickEffect(event.pos[0], event.pos[1], "Upgrade Obtido!"))
-                
+
                 if console.visible:
                     console.handle_event(event)
 
@@ -236,32 +245,23 @@ def main():
                 click_effects.append(
                     ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{bonus_auto} (Auto)"))
 
-        # Lógica de spawn do mini evento
         current_time = pygame.time.get_ticks()
-        
-        # Verifica se passou o cooldown e se não há evento ativo
         if (current_time - last_mini_event_time > mini_event_cooldown and 
             not mini_event and 
-            random.random() < 0.1):  # 50% de chance de spawnar
+            random.random() < 0.1):
             
             mini_event = MiniEvent(screen, WIDTH, HEIGHT)
             last_mini_event_time = current_time
-            print("Novo mini evento spawnado!")
 
         if mini_event:
             mini_event.update()
-            
-            # Se o evento expirou, limpa a referência
             if not mini_event.visible:
                 mini_event = None
-                print("Mini evento expirado!")
 
         draw_background(screen)
         button.draw(screen)
 
-        # Desenha o mini evento ANTES de outros elementos de UI
         if mini_event and mini_event.visible:
-            print("Desenhando mini evento...")
             mini_event.draw()
 
         score_surf = FONT.render(str(score), True, TEXT_COLOR_SCORE)
@@ -296,9 +296,8 @@ def main():
         pygame.display.flip()
         clock.tick(60)
 
-        # Salvamento automático a cada 5 segundos
         current_time = pygame.time.get_ticks()
-        if current_time - last_save_time >= 5000:  # 5000 ms = 5 segundos
+        if current_time - last_save_time >= 5000:
             score_manager.save_data(
                 score,
                 config_menu.controls_menu.visible,

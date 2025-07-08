@@ -156,7 +156,6 @@ class UpgradeMenu:
         """Reseta os upgrades comprados e retorna o bônus a 0"""
         self.purchased.clear()
         self.auto_click_timer = 0  # Zera o temporizador do auto clicker
-        print("Upgrades resetados com sucesso!")
 
     def purchase_random_upgrade(self):
         """Compra um upgrade aleatório (usado no mini evento)."""
@@ -164,6 +163,5 @@ class UpgradeMenu:
         if available_upgrades:
             upgrade = random.choice(available_upgrades)
             self.purchased[upgrade.id] = self.purchased.get(upgrade.id, 0) + 1
-            print(f"Upgrade aleatório comprado: {upgrade.name}")
             return True
         return False

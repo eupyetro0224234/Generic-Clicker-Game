@@ -33,6 +33,9 @@ class Console:
         self.visible = True
         self.lines = ["Console ativado!", "Digite comandos..."]
         self.input_text = ""
+        # Desbloqueia a conquista se existir um tracker
+        if self.tracker:
+            self.tracker.unlock_secret("console")
 
     def handle_event(self, event):
         if not self.visible:
