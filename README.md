@@ -155,6 +155,10 @@ Atualmente, esse projeto suporta apenas modificações diretas no código. Eu se
 
 **Como uma pessoa só trabalhando, as versões iniciais serão lançadas ao poucos. Então sim, o jogo não acabará na 1.0. Mesmo assim, ferramentas de modding serão disponíveis para a comunidade trabalhar e melhorar o meu jogo**
 
+- Somente o Windows receberá o jogo ou outros sistemas também?
+
+**Por ser complicado ir portando o código conforme eu vou o modificando, por um bom tempo somente o windows terá suporte. Após o lançamento da 1.0 e de ter um sistema agradável pra mods, eu pensarei na portabilidade.**
+
 ## Contato
 Pyetro — eu.pyetro.022@gmail.com
 
