@@ -170,7 +170,7 @@ Pyetro — eu.pyetro.022@gmail.com
 ## Changelogs
 
 <details>
-  <summary>0.0.02.1 - 04/07/25</summary>
+  <summary>0.0.02.1 - 07/07/25</summary>
   
 - Aviso de update disponível adicionado. Funcionando apenas dessa versão pra mais recentes. Pras antigas, infelizmente não funciona.
 
