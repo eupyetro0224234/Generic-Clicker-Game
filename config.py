@@ -28,13 +28,15 @@ class FullSettingsMenu:
             "Rolagem do Mouse": True,
             "Ativar Mods": False,
             "Ativar Texturas": False,
-            "Verificar atualizações": True    # <-- NOVA OPÇÃO
+            "Verificar atualizações": True
         }
 
         self.visible = False
         self.options = {}
-        self.precisa_reiniciar = False  # Flag para avisar reinício ao mudar opção
         self.load_config()
+
+        self.valor_original_update = self.options["Verificar atualizações"]
+        self.precisa_reiniciar = False
 
         self.title_font = pygame.font.SysFont(None, 36)
         self.font = pygame.font.SysFont(None, 28)
@@ -83,7 +85,7 @@ class FullSettingsMenu:
         box_height = self.option_height
         box_rect = pygame.Rect(x, y, box_width, box_height)
 
-        pink = (255, 182, 193)  # LightPink
+        pink = (255, 182, 193)
         pygame.draw.rect(self.screen, pink, box_rect, border_radius=self.option_radius)
         pygame.draw.rect(self.screen, (150, 150, 150), box_rect, width=2, border_radius=self.option_radius)
 
@@ -144,7 +146,7 @@ class FullSettingsMenu:
         outros_keys = [
             "Ativar Mods",
             "Ativar Texturas",
-            "Verificar atualizações"  # <-- adicionada na sessão "Outros"
+            "Verificar atualizações"
         ]
         y = self.draw_options(outros_keys, x, y)
 
@@ -176,7 +178,7 @@ class FullSettingsMenu:
             y = self._handle_options_click([
                 "Ativar Mods",
                 "Ativar Texturas",
-                "Verificar atualizações"  # <-- clicável também
+                "Verificar atualizações"
             ], mouse_pos, x, y + self.option_height + self.spacing)
 
             return True
@@ -187,11 +189,15 @@ class FullSettingsMenu:
         for key in keys:
             option_rect = pygame.Rect(x, y, self.width - 2 * x, self.option_height)
             if option_rect.collidepoint(mouse_pos):
-                # Se mudar a opção "Verificar atualizações", sinaliza que precisa reiniciar
-                if key == "Verificar atualizações":
-                    self.precisa_reiniciar = True
                 self.options[key] = not self.options[key]
                 self.save_config()
+
+                if key == "Verificar atualizações":
+                    if self.options[key] != self.valor_original_update:
+                        self.precisa_reiniciar = True
+                    else:
+                        self.precisa_reiniciar = False
+
                 break
             y += self.option_height + self.spacing
         return y

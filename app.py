@@ -11,7 +11,7 @@ from conquistas import AchievementTracker
 from upgrades import UpgradeMenu
 from console import Console
 from exit_handler import ExitHandler
-import updates  # seu módulo updates.py
+import updates
 
 def main():
     pygame.init()
@@ -25,7 +25,7 @@ def main():
     FONT = pygame.font.SysFont(None, 64)
     TEXT_COLOR_SCORE = (40, 40, 60)
     fonte_update = pygame.font.SysFont(None, 48)
-    fonte_aviso = pygame.font.SysFont(None, 28)  # Fonte para aviso reinício
+    fonte_aviso = pygame.font.SysFont(None, 28)
 
     button = AnimatedButton(
         WIDTH // 2, HEIGHT // 2, 200, 200,
@@ -55,6 +55,7 @@ def main():
 
     def get_score():
         return score
+
     def set_score(new_score):
         nonlocal score
         score = new_score
@@ -67,20 +68,24 @@ def main():
     aviso_update = False
     texto_update = ""
 
-    # === NOVO: Verifica atualização APENAS UMA VEZ no início ===
-    if config_menu.settings_menu.get_option("Verificar atualizações"):
-        atualizou, versao_online = updates.checar_atualizacao()
-        if atualizou:
-            aviso_update = True
-            texto_update = f"Nova versão disponível: {versao_online}!"
+    def verificar_update():
+        nonlocal aviso_update, texto_update
+        if config_menu.settings_menu.get_option("Verificar atualizações"):
+            atualizou, versao_online = updates.checar_atualizacao()
+            if atualizou:
+                aviso_update = True
+                texto_update = f"Nova versão disponível: {versao_online}!"
+            else:
+                aviso_update = False
+                texto_update = ""
         else:
             aviso_update = False
             texto_update = ""
-    else:
-        aviso_update = False
-        texto_update = ""
 
-    while True:
+    verificar_update()
+
+    running = True
+    while running:
         if exit_handler.fading_out:
             if exit_handler.update_fade_out():
                 pygame.display.flip()
@@ -197,12 +202,10 @@ def main():
             text_rect = text_surf.get_rect(center=(WIDTH // 2, 100))
             screen.blit(text_surf, text_rect)
 
-        # Exibe aviso para reiniciar se a opção "Verificar atualizações" foi alterada
         if config_menu.settings_menu.precisa_reiniciar:
-            aviso_reiniciar_texto = "Para aplicar a mudança em 'Verificar atualizações', reinicie o jogo."
-            aviso_surf = fonte_aviso.render(aviso_reiniciar_texto, True, (255, 165, 0))
-            aviso_rect = aviso_surf.get_rect(center=(WIDTH // 2, HEIGHT - 50))
-            screen.blit(aviso_surf, aviso_rect)
+            aviso = fonte_aviso.render("Reinicie o jogo para aplicar mudanças", True, (200, 0, 0))
+            aviso_rect = aviso.get_rect(center=(WIDTH // 2, HEIGHT - 30))
+            screen.blit(aviso, aviso_rect)
 
         upgrade_menu.draw(score)
         config_menu.draw_icon()
