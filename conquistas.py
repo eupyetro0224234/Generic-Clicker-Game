@@ -121,9 +121,9 @@ class AchievementsMenu:
 
         start_y = y + self.padding + 50
 
-        # Mostra somente conquistas normais ou as secretas desbloqueadas
+        # Mostra somente conquistas desbloqueadas
         shown_achievements = [
-            ach for ach in self.achievements if ach.unlocked or ach.threshold >= 0
+            ach for ach in self.achievements if ach.unlocked
         ]
 
         for i, ach in enumerate(shown_achievements):

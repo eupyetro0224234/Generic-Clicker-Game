@@ -147,4 +147,6 @@ class UpgradeMenu:
         return self.purchased.get("auto_click", 0)
 
     def reset_upgrades(self):
+        """Reseta os upgrades comprados e retorna o bônus a 0"""
         self.purchased.clear()
+        print("Upgrades resetados com sucesso!")  # Mensagem de confirmação

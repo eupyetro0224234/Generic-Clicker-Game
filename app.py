@@ -1,6 +1,7 @@
-import pygame
-import sys
 import os
+import pygame
+import random  # Certifique-se de importar o random
+import json
 from background import draw_background, WIDTH, HEIGHT
 from button import AnimatedButton
 from score_manager import ScoreManager
@@ -12,6 +13,7 @@ from upgrades import UpgradeMenu
 from console import Console
 from exit_handler import ExitHandler
 import updates
+from mini_event import MiniEvent  # Certifique-se de importar o MiniEvent corretamente
 
 def main():
     pygame.init()
@@ -33,7 +35,7 @@ def main():
     )
 
     score_manager = ScoreManager()
-    score, controls_visible, saved_achievements, saved_upgrades = score_manager.load_data()
+    score, controls_visible, saved_achievements, saved_upgrades, last_mini_event_click_time = score_manager.load_data()
 
     config_menu = ConfigMenu(screen, WIDTH, HEIGHT, loading_callback=loading.draw)
     config_menu.controls_menu.visible = controls_visible
@@ -52,6 +54,9 @@ def main():
 
     exit_handler = ExitHandler(screen, WIDTH, HEIGHT)
     config_menu.exit_handler = exit_handler
+
+    # Adicionando o MiniEvent
+    mini_event = None
 
     def get_score():
         return score
@@ -95,7 +100,6 @@ def main():
         for event in pygame.event.get():
             if exit_handler.active:
                 if exit_handler.handle_event(event):
-                    # Ativa o console só se o usuário digitou "console" e confirmou (Enter)
                     if exit_handler.detected_console:
                         config_menu.enable_console()
                         tracker.unlock_secret("console")
@@ -110,6 +114,7 @@ def main():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r and not console.visible:
+                    # Resetando o jogo
                     score = 0
                     tracker.unlocked.clear()
                     for ach in tracker.achievements:
@@ -141,15 +146,6 @@ def main():
                         config_menu.is_open = False
                         continue
 
-            if config_menu.settings_menu.visible and config_menu.settings_menu.handle_event(event):
-                continue
-            if config_menu.controls_menu.visible and config_menu.controls_menu.handle_event(event):
-                continue
-            if config_menu.achievements_menu.visible and config_menu.achievements_menu.handle_event(event):
-                continue
-            if console.visible and console.handle_event(event):
-                continue
-
             if event.type == pygame.MOUSEBUTTONDOWN:
                 prev_vis = upgrade_menu.visible
                 new_score, _ = upgrade_menu.handle_event(event, score)
@@ -174,6 +170,18 @@ def main():
                             )
                             continue
 
+                # Lógica de clique no mini evento
+                if mini_event and mini_event.visible:
+                    score, upgrade = mini_event.handle_click(event.pos, score, upgrade_menu)
+                    if upgrade:  # Se o jogador obteve upgrade
+                        tracker.check_unlock(score)
+                        click_effects.append(
+                            ClickEffect(event.pos[0], event.pos[1], "Upgrade Obtido!"))
+                
+                # Comando para mostrar o tempo do mini evento
+                if console.visible:
+                    console.handle_event(event)
+
             if config_menu.handle_event(event):
                 continue
 
@@ -181,9 +189,7 @@ def main():
         config_menu.achievements_menu.achievements = tracker.achievements
         config_menu.achievements_menu.unlocked = tracker.unlocked
 
-        draw_background(screen)
-        button.draw(screen)
-
+        # Auto Clicker
         if upgrade_menu.auto_click_enabled():
             auto_click_counter += 1
             if auto_click_counter >= 40:
@@ -192,8 +198,22 @@ def main():
                 score += bonus_auto
                 tracker.check_unlock(score)
                 click_effects.append(
-                    ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{bonus_auto} (Auto)")
-                )
+                    ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{bonus_auto} (Auto)"))
+
+        # Atualiza o MiniEvent
+        if random.random() < 0.1 and not mini_event:  # 10% de chance de gerar o mini evento
+            print("Mini evento gerado!")  # Debug para confirmar geração
+            mini_event = MiniEvent(screen, WIDTH, HEIGHT)
+
+        if mini_event:
+            mini_event.update()
+
+        # Desenha o tempo para o mini-evento se o comando foi ativado
+        if mini_event and mini_event.visible:
+            mini_event.draw()
+
+        draw_background(screen)
+        button.draw(screen)
 
         score_surf = FONT.render(str(score), True, TEXT_COLOR_SCORE)
         score_rect = score_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 140))
@@ -215,6 +235,7 @@ def main():
         config_menu.draw()
         if console.visible:
             console.draw()
+
         exit_handler.draw()
         tracker.draw_popup()
 
@@ -231,7 +252,8 @@ def main():
             score,
             config_menu.controls_menu.visible,
             list(tracker.unlocked),
-            upgrade_menu.purchased
+            upgrade_menu.purchased,
+            last_mini_event_click_time  # Passa o tempo do mini evento
         )
 
     pygame.quit()

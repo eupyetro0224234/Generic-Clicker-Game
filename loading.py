@@ -73,6 +73,7 @@ def download_assets(screen, width, height):
         ("https://minecraft.wiki/images/Enchanted_Book.gif?b21c4", os.path.join(assets_path, "button.gif")),
         ("https://i.postimg.cc/hGf3VRqY/image-removebg-preview-5.png", os.path.join(assets_path, "menu.png")),
         ("https://i.postimg.cc/yxVZWpPk/image-removebg-preview-6.png", os.path.join(assets_path, "upgrades.png")),
+        ("https://i.postimg.cc/MKwpfL8Z/image-removebg-preview-7.png", os.path.join(assets_path, "mini-event.png")),  # Nova imagem
     ]
 
     total = len(assets)
