@@ -172,7 +172,9 @@ Pyetro — eu.pyetro.022@gmail.com
 <details>
   <summary>0.0.02.1 - 07/07/25</summary>
   
-- Aviso de update disponível adicionado. Funcionando apenas dessa versão pra mais recentes. Pras antigas, infelizmente não funciona.
+- Aviso de update disponível adicionado.
+
+Funcionando apenas dessa versão pra mais recentes. Pras antigas, infelizmente não funciona.
 
 </details>
 
