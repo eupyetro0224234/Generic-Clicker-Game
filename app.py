@@ -58,9 +58,12 @@ def main():
     TEXT_COLOR_SCORE = (40, 40, 60)
 
     # Agora o caminho da imagem é relativo à pasta .assets
-    button_image_path = os.path.join(os.getenv("LOCALAPPDATA", "."), ".assets", "button.gif")
+    assets_folder = os.path.join(os.getenv("LOCALAPPDATA", "."), ".assets")
+    button_image_path = os.path.join(assets_folder, "button.gif")
+
     button = AnimatedButton(
-        WIDTH // 2, HEIGHT // 2, 200, 200, button_image_path
+        WIDTH // 2, HEIGHT // 2, 200, 200,
+        button_image_path
     )
 
     score_manager = ScoreManager()
