@@ -1,14 +1,16 @@
 import pygame
 
 class Console:
-    def __init__(self, screen, width, height, on_exit_callback=None):
+    def __init__(self, screen, width, height, on_exit_callback=None, tracker=None, config_menu=None):
         self.screen = screen
         self.width = width
         self.height = height
         self.font = pygame.font.SysFont("Consolas", 24)
         self.visible = False
         self.input_text = ""
-        self.max_lines = 6
+        
+        # Aumentando o número de linhas visíveis
+        self.max_lines = 10  # Aumentado de 6 para 10
         self.lines = []
 
         # Funções para get/set pontuação (devem ser configuradas por set_score_accessors)
@@ -17,6 +19,8 @@ class Console:
 
         # Callback para notificar ConfigMenu que o console foi fechado com 'exit'
         self.on_exit_callback = on_exit_callback
+        self.tracker = tracker  # Armazenando o tracker
+        self.config_menu = config_menu  # Armazenando o config_menu
 
     def set_score_accessors(self, get_func, set_func):
         self.get_score = get_func
@@ -58,12 +62,16 @@ class Console:
         self.lines = []
 
         if cmd == "help":
-            self.lines.extend([
-                "Comandos disponíveis:",
-                "add points <n>",
-                "remove points <n>",
-                "help",
-                "exit"
+            self.lines.extend([ 
+                "Comandos disponíveis:", 
+                "add points <n>", 
+                "remove points <n>", 
+                "reset achievements",
+                "reset points",
+                "reset upgrades",
+                "reset -a",
+                "help", 
+                "exit" 
             ])
 
         elif cmd.startswith("add points"):
@@ -92,6 +100,36 @@ class Console:
             else:
                 self.lines.append("Uso: remove points <n>")
 
+        elif cmd.startswith("reset"):
+            parts = cmd.split()
+            if len(parts) == 2:
+                if parts[1] == "achievements":
+                    # Resetando as conquistas no tracker
+                    self.lines.append("Conquistas resetadas.")
+                    self.reset_achievements()
+                    # Atualiza o menu de conquistas
+                    if self.config_menu and self.tracker:
+                        self.config_menu.achievements_menu.update(self.tracker)
+                elif parts[1] == "points":
+                    # Resetar pontos
+                    self.set_score(0)
+                    self.lines.append("Pontos resetados.")
+                elif parts[1] == "upgrades":
+                    # Resetar upgrades
+                    self.lines.append("Upgrades resetados.")
+                    self.reset_upgrades()
+                elif parts[1] == "-a":
+                    # Resetar tudo
+                    self.set_score(0)
+                    self.lines.append("Tudo resetado (pontos, conquistas, upgrades).")
+                    self.reset_achievements()
+                    self.reset_upgrades()
+
+                else:
+                    self.lines.append("Comando inválido. Uso: reset <categoria>")
+            else:
+                self.lines.append("Uso: reset <categoria> (achievements, points, upgrades, -a)")
+
         elif cmd == "exit":
             # Fecha o console completamente e notifica o ConfigMenu
             self.visible = False
@@ -106,22 +144,34 @@ class Console:
         if len(self.lines) > self.max_lines:
             self.lines = self.lines[-self.max_lines:]
 
+    def reset_achievements(self):
+        """Reseta as conquistas no tracker."""
+        if self.tracker:
+            self.tracker.unlocked.clear()
+            for ach in self.tracker.achievements:
+                ach.unlocked = False
+
+    def reset_upgrades(self):
+        """Reseta os upgrades (implementação fictícia)."""
+        if hasattr(self, 'upgrade_manager'):
+            self.upgrade_manager.reset_upgrades()
+
     def draw(self):
         if not self.visible:
             return
 
-        console_rect = pygame.Rect(20, self.height - 200, self.width - 40, 180)
+        console_rect = pygame.Rect(20, self.height - 250, self.width - 40, 220)  # Aumentado a altura
         pygame.draw.rect(self.screen, (20, 20, 40), console_rect, border_radius=10)
         pygame.draw.rect(self.screen, (100, 100, 200), console_rect, 2, border_radius=10)
 
         # Desenha linhas da última saída
         for i, line in enumerate(self.lines):
             text = self.font.render(line, True, (200, 200, 255))
-            self.screen.blit(text, (console_rect.x + 10, console_rect.y + 10 + i * 30))
+            self.screen.blit(text, (console_rect.x + 10, console_rect.y + 10 + i * 25))  # Ajuste no espaçamento
 
         # Desenha linha atual de input
         input_surface = self.font.render("> " + self.input_text, True, (200, 255, 200))
         self.screen.blit(
             input_surface,
-            (console_rect.x + 10, console_rect.y + 10 + len(self.lines) * 30)
+            (console_rect.x + 10, console_rect.y + 10 + len(self.lines) * 25)  # Ajuste no espaçamento
         )

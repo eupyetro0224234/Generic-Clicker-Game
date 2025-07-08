@@ -50,6 +50,14 @@ class AchievementTracker:
     def unlock_console_achievement(self):
         self.unlock_secret("console")
 
+    def reset_achievements(self):
+        """Reseta todas as conquistas."""
+        for ach in self.achievements:
+            ach.unlocked = False
+        self.unlocked.clear()
+        self.popup_text = "Conquistas resetadas!"
+        self.popup_time = time.time()
+
     def draw_popup(self):
         if not self.popup_text:
             return
@@ -74,7 +82,7 @@ class AchievementsMenu:
         self.width = width
         self.height = height
         self.visible = False
-        self.achievements = []  # lista de Achievement
+        self.achievements = []  # Lista de Achievement
         self.unlocked = set()
 
         self.bg_color = (245, 225, 240)
@@ -92,6 +100,11 @@ class AchievementsMenu:
         self.box_color = (230, 210, 230)
         self.unlocked_color = (40, 180, 100)
         self.lock_color = (120, 120, 120)
+
+    def update(self, tracker):
+        """Atualiza as conquistas com base no estado do AchievementTracker."""
+        self.achievements = tracker.achievements
+        self.unlocked = tracker.unlocked
 
     def draw(self):
         if not self.visible:

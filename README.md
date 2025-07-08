@@ -166,6 +166,13 @@ Pyetro — eu.pyetro.022@gmail.com
 ## Changelogs
 
 <details>
+  <summary>0.0.02.1 - 04/07/25</summary>
+  
+- Aviso de update disponível adicionado. Funcionando apenas dessa versão pra mais recentes. Pras antigas, infelizmente não funciona.
+
+</details>
+
+<details>
   <summary>0.0.02 - 07/07/25</summary>
   
 Ajustes e otimizações de código, reduzindo por volta de 4mb do tamanho do arquivo.

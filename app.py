@@ -47,7 +47,7 @@ def main():
     click_effects = []
     auto_click_counter = 0
 
-    console = Console(screen, WIDTH, HEIGHT, on_exit_callback=config_menu.disable_console)
+    console = Console(screen, WIDTH, HEIGHT, on_exit_callback=config_menu.disable_console, tracker=tracker, config_menu=config_menu)
     console.visible = False
 
     exit_handler = ExitHandler(screen, WIDTH, HEIGHT)
@@ -95,6 +95,7 @@ def main():
         for event in pygame.event.get():
             if exit_handler.active:
                 if exit_handler.handle_event(event):
+                    # Ativa o console só se o usuário digitou "console" e confirmou (Enter)
                     if exit_handler.detected_console:
                         config_menu.enable_console()
                         tracker.unlock_secret("console")
@@ -176,6 +177,7 @@ def main():
             if config_menu.handle_event(event):
                 continue
 
+        # Atualiza conquistas para o menu
         config_menu.achievements_menu.achievements = tracker.achievements
         config_menu.achievements_menu.unlocked = tracker.unlocked
 
@@ -202,7 +204,8 @@ def main():
             text_rect = text_surf.get_rect(center=(WIDTH // 2, 100))
             screen.blit(text_surf, text_rect)
 
-        if config_menu.settings_menu.precisa_reiniciar:
+        # Mostra aviso para reiniciar só se a flag existir e for True
+        if hasattr(config_menu.settings_menu, "precisa_reiniciar") and config_menu.settings_menu.precisa_reiniciar:
             aviso = fonte_aviso.render("Reinicie o jogo para aplicar mudanças", True, (200, 0, 0))
             aviso_rect = aviso.get_rect(center=(WIDTH // 2, HEIGHT - 30))
             screen.blit(aviso, aviso_rect)
