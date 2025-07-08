@@ -1,6 +1,7 @@
+# upgrades.py (versão sem arquivo JSON)
 import pygame
+import random
 import os
-import json
 
 class Upgrade:
     def __init__(self, id, name, cost, bonus):
@@ -54,9 +55,6 @@ class UpgradeMenu:
             self.icon = None
 
         self.icon_rect = pygame.Rect(self.x, self.y, 50, 50)
-
-        # Caminho do arquivo de upgrades
-        self.upgrades_file = os.path.join(self.assets_path, "upgrades.json")
 
     def get_icon_rect(self):
         return self.icon_rect
@@ -136,14 +134,8 @@ class UpgradeMenu:
         else:
             self.purchased = upgrades
 
-    def save_upgrades(self):
-        """Salva os upgrades no arquivo JSON."""
-        try:
-            with open(self.upgrades_file, "w") as file:
-                json.dump(self.purchased, file, indent=4)  # Salva no formato JSON
-            print("Upgrades salvos com sucesso!")
-        except Exception as e:
-            print("Erro ao salvar upgrades:", e)
+    # REMOVIDO: método save_upgrades completamente
+    # Não salva mais em arquivo separado
 
     def get_bonus(self):
         bonus = 1  # clique normal sempre dá 1 ponto base
@@ -165,4 +157,13 @@ class UpgradeMenu:
         self.purchased.clear()
         self.auto_click_timer = 0  # Zera o temporizador do auto clicker
         print("Upgrades resetados com sucesso!")
-        self.save_upgrades()  # Salva os upgrades resetados
+
+    def purchase_random_upgrade(self):
+        """Compra um upgrade aleatório (usado no mini evento)."""
+        available_upgrades = [upg for upg in self.upgrades if upg.id not in self.purchased or self.purchased[upg.id] < 5]  # Exemplo: limite de 5 compras
+        if available_upgrades:
+            upgrade = random.choice(available_upgrades)
+            self.purchased[upgrade.id] = self.purchased.get(upgrade.id, 0) + 1
+            print(f"Upgrade aleatório comprado: {upgrade.name}")
+            return True
+        return False

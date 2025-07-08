@@ -58,7 +58,7 @@ def main():
         on_exit_callback=config_menu.disable_console, 
         tracker=tracker, 
         config_menu=config_menu, 
-        upgrade_manager=upgrade_menu  # Passando o upgrade_menu aqui
+        upgrade_manager=upgrade_menu
     )
     console.visible = False
 
@@ -66,6 +66,16 @@ def main():
     config_menu.exit_handler = exit_handler
 
     mini_event = None
+    last_mini_event_time = pygame.time.get_ticks()  # Tempo do último mini evento
+    mini_event_cooldown = 30000  # 30 segundos entre eventos
+
+    # Chance de 50% de spawn no início do jogo
+    if random.random() < 0.1:
+        mini_event = MiniEvent(screen, WIDTH, HEIGHT)
+        last_mini_event_time = pygame.time.get_ticks()
+        print("Mini evento spawnado no início do jogo!")
+    else:
+        print("Não spawnou mini evento no início")
 
     def get_score():
         return score
@@ -130,13 +140,12 @@ def main():
                     for ach in tracker.achievements:
                         ach.unlocked = False
                     upgrade_menu.reset_upgrades()
-                    # REMOVIDO: Não abre mais o console aqui
                     continue
 
                 if event.key == pygame.K_u and not console.visible:
-                    # Resetando os upgrades (adicionado)
-                    print("Resetando upgrades...")  # Depuração
-                    upgrade_menu.purchased.clear()  # Limpa os upgrades
+                    # Resetando os upgrades
+                    print("Resetando upgrades...")
+                    upgrade_menu.purchased.clear()
                     score_manager.save_data(
                         score,
                         config_menu.controls_menu.visible,
@@ -227,17 +236,33 @@ def main():
                 click_effects.append(
                     ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{bonus_auto} (Auto)"))
 
-        if random.random() < 0.1 and not mini_event:
+        # Lógica de spawn do mini evento
+        current_time = pygame.time.get_ticks()
+        
+        # Verifica se passou o cooldown e se não há evento ativo
+        if (current_time - last_mini_event_time > mini_event_cooldown and 
+            not mini_event and 
+            random.random() < 0.1):  # 50% de chance de spawnar
+            
             mini_event = MiniEvent(screen, WIDTH, HEIGHT)
+            last_mini_event_time = current_time
+            print("Novo mini evento spawnado!")
 
         if mini_event:
             mini_event.update()
-
-        if mini_event and mini_event.visible:
-            mini_event.draw()
+            
+            # Se o evento expirou, limpa a referência
+            if not mini_event.visible:
+                mini_event = None
+                print("Mini evento expirado!")
 
         draw_background(screen)
         button.draw(screen)
+
+        # Desenha o mini evento ANTES de outros elementos de UI
+        if mini_event and mini_event.visible:
+            print("Desenhando mini evento...")
+            mini_event.draw()
 
         score_surf = FONT.render(str(score), True, TEXT_COLOR_SCORE)
         score_rect = score_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 140))
@@ -279,9 +304,9 @@ def main():
                 config_menu.controls_menu.visible,
                 list(tracker.unlocked),
                 upgrade_menu.purchased,
-                last_mini_event_click_time  # Passa o tempo do mini evento
+                last_mini_event_click_time
             )
-            last_save_time = current_time  # Atualiza o tempo do último salvamento
+            last_save_time = current_time
 
     pygame.quit()
     sys.exit()
