@@ -176,6 +176,10 @@ Pyetro — eu.pyetro.022@gmail.com
 
 Funcionando apenas dessa versão pra mais recentes. Pras antigas, infelizmente não funciona.
 
+- Preciso do Python instalado?
+
+**Baixando o .exe das releases, não. Mas caso você clome o repositório e queira o executar no seu pc, sim.**
+
 </details>
 
 <details>
