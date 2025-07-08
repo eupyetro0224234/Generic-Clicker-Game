@@ -1,9 +1,8 @@
 import requests
 
-VERSAO_ATUAL = "0.0.02"  # Mude aqui para a versão atual do seu jogo
+VERSAO_ATUAL = "0.0.03"  # Mude aqui para a versão atual do seu jogo
 
-URL_VERSAO = "https://raw.githubusercontent.com/eupyetro0224234/just-another-generic-clicker-game-but-with-references/main/version.txt
-"  # Link raw para o version.txt no GitHub
+URL_VERSAO = "https://raw.githubusercontent.com/eupyetro0224234/just-another-generic-clicker-game-but-with-references/main/version.txt"  # Link raw para o version.txt no GitHub
 
 def checar_atualizacao():
     try:

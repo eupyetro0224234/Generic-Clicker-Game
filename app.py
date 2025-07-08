@@ -11,6 +11,7 @@ from conquistas import AchievementTracker
 from upgrades import UpgradeMenu
 from console import Console
 from exit_handler import ExitHandler
+import updates  # Importa seu módulo de updates
 
 def main():
     pygame.init()
@@ -24,31 +25,34 @@ def main():
     # ** VERIFICA E BAIXA ASSETS ANTES DE CONTINUAR **
     download_assets(screen, WIDTH, HEIGHT)
 
+    # CHECA ATUALIZAÇÃO
+    atualizou, versao_online = updates.checar_atualizacao()
+    if atualizou:
+        aviso_update = f"ATUALIZAÇÃO DISPONÍVEL! Versão {versao_online}"
+    else:
+        aviso_update = None
+
     # Funções simulando carregamento real das etapas (substitua pelo carregamento real)
     def load_images():
-        # Se precisar carregar imagens do AnimatedButton, faça aqui
         pass
 
     def init_menus():
-        # Se tiver função real para carregar menus, coloque aqui
         pass
 
     def other_init():
-        # Simule outra tarefa de inicialização, se quiser
         pass
 
     etapas = [
         ("Carregando imagens...", load_images),
         ("Inicializando menus...", init_menus),
         ("Quase lá...", other_init),
-        ("Carregamento concluído! Iniciando o jogo...", lambda: None),
+        ("Concluído! Iniciando o jogo", lambda: None),
     ]
 
     for i, (msg, func) in enumerate(etapas, start=1):
-        func()  # executa a etapa real de carregamento
+        func()
         pct = i / len(etapas) * 100
         loading.draw(pct, msg)
-        # Processa eventos para janela não travar
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -57,13 +61,9 @@ def main():
     FONT = pygame.font.SysFont(None, 64)
     TEXT_COLOR_SCORE = (40, 40, 60)
 
-    # Agora o caminho da imagem é relativo à pasta .assets
-    assets_folder = os.path.join(os.getenv("LOCALAPPDATA", "."), ".assets")
-    button_image_path = os.path.join(assets_folder, "button.gif")
-
     button = AnimatedButton(
         WIDTH // 2, HEIGHT // 2, 200, 200,
-        button_image_path
+        os.path.join(os.getenv("LOCALAPPDATA") or ".", ".assets", "button.gif")
     )
 
     score_manager = ScoreManager()
@@ -98,8 +98,7 @@ def main():
     config_menu.achievements_menu.tracker = tracker
     config_menu.console_instance = console
 
-    running = True
-    while running:
+    while True:
         # Fade-out para sair
         if exit_handler.fading_out:
             if exit_handler.update_fade_out():
@@ -108,27 +107,21 @@ def main():
                 continue
 
         for event in pygame.event.get():
-            # Prioridade: ExitHandler ativo
             if exit_handler.active:
                 if exit_handler.handle_event(event):
                     if exit_handler.detected_console:
-                        # Só ativa ao apertar Enter com texto == "console"
                         config_menu.enable_console()
                         tracker.unlock_secret("console")
                         exit_handler.detected_console = False
                         exit_handler.active = False
-                    # Se texto inválido ou ESC, ExitHandler se torna inactive, sem abrir console
                 continue
 
-            # QUIT abre prompt de saída
             if event.type == pygame.QUIT:
                 if not exit_handler.active and not exit_handler.fading_out:
                     exit_handler.start()
                 continue
 
-            # Teclas gerais
             if event.type == pygame.KEYDOWN:
-                # R = reset completo (inclui upgrades)
                 if event.key == pygame.K_r and not console.visible:
                     score = 0
                     tracker.unlocked.clear()
@@ -138,7 +131,6 @@ def main():
                     config_menu.enable_console()
                     continue
 
-                # ESC fecha/minimiza console ou menus
                 if event.key == pygame.K_ESCAPE:
                     if console.visible:
                         console.visible = False
@@ -162,7 +154,6 @@ def main():
                         config_menu.is_open = False
                         continue
 
-            # Eventos de submenus/configuração/console
             if config_menu.settings_menu.visible and config_menu.settings_menu.handle_event(event):
                 continue
             if config_menu.controls_menu.visible and config_menu.controls_menu.handle_event(event):
@@ -172,7 +163,6 @@ def main():
             if console.visible and console.handle_event(event):
                 continue
 
-            # Clique no upgrade icon ou opções
             if event.type == pygame.MOUSEBUTTONDOWN:
                 prev_vis = upgrade_menu.visible
                 new_score, _ = upgrade_menu.handle_event(event, score)
@@ -180,7 +170,6 @@ def main():
                     score = new_score
                     continue
 
-                # Clique principal só se nenhum menu aberto
                 button._update_rect()
                 if not (
                     config_menu.settings_menu.visible
@@ -198,19 +187,15 @@ def main():
                             )
                             continue
 
-            # Itens do ConfigMenu
             if config_menu.handle_event(event):
                 continue
 
-        # Atualiza conquistas
         config_menu.achievements_menu.achievements = tracker.achievements
         config_menu.achievements_menu.unlocked = tracker.unlocked
 
-        # Desenho da tela
         draw_background(screen)
         button.draw(screen)
 
-        # Auto-click múltiplo
         if upgrade_menu.auto_click_enabled():
             auto_click_counter += 1
             if auto_click_counter >= 40:
@@ -222,12 +207,10 @@ def main():
                     ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{bonus_auto} (Auto)")
                 )
 
-        # Desenha pontuação
         score_surf = FONT.render(str(score), True, TEXT_COLOR_SCORE)
         score_rect = score_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 140))
         screen.blit(score_surf, score_rect)
 
-        # Desenha menus e efeitos
         upgrade_menu.draw(score)
         config_menu.draw_icon()
         config_menu.draw()
@@ -235,6 +218,13 @@ def main():
             console.draw()
         exit_handler.draw()
         tracker.draw_popup()
+
+        # Exibe aviso de atualização no topo da tela
+        if aviso_update:
+            fonte_update = pygame.font.SysFont(None, 48)
+            texto_update = fonte_update.render(aviso_update, True, (255, 0, 0))
+            rect_update = texto_update.get_rect(center=(WIDTH // 2, 50))
+            screen.blit(texto_update, rect_update)
 
         for eff in click_effects[:]:
             eff.update()
@@ -245,16 +235,12 @@ def main():
         pygame.display.flip()
         clock.tick(60)
 
-        # Salva estado (upgrades agora é dict)
         score_manager.save_data(
             score,
             config_menu.controls_menu.visible,
             list(tracker.unlocked),
             upgrade_menu.purchased
         )
-
-    pygame.quit()
-    sys.exit()
 
 if __name__ == "__main__":
     main()
