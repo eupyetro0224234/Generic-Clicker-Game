@@ -1,6 +1,6 @@
 # Just Another Generic Clicker Game, But With References
 
-![Badge de versão](https://img.shields.io/badge/version-0.0.02.1-blue) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
+![Badge de versão](https://img.shields.io/badge/version-0.0.02.1-alpha-blue) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
 
 **Desative o tradutor do seu navegador ao ler**
 
@@ -162,6 +162,10 @@ Atualmente, esse projeto suporta apenas modificações diretas no código. Eu se
 - Preciso do Python instalado?
 
 **Baixando o .exe das releases, não. Mas caso você clome o repositório e queira o executar no seu pc, sim.**
+
+- Os dados salvos de uma versão funcionam em outra?
+
+**Atualmente, não, pois o arquivo que gerencia os dados salvos sofre mudanças constantes, assim, dificultando muito que mantenha a mesma estrutura pra todas as versões**
 
 ## Contato
 Pyetro — eu.pyetro.022@gmail.com

@@ -21,8 +21,7 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Just Another Generic Clicker Game, But With References")
     clock = pygame.time.Clock()
-    
-    # Inicializar o mixer de áudio
+
     pygame.mixer.init()
 
     loading = LoadingScreen(screen, WIDTH, HEIGHT)
@@ -54,19 +53,25 @@ def main():
     click_effects = []
     auto_click_counter = 0
 
+    def on_console_open():
+        config_menu.enable_console(add_option=True)
+
+    def on_console_close():
+        config_menu.disable_console(remove_option=True)
+
     console = Console(
-        screen, 
-        WIDTH, 
-        HEIGHT, 
-        on_exit_callback=lambda: config_menu.disable_console(),
+        screen,
+        WIDTH,
+        HEIGHT,
+        on_exit_callback=on_console_close,
+        on_open_callback=on_console_open,
         tracker=tracker,
         config_menu=config_menu,
         upgrade_manager=upgrade_menu
     )
-    
-    # Verifica se deve iniciar com console aberto
+
     if config_menu.settings_menu.get_option("Manter console aberto"):
-        config_menu.enable_console()
+        config_menu.enable_console(add_option=True)
         if config_menu.console_instance:
             config_menu.console_instance.open()
 
@@ -79,7 +84,7 @@ def main():
 
     mini_event = None
     last_mini_event_time = pygame.time.get_ticks()
-    mini_event_cooldown = 30000  # 30 segundos entre eventos
+    mini_event_cooldown = 30000
 
     if random.random() < 0.1:
         mini_event = MiniEvent(screen, WIDTH, HEIGHT)
@@ -128,15 +133,16 @@ def main():
         for event in pygame.event.get():
             if exit_handler.active:
                 result = exit_handler.handle_event(event)
-                
-                # Verifica se digitou "console" (sem dar Enter automático)
-                if exit_handler.user_text.lower() == "console":
-                    config_menu.enable_console()
+
+                # Aqui a checagem para ativar console ao digitar "console" e apertar Enter
+                if exit_handler.detected_console:
+                    config_menu.enable_console(add_option=True)
                     tracker.unlock_secret("console")
                     exit_handler.active = False
                     exit_handler.user_text = ""
+                    exit_handler.detected_console = False
                     continue
-                
+
                 if result:
                     continue
 
@@ -246,10 +252,9 @@ def main():
                     ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{bonus_auto} (Auto)"))
 
         current_time = pygame.time.get_ticks()
-        if (current_time - last_mini_event_time > mini_event_cooldown and 
-            not mini_event and 
+        if (current_time - last_mini_event_time > mini_event_cooldown and
+            not mini_event and
             random.random() < 0.1):
-            
             mini_event = MiniEvent(screen, WIDTH, HEIGHT)
             last_mini_event_time = current_time
 

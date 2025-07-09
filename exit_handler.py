@@ -35,21 +35,17 @@ class ExitHandler:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_BACKSPACE:
                 self.user_text = self.user_text[:-1]
+                return True
 
             elif event.key == pygame.K_RETURN:
                 txt = self.user_text.strip().lower()
                 if txt == "sim":
                     self.fading_out = True
                     self.active = False
-                    return True
                 elif txt == "console":
                     self.detected_console = True
                     self.active = False
-                    return True
-                else:
-                    # Qualquer outra entrada diferente de "sim" ou "console" simplesmente fecha o diálogo
-                    self.active = False
-                    return True
+                return True
 
             elif event.key == pygame.K_ESCAPE:
                 self.active = False
@@ -59,7 +55,7 @@ class ExitHandler:
             else:
                 if len(event.unicode) == 1 and event.unicode.isprintable() and len(self.user_text) < 20:
                     self.user_text += event.unicode
-                    return True
+                return True
 
         return False
 

@@ -74,7 +74,7 @@ class ConfigMenu:
                     self.screen,
                     self.screen.get_width(),
                     self.screen.get_height(),
-                    on_exit_callback=lambda: self.disable_console(remove_option=True),
+                    on_exit_callback=self._on_console_exit,
                     tracker=getattr(self.achievements_menu, 'tracker', None),
                     config_menu=self,
                     upgrade_manager=None
@@ -105,6 +105,10 @@ class ConfigMenu:
                 if "Manter console aberto" in self.settings_menu.options:
                     del self.settings_menu.options["Manter console aberto"]
                     self.settings_menu.save_config()
+
+    def _on_console_exit(self):
+        # Callback chamado ao fechar o console via exit explícito
+        self.disable_console(remove_option=True)
 
     def add_extra_icon(self, icon_rect, toggle_function):
         self.extra_icons.append((icon_rect, toggle_function))
@@ -177,13 +181,15 @@ class ConfigMenu:
 
         if self.exit_handler.active:
             result = self.exit_handler.handle_event(event)
-            if self.exit_handler.user_text.lower() == "console":
+
+            # Só ativa o console se detectado com Enter
+            if self.exit_handler.detected_console:
                 self.enable_console(add_option=True)
                 if hasattr(self.achievements_menu, 'tracker'):
                     self.achievements_menu.tracker.unlock_secret("console")
-                self.exit_handler.active = False
-                self.exit_handler.user_text = ""
+                self.exit_handler.detected_console = False
                 return True
+
             return result
 
         if self.settings_menu.visible and self.settings_menu.handle_event(event):
@@ -240,6 +246,7 @@ class ConfigMenu:
                     return True
 
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            # Apenas fecha o console visualmente, sem remover a opção do menu
             if self.console_instance and self.console_instance.visible:
                 self.console_instance.visible = False
                 return True
