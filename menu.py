@@ -130,14 +130,24 @@ class ConfigMenu:
 
         unlocked_count = len(self.achievements_menu.tracker.unlocked) if hasattr(self.achievements_menu, "tracker") else 0
 
-        display = [
-            f"Conquistas ({unlocked_count})" if opt == "Conquistas" else opt
-            for opt in self.options
-        ]
+        # Prepare menu items
+        menu_items = []
+        menu_items.append("Configurações")
+        menu_items.append("Controles")
+        menu_items.append(f"Conquistas ({unlocked_count})")
+        
+        if self.console_enabled:
+            menu_items.append("Console")
+        
+        # Add empty string if odd number to center Sair
+        if len(menu_items) % 2 != 0:
+            menu_items.append("")
+        
+        menu_items.append("Sair")
 
         width = 420
         vertical_padding = 14
-        rows = (len(display) + self.options_per_row - 1) // self.options_per_row
+        rows = (len(menu_items) + self.options_per_row - 1) // self.options_per_row
         full_h = rows * (self.option_height + self.spacing_y) - self.spacing_y + vertical_padding * 2
         height = int(full_h * self.animation_progress)
         x = self.screen.get_width() - width - 6
@@ -149,13 +159,17 @@ class ConfigMenu:
         mouse_pos = pygame.mouse.get_pos()
         self.hovered_index = None
 
-        for i, opt in enumerate(display):
+        for i, item in enumerate(menu_items):
             row = i // self.options_per_row
             col = i % self.options_per_row
 
             button_width = (width - self.padding_x * 2 - self.spacing_x) // self.options_per_row
             button_x = self.padding_x + col * (button_width + self.spacing_x)
             button_y = vertical_padding + row * (self.option_height + self.spacing_y)
+
+            # Skip drawing empty spacers but keep their space
+            if item == "":
+                continue
 
             button_rect = pygame.Rect(button_x, button_y, button_width, self.option_height)
 
@@ -168,7 +182,7 @@ class ConfigMenu:
             pygame.draw.rect(surf, color, button_rect, border_radius=self.option_radius)
             pygame.draw.rect(surf, self.option_border, button_rect, width=2, border_radius=self.option_radius)
 
-            txt = self.font.render(opt, True, self.text_color)
+            txt = self.font.render(item, True, self.text_color)
             txt_rect = txt.get_rect(center=button_rect.center)
             surf.blit(txt, txt_rect)
 
@@ -192,13 +206,13 @@ class ConfigMenu:
                 return True
 
         if self.exit_handler.active:
-            result = self.exit_handler.handle_event(event)
+            result = exit_handler.handle_event(event)
 
-            if self.exit_handler.detected_console:
+            if exit_handler.detected_console:
                 self.enable_console(add_option=True)
                 if hasattr(self.achievements_menu, 'tracker'):
                     self.achievements_menu.tracker.unlock_secret("console")
-                self.exit_handler.detected_console = False
+                exit_handler.detected_console = False
                 return True
 
             return result
@@ -223,7 +237,19 @@ class ConfigMenu:
             if self.is_open:
                 width = 420
                 vertical_padding = 14
-                rows = (len(self.options) + self.options_per_row - 1) // self.options_per_row
+                
+                # Rebuild the menu items list to match what's drawn
+                menu_items = []
+                menu_items.append("Configurações")
+                menu_items.append("Controles")
+                menu_items.append("Conquistas")
+                if self.console_enabled:
+                    menu_items.append("Console")
+                if len(menu_items) % 2 != 0:
+                    menu_items.append("")  # spacer
+                menu_items.append("Sair")
+
+                rows = (len(menu_items) + self.options_per_row - 1) // self.options_per_row
                 full_h = rows * (self.option_height + self.spacing_y) - self.spacing_y + vertical_padding * 2
                 height = int(full_h * self.animation_progress)
                 x = self.screen.get_width() - width - 6
@@ -239,13 +265,13 @@ class ConfigMenu:
                     row = rel_y // (self.option_height + self.spacing_y)
                     idx = int(row * self.options_per_row + col)
 
-                    if 0 <= idx < len(self.options):
-                        sel = self.options[idx]
-                        if sel == "Configurações":
+                    if 0 <= idx < len(menu_items) and menu_items[idx] != "":
+                        sel = menu_items[idx]
+                        if sel.startswith("Configurações"):
                             self.settings_menu.visible = True
-                        elif sel == "Controles":
+                        elif sel.startswith("Controles"):
                             self.controls_menu.visible = True
-                        elif sel == "Conquistas":
+                        elif sel.startswith("Conquistas"):
                             self.achievements_menu.visible = True
                         elif sel == "Sair":
                             self.exit_handler.start()
