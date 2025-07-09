@@ -9,20 +9,23 @@ from console import Console
 class ConfigMenu:
     def __init__(self, screen, window_width, window_height, loading_callback=None, score_manager=None):
         self.screen = screen
-        self.font = pygame.font.SysFont(None, 24)
-        self.bg_color = (180, 210, 255)
+        self.font = pygame.font.SysFont(None, 26)
+        self.bg_color = (180, 210, 255, 230)
         self.option_color = (255, 255, 255)
-        self.option_border = (200, 220, 250)
+        self.option_hover_color = (200, 220, 255)
+        self.option_border = (150, 180, 230)
         self.text_color = (40, 40, 60)
 
-        self.option_height = 38
-        self.option_radius = 10
-        self.padding_x = 6
-        self.spacing = 5
+        self.option_height = 40
+        self.option_radius = 12
+        self.padding_x = 10
+        self.spacing_x = 12
+        self.spacing_y = 10
+        self.options_per_row = 2
 
         self.is_open = False
         self.animation_progress = 0.0
-        self.animation_speed = 0.12
+        self.animation_speed = 0.15
 
         self.console_enabled = False
         self.console_instance = None
@@ -32,7 +35,7 @@ class ConfigMenu:
         os.makedirs(self.assets_folder, exist_ok=True)
 
         self.icon_path = os.path.join(self.assets_folder, "menu.png")
-        
+
         try:
             self.icon_image = pygame.image.load(self.icon_path).convert_alpha()
             self.icon_image = pygame.transform.smoothscale(self.icon_image, (42, 42))
@@ -55,9 +58,10 @@ class ConfigMenu:
         self.get_score_callback = None
         self.set_score_callback = None
 
-        # Verifica se deve habilitar console por configuração
         if hasattr(self.settings_menu, 'get_option') and self.settings_menu.get_option("Manter console aberto"):
             self.enable_console()
+
+        self.hovered_index = None
 
     def set_score_accessors(self, get_score_func, set_score_func):
         self.get_score_callback = get_score_func
@@ -74,7 +78,7 @@ class ConfigMenu:
                     self.screen,
                     self.screen.get_width(),
                     self.screen.get_height(),
-                    on_exit_callback=self._on_console_exit,
+                    on_exit_callback=lambda: self.disable_console(remove_option=True),
                     tracker=getattr(self.achievements_menu, 'tracker', None),
                     config_menu=self,
                     upgrade_manager=None
@@ -83,12 +87,9 @@ class ConfigMenu:
                     self.get_score_callback,
                     self.set_score_callback
                 )
-            
+
             if add_option and hasattr(self, 'settings_menu'):
-                if "Manter console aberto" not in self.settings_menu.options:
-                    self.settings_menu.default_config["Manter console aberto"] = False
-                    self.settings_menu.options["Manter console aberto"] = False
-                    self.settings_menu.save_config()
+                self.settings_menu.add_console_option()
 
         if self.console_instance:
             self.console_instance.visible = True
@@ -100,15 +101,9 @@ class ConfigMenu:
                 self.options.remove("Console")
             if self.console_instance:
                 self.console_instance.visible = False
-            
-            if remove_option and hasattr(self, 'settings_menu'):
-                if "Manter console aberto" in self.settings_menu.options:
-                    del self.settings_menu.options["Manter console aberto"]
-                    self.settings_menu.save_config()
 
-    def _on_console_exit(self):
-        # Callback chamado ao fechar o console via exit explícito
-        self.disable_console(remove_option=True)
+            if remove_option and hasattr(self, 'settings_menu'):
+                self.settings_menu.remove_console_option()
 
     def add_extra_icon(self, icon_rect, toggle_function):
         self.extra_icons.append((icon_rect, toggle_function))
@@ -140,25 +135,42 @@ class ConfigMenu:
             for opt in self.options
         ]
 
-        width = 190
-        vertical_padding = 6
-        full_h = len(display) * (self.option_height + self.spacing) - self.spacing + vertical_padding * 2
+        width = 420
+        vertical_padding = 14
+        rows = (len(display) + self.options_per_row - 1) // self.options_per_row
+        full_h = rows * (self.option_height + self.spacing_y) - self.spacing_y + vertical_padding * 2
         height = int(full_h * self.animation_progress)
-        x = self.screen.get_width() - width - 4
-        y = self.icon_rect.bottom + 6
+        x = self.screen.get_width() - width - 6
+        y = self.icon_rect.bottom + 8
 
         surf = pygame.Surface((width, height), pygame.SRCALPHA)
-        pygame.draw.rect(surf, self.bg_color, (0, 0, width, height), border_radius=12)
+        pygame.draw.rect(surf, self.bg_color, (0, 0, width, height), border_radius=18)
+
+        mouse_pos = pygame.mouse.get_pos()
+        self.hovered_index = None
 
         for i, opt in enumerate(display):
-            oy = vertical_padding + i * (self.option_height + self.spacing)
-            if oy + self.option_height > height:
-                break
-            rect = pygame.Rect(self.padding_x, oy, width - 2 * self.padding_x, self.option_height)
-            pygame.draw.rect(surf, self.option_color, rect, border_radius=self.option_radius)
-            pygame.draw.rect(surf, self.option_border, rect, width=1, border_radius=self.option_radius)
+            row = i // self.options_per_row
+            col = i % self.options_per_row
+
+            button_width = (width - self.padding_x * 2 - self.spacing_x) // self.options_per_row
+            button_x = self.padding_x + col * (button_width + self.spacing_x)
+            button_y = vertical_padding + row * (self.option_height + self.spacing_y)
+
+            button_rect = pygame.Rect(button_x, button_y, button_width, self.option_height)
+
+            if button_rect.collidepoint(mouse_pos):
+                color = self.option_hover_color
+                self.hovered_index = i
+            else:
+                color = self.option_color
+
+            pygame.draw.rect(surf, color, button_rect, border_radius=self.option_radius)
+            pygame.draw.rect(surf, self.option_border, button_rect, width=2, border_radius=self.option_radius)
+
             txt = self.font.render(opt, True, self.text_color)
-            surf.blit(txt, txt.get_rect(center=rect.center))
+            txt_rect = txt.get_rect(center=button_rect.center)
+            surf.blit(txt, txt_rect)
 
         self.screen.blit(surf, (x, y))
 
@@ -182,7 +194,6 @@ class ConfigMenu:
         if self.exit_handler.active:
             result = self.exit_handler.handle_event(event)
 
-            # Só ativa o console se detectado com Enter
             if self.exit_handler.detected_console:
                 self.enable_console(add_option=True)
                 if hasattr(self.achievements_menu, 'tracker'):
@@ -210,17 +221,24 @@ class ConfigMenu:
                     return True
 
             if self.is_open:
-                width = 190
-                vertical_padding = 6
-                full_h = len(self.options) * (self.option_height + self.spacing) - self.spacing + vertical_padding * 2
+                width = 420
+                vertical_padding = 14
+                rows = (len(self.options) + self.options_per_row - 1) // self.options_per_row
+                full_h = rows * (self.option_height + self.spacing_y) - self.spacing_y + vertical_padding * 2
                 height = int(full_h * self.animation_progress)
-                x = self.screen.get_width() - width - 4
-                y = self.icon_rect.bottom + 6
+                x = self.screen.get_width() - width - 6
+                y = self.icon_rect.bottom + 8
                 menu_rect = pygame.Rect(x, y, width, height)
 
                 if menu_rect.collidepoint(event.pos):
+                    rel_x = event.pos[0] - x - self.padding_x
                     rel_y = event.pos[1] - y - vertical_padding
-                    idx = rel_y // (self.option_height + self.spacing)
+
+                    button_width = (width - self.padding_x * 2 - self.spacing_x) // self.options_per_row
+                    col = rel_x // (button_width + self.spacing_x)
+                    row = rel_y // (self.option_height + self.spacing_y)
+                    idx = int(row * self.options_per_row + col)
+
                     if 0 <= idx < len(self.options):
                         sel = self.options[idx]
                         if sel == "Configurações":
@@ -246,7 +264,6 @@ class ConfigMenu:
                     return True
 
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            # Apenas fecha o console visualmente, sem remover a opção do menu
             if self.console_instance and self.console_instance.visible:
                 self.console_instance.visible = False
                 return True

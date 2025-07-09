@@ -32,8 +32,6 @@ class Console:
         self.input_text = ""
         if self.on_open_callback:
             self.on_open_callback()
-        if self.config_menu:
-            self.config_menu.enable_console(add_option=True)
         if self.tracker:
             self.tracker.unlock_secret("console")
 
@@ -41,8 +39,6 @@ class Console:
         self.visible = False
         if self.on_exit_callback:
             self.on_exit_callback()
-        if self.config_menu:
-            self.config_menu.disable_console(remove_option=True)
 
     def handle_event(self, event):
         if not self.visible:

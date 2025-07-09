@@ -134,7 +134,6 @@ def main():
             if exit_handler.active:
                 result = exit_handler.handle_event(event)
 
-                # Aqui a checagem para ativar console ao digitar "console" e apertar Enter
                 if exit_handler.detected_console:
                     config_menu.enable_console(add_option=True)
                     tracker.unlock_secret("console")
@@ -202,6 +201,7 @@ def main():
                     continue
 
                 button._update_rect()
+
                 if not (
                     config_menu.settings_menu.visible
                     or config_menu.achievements_menu.visible
