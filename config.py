@@ -45,16 +45,16 @@ class FullSettingsMenu:
         self.font = pygame.font.SysFont(None, 28)
 
         self.hovered_option = None
+        self.button_rects = []
 
     def is_click_allowed(self, button):
-        """Check if the given mouse button click is allowed based on settings"""
-        if button == 1:  # Left click
+        if button == 1:
             return self.options.get("Clique Esquerdo", True)
-        elif button == 2:  # Middle click
+        elif button == 2:
             return self.options.get("Clique Botão do Meio", True)
-        elif button == 3:  # Right click
+        elif button == 3:
             return self.options.get("Clique Direito", True)
-        elif button in (4, 5):  # Mouse wheel
+        elif button in (4, 5):
             return self.options.get("Rolagem do Mouse", True)
         return False
 
@@ -126,12 +126,9 @@ class FullSettingsMenu:
             option_y = y + row * (self.option_height + self.spacing_y)
 
             option_rect = pygame.Rect(option_x, option_y, button_width, self.option_height)
+            self.button_rects.append((option_rect, key))  # ADICIONA em vez de substituir
 
-            if option_rect.collidepoint(mouse_pos):
-                color = (220, 235, 255)
-                self.hovered_option = key
-            else:
-                color = (255, 255, 255)
+            color = (220, 235, 255) if option_rect.collidepoint(mouse_pos) else (255, 255, 255)
 
             pygame.draw.rect(self.screen, color, option_rect, border_radius=self.option_radius)
             pygame.draw.rect(self.screen, (150, 150, 150), option_rect, width=2, border_radius=self.option_radius)
@@ -151,6 +148,8 @@ class FullSettingsMenu:
     def draw(self):
         if not self.visible:
             return
+
+        self.button_rects = []  # Limpa os botões uma vez por frame
 
         overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         pygame.draw.rect(overlay, self.bg_color, (0, 0, self.width, self.height), border_radius=self.option_radius)
@@ -198,56 +197,12 @@ class FullSettingsMenu:
 
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             mouse_pos = event.pos
-            x = self.padding_x
-            y = self.padding_y
 
-            title_surf = self.title_font.render("Configurações", True, self.text_color)
-            y += title_surf.get_height() + 40
-
-            # Controles section
-            y = self.draw_section_title("Controles", x, y)
-            controles_keys = [
-                "Clique Esquerdo",
-                "Clique Direito",
-                "Clique Botão do Meio",
-                "Rolagem do Mouse"
-            ]
-            button_width = (self.width - 2 * x - (self.options_per_row - 1) * self.spacing_x) // self.options_per_row
-            for i, key in enumerate(controles_keys):
-                row = i // self.options_per_row
-                col = i % self.options_per_row
-                option_x = x + col * (button_width + self.spacing_x)
-                option_y = y + row * (self.option_height + self.spacing_y)
-                option_rect = pygame.Rect(option_x, option_y, button_width, self.option_height)
-                if option_rect.collidepoint(mouse_pos):
+            for rect, key in self.button_rects:
+                if rect.collidepoint(mouse_pos):
                     self.options[key] = not self.options[key]
                     self.save_config()
-                    return True
 
-            total_rows = (len(controles_keys) + self.options_per_row - 1) // self.options_per_row
-            y += total_rows * (self.option_height + self.spacing_y) + 30
-
-            # Outros section
-            y = self.draw_section_title("Outros", x, y)
-            outros_keys = [
-                "Ativar Mods",
-                "Ativar Texturas",
-                "Verificar atualizações",
-                "Mostrar conquistas ocultas"
-            ]
-            if "Manter console aberto" in self.options:
-                outros_keys.append("Manter console aberto")
-
-            for i, key in enumerate(outros_keys):
-                row = i // self.options_per_row
-                col = i % self.options_per_row
-                option_x = x + col * (button_width + self.spacing_x)
-                option_y = y + row * (self.option_height + self.spacing_y)
-                option_rect = pygame.Rect(option_x, option_y, button_width, self.option_height)
-                if option_rect.collidepoint(mouse_pos):
-                    self.options[key] = not self.options[key]
-                    self.save_config()
-                    
                     if key == "Verificar atualizações":
                         if self.options[key] != self.valor_original_update:
                             self.precisa_reiniciar = True
