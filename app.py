@@ -154,6 +154,8 @@ def main():
                 if event.key == pygame.K_r and not console.visible:
                     score = 0
                     tracker.unlocked.clear()
+                    tracker.normal_clicks = 0
+                    tracker.mini_event_clicks = 0
                     for ach in tracker.achievements:
                         ach.unlocked = False
                     upgrade_menu.reset_upgrades()
@@ -212,6 +214,7 @@ def main():
                         if button.is_clicked(event.pos):
                             button.click()
                             score += upgrade_menu.get_bonus()
+                            tracker.add_normal_click()  # Registra clique normal
                             tracker.check_unlock(score)
                             click_effects.append(
                                 ClickEffect(event.pos[0], event.pos[1], f"+{upgrade_menu.get_bonus()}")
@@ -227,10 +230,13 @@ def main():
 
                 if mini_event and mini_event.visible:
                     score, upgrade = mini_event.handle_click(event.pos, score, upgrade_menu)
+                    tracker.add_mini_event_click()  # Registra clique no mini evento
                     if upgrade:
-                        tracker.check_unlock(score)
                         click_effects.append(
                             ClickEffect(event.pos[0], event.pos[1], "Upgrade Obtido!"))
+                    else:
+                        click_effects.append(
+                            ClickEffect(event.pos[0], event.pos[1], "+Pontos!"))
 
                 if console.visible:
                     console.handle_event(event)

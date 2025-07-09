@@ -21,16 +21,25 @@ class AchievementTracker:
             Achievement("first_click", "Primeiro Clique", "Dê seu primeiro clique", 1),
             Achievement("ten_clicks", "10 Cliques", "Alcance 10 cliques", 10),
             Achievement("hundred_points", "100 Pontos", "Chegue a 100 pontos", 100),
-            Achievement("console", "Ativar Console", "Você descobriu o console secreto!")
+            Achievement("console", "Ativar Console", "Você descobriu o console secreto!"),
+            Achievement("mini_event_1", "Mini Evento: Primeiro Clique", "Clique pela primeira vez no mini evento", 1),
+            Achievement("mini_event_10", "Mini Evento: 10 Cliques", "Clique 10 vezes no mini evento", 10),
+            Achievement("mini_event_100", "Mini Evento: 100 Cliques", "Clique 100 vezes no mini evento", 100)
         ]
         self.unlocked = set()
         self.achievement_queue = []
         self.current_achievement = None
-        self.font = pygame.font.SysFont(None, 28)
-        self.bg_color = (255, 192, 203)
+        self.font = pygame.font.SysFont("Arial", 28, bold=True)
+        self.desc_font = pygame.font.SysFont("Arial", 22)
+        self.bg_color = (255, 215, 230)  # Rosa claro
+        self.border_color = (220, 150, 180)  # Rosa mais escuro para borda
+        self.text_color = (80, 0, 60)  # Roxo escuro para texto
         self.sound = None
-        self.animation_speed = 0.05
-        self.popup_duration = 3.0  # 3 segundos visível
+        self.animation_speed = 0.08  # Mais rápido
+        self.popup_duration = 3.5  # 3.5 segundos visível
+        self.normal_clicks = 0
+        self.mini_event_clicks = 0
+        self.icon_font = pygame.font.SysFont("Segoe UI Emoji", 36)
 
     def load_sound(self):
         try:
@@ -46,14 +55,45 @@ class AchievementTracker:
                 ach.unlocked = True
                 self.unlocked.add(ach.id)
 
+    def add_normal_click(self):
+        self.normal_clicks += 1
+        self._check_click_achievements("normal")
+
+    def add_mini_event_click(self):
+        self.mini_event_clicks += 1
+        self._check_click_achievements("mini_event")
+
+    def _check_click_achievements(self, click_type):
+        new_achievements = []
+        for ach in self.achievements:
+            if ach.unlocked:
+                continue
+            if click_type == "normal":
+                if ach.id == "first_click" and self.normal_clicks >= 1:
+                    ach.unlocked = True
+                elif ach.id == "ten_clicks" and self.normal_clicks >= 10:
+                    ach.unlocked = True
+            elif click_type == "mini_event":
+                if ach.id == "mini_event_1" and self.mini_event_clicks >= 1:
+                    ach.unlocked = True
+                elif ach.id == "mini_event_10" and self.mini_event_clicks >= 10:
+                    ach.unlocked = True
+                elif ach.id == "mini_event_100" and self.mini_event_clicks >= 100:
+                    ach.unlocked = True
+            if ach.unlocked:
+                self.unlocked.add(ach.id)
+                new_achievements.append(ach)
+        if new_achievements:
+            self.achievement_queue.extend(new_achievements)
+            self._start_next_achievement()
+
     def check_unlock(self, score):
         new_achievements = []
         for ach in self.achievements:
-            if not ach.unlocked and ach.threshold > 0 and score >= ach.threshold:
+            if not ach.unlocked and ach.id == "hundred_points" and score >= ach.threshold:
                 ach.unlocked = True
                 self.unlocked.add(ach.id)
                 new_achievements.append(ach)
-        
         if new_achievements:
             self.achievement_queue.extend(new_achievements)
             self._start_next_achievement()
@@ -104,23 +144,42 @@ class AchievementTracker:
             return
 
         ach = self.current_achievement
-        alpha = int(ach.animation_progress * 255)
+        # Efeito de easing para suavizar a animação
+        eased_progress = math.sin(ach.animation_progress * math.pi/2)
+        alpha = int(eased_progress * 255)
         
-        w, h = 460, 50
+        # Tamanho e posição do popup
+        w, h = 380, 90
         x = (self.screen.get_width() - w) // 2
-        y = 80
+        y = int(40 + (1 - eased_progress) * 10)
         
+        # Cria superfície com transparência
         popup_surface = pygame.Surface((w, h), pygame.SRCALPHA)
         
+        # Desenha fundo com borda arredondada
         bg_with_alpha = (*self.bg_color, alpha)
-        pygame.draw.rect(popup_surface, bg_with_alpha, (0, 0, w, h), border_radius=12)
-        pygame.draw.rect(popup_surface, (200, 150, 150, alpha), (0, 0, w, h), 2, border_radius=12)
+        border_with_alpha = (*self.border_color, alpha)
+        pygame.draw.rect(popup_surface, bg_with_alpha, (0, 0, w, h), border_radius=16)
+        pygame.draw.rect(popup_surface, border_with_alpha, (0, 0, w, h), 3, border_radius=16)
         
-        text_color = (60, 20, 60, alpha)
-        text_surf = self.font.render(f"Conquista desbloqueada: {ach.name}", True, text_color)
-        text_rect = text_surf.get_rect(center=(w//2, h//2))
-        popup_surface.blit(text_surf, text_rect)
+        # Desenha ícone de troféu
+        trophy = self.icon_font.render("🏆", True, (255, 215, 0, alpha))
+        popup_surface.blit(trophy, (20, (h - trophy.get_height()) // 2))
         
+        # Desenha textos
+        text_color = (*self.text_color, alpha)
+        title = self.font.render("Conquista Desbloqueada!", True, text_color)
+        popup_surface.blit(title, (60, 15))
+        
+        name = self.desc_font.render(f"{ach.name}", True, text_color)
+        popup_surface.blit(name, (60, 45))
+        
+        # Adiciona sombra sutil
+        shadow_surface = pygame.Surface((w+4, h+4), pygame.SRCALPHA)
+        shadow_surface.fill((0, 0, 0, alpha//4))
+        self.screen.blit(shadow_surface, (x-2, y-2))
+        
+        # Desenha o popup na tela principal
         self.screen.blit(popup_surface, (x, y))
 
 class AchievementsMenu:
@@ -132,20 +191,26 @@ class AchievementsMenu:
         self.achievements = []
         self.unlocked = set()
         self.config_menu = config_menu
-        self.bg_color = (245, 225, 240)
+
+        # Cores e estilos
+        self.bg_color = (245, 225, 240, 220)
+        self.box_color = (255, 245, 250)
         self.text_color = (60, 0, 60)
         self.border_color = (180, 150, 180)
-        self.title_font = pygame.font.SysFont(None, 36, bold=True)
-        self.font = pygame.font.SysFont(None, 24)
-        self.desc_font = pygame.font.SysFont(None, 20)
-        self.box_width = 560
-        self.box_height = 340
-        self.padding = 20
-        self.line_height = 55
-        self.box_color = (230, 210, 230)
         self.unlocked_color = (40, 180, 100)
-        self.lock_color = (120, 120, 120)
-        self.hidden_color = (150, 150, 150)
+        self.locked_color = (150, 150, 150)
+        self.highlight_color = (255, 105, 180)
+
+        # Fontes
+        self.title_font = pygame.font.SysFont("Arial", 36, bold=True)
+        self.item_font = pygame.font.SysFont("Arial", 26, bold=True)
+        self.desc_font = pygame.font.SysFont("Arial", 20)
+        self.icon_font = pygame.font.SysFont("Segoe UI Emoji", 28)
+
+        # Layout
+        self.padding = 20
+        self.item_height = 70
+        self.radius = 14
 
     def update(self, tracker):
         self.achievements = tracker.achievements
@@ -155,78 +220,68 @@ class AchievementsMenu:
         if not self.visible:
             return
 
-        x = (self.width - self.box_width) // 2
-        y = (self.height - self.box_height) // 2
-        box = pygame.Rect(x, y, self.box_width, self.box_height)
-        pygame.draw.rect(self.screen, self.bg_color, box, border_radius=16)
-        pygame.draw.rect(self.screen, self.border_color, box, 2, border_radius=16)
+        # Fundo semi-transparente
+        overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        overlay.fill(self.bg_color)
+        self.screen.blit(overlay, (0, 0))
 
-        title_surf = self.title_font.render("Conquistas", True, self.text_color)
-        self.screen.blit(title_surf, (x + self.padding, y + self.padding))
+        # Caixa principal
+        box_width = min(600, self.width - 80)
+        box_height = min(500, self.height - 80)
+        box_rect = pygame.Rect((self.width - box_width) // 2, (self.height - box_height) // 2, box_width, box_height)
 
-        start_y = y + self.padding + 50
-        
+        pygame.draw.rect(self.screen, self.box_color, box_rect, border_radius=self.radius)
+        pygame.draw.rect(self.screen, self.border_color, box_rect, 3, border_radius=self.radius)
+
+        # Título
+        title = self.title_font.render("Conquistas", True, self.text_color)
+        self.screen.blit(title, (box_rect.centerx - title.get_width() // 2, box_rect.top + 25))
+
         # Verifica se deve mostrar conquistas ocultas
         show_hidden = False
         if self.config_menu and hasattr(self.config_menu, 'settings_menu'):
             show_hidden = self.config_menu.settings_menu.get_option("Mostrar conquistas ocultas")
-        
-        # Filtra conquistas para mostrar
-        shown_achievements = [
-            ach for ach in self.achievements 
-            if show_hidden or ach.unlocked
-        ]
 
-        for i, ach in enumerate(shown_achievements):
-            ach_y = start_y + i * self.line_height
-            ach_rect = pygame.Rect(x + self.padding, ach_y, self.box_width - 2 * self.padding, self.line_height - 10)
-            pygame.draw.rect(self.screen, self.box_color, ach_rect, border_radius=12)
+        # Filtra conquistas
+        filtered = [a for a in self.achievements if a.unlocked or show_hidden]
+
+        # Lista de conquistas
+        start_y = box_rect.top + 80
+        scrollable_height = box_rect.height - 100
+        end_y = box_rect.top + box_rect.height - 20
+
+        for i, ach in enumerate(filtered):
+            y = start_y + i * (self.item_height + 10)
+            if y + self.item_height > end_y:
+                break
+
+            item_rect = pygame.Rect(box_rect.left + self.padding, y, box_width - 2 * self.padding, self.item_height)
             
-            # Define cores com base no status
-            if ach.unlocked:
-                border_col = self.unlocked_color
-                icon = "✓"
-                icon_color = self.unlocked_color
-                name_color = self.unlocked_color
-                desc_color = (180, 180, 200)
-            else:
-                border_col = self.hidden_color
-                icon = "?"
-                icon_color = self.hidden_color
-                name_color = self.hidden_color
-                desc_color = (110, 110, 130)
+            # Fundo do item
+            pygame.draw.rect(self.screen, (250, 240, 248), item_rect, border_radius=self.radius)
+            
+            # Borda colorida
+            border_color = self.unlocked_color if ach.unlocked else self.locked_color
+            pygame.draw.rect(self.screen, border_color, item_rect, 2, border_radius=self.radius)
 
-            pygame.draw.rect(self.screen, border_col, ach_rect, 2, border_radius=12)
+            # Ícone
+            icon = "✓" if ach.unlocked else "?"
+            icon_surf = self.icon_font.render(icon, True, border_color)
+            self.screen.blit(icon_surf, (item_rect.left + 15, item_rect.centery - icon_surf.get_height() // 2))
 
-            # Renderiza ícone
-            icon_surf = self.font.render(icon, True, icon_color)
-            icon_rect = icon_surf.get_rect()
-            icon_rect.centery = ach_rect.centery
-            icon_rect.left = ach_rect.left + 15
-            self.screen.blit(icon_surf, icon_rect)
+            # Nome e descrição
+            name_surf = self.item_font.render(ach.name, True, self.text_color if ach.unlocked else self.locked_color)
+            desc_surf = self.desc_font.render(ach.description, True, (100, 80, 100) if ach.unlocked else (120, 120, 120))
 
-            # Renderiza nome
-            name_surf = self.font.render(ach.name, True, name_color)
-            name_rect = name_surf.get_rect()
-            name_rect.topleft = (icon_rect.right + 15, ach_rect.top + 10)
-            self.screen.blit(name_surf, name_rect)
-
-            # Renderiza descrição
-            desc_surf = self.desc_font.render(ach.description, True, desc_color)
-            desc_rect = desc_surf.get_rect()
-            desc_rect.topleft = (icon_rect.right + 15, name_rect.bottom + 4)
-            self.screen.blit(desc_surf, desc_rect)
+            self.screen.blit(name_surf, (item_rect.left + 60, item_rect.top + 12))
+            self.screen.blit(desc_surf, (item_rect.left + 60, item_rect.top + 38))
 
     def handle_event(self, event):
         if not self.visible:
             return False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            x = (self.width - self.box_width) // 2
-            y = (self.height - self.box_height) // 2
-            if not pygame.Rect(x, y, self.box_width, self.box_height).collidepoint(event.pos):
-                self.visible = False
-                return True
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             self.visible = False
+            return True
+        if event.type == pygame.MOUSEBUTTONDOWN:
             return True
         return False

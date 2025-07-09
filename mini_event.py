@@ -66,7 +66,7 @@ class MiniEvent:
                 upgrade_menu.purchase_random_upgrade()
                 return score, True  # Retorna que o jogador obteve um upgrade
             else:
-                points = random.randint(1, 5000)  # Quantidade aleatória de pontos
+                points = random.randint(1, 1000)  # Quantidade aleatória de pontos
                 score += points
                 return score, False  # Retorna que o jogador obteve pontos
                 
