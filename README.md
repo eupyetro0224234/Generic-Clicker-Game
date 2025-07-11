@@ -168,7 +168,7 @@ Atualmente, esse projeto suporta apenas modificações diretas no código. Eu se
 **Atualmente, não, pois o arquivo que gerencia os dados salvos sofre mudanças constantes, assim, dificultando muito que mantenha a mesma estrutura pra todas as versões**
 
 ## Contato
-Pyetro — eu.pyetro.022@gmail.com
+Pyetro — contato.eupyetro022@gmail.com
 
 ## Créditos
 * Minecraft Wiki: [Gif do Livro Encantado](https://pt.minecraft.wiki/w/Livro_Encantado)
