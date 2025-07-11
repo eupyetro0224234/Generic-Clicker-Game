@@ -75,6 +75,7 @@ def download_assets(screen, width, height):
         ("https://i.postimg.cc/yxVZWpPk/image-removebg-preview-6.png", os.path.join(assets_path, "upgrades.png")),
         ("https://i.postimg.cc/MKwpfL8Z/image-removebg-preview-7.png", os.path.join(assets_path, "mini-event.png")),
         ("https://drive.google.com/uc?export=download&id=1plzz02JEt1p0puxuZtoEnLAhrcj1O0RG", os.path.join(assets_path, "complete-quest.ogg")),
+        ("https://drive.google.com/uc?export=download&id=1efFuMey_F8GWfu6LsATLXPb98O6hnovy", os.path.join(assets_path, "icone.ico")),
     ]
 
     total = len(assets)

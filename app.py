@@ -20,6 +20,16 @@ def main():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Just Another Generic Clicker Game, But With References")
+    
+    # Carregar e definir o ícone da janela
+    icon_path = os.path.join(os.getenv("LOCALAPPDATA") or ".", ".assets", "icone.ico")
+    try:
+        if os.path.exists(icon_path):
+            icon = pygame.image.load(icon_path)
+            pygame.display.set_icon(icon)
+    except Exception as e:
+        print(f"Erro ao carregar ícone: {e}")
+
     clock = pygame.time.Clock()
 
     pygame.mixer.init()
@@ -196,6 +206,19 @@ def main():
                         continue
 
             if event.type == pygame.MOUSEBUTTONDOWN:
+                if mini_event and mini_event.visible:
+                    prev_score = score
+                    score, upgrade = mini_event.handle_click(event.pos, score, upgrade_menu)
+                    if upgrade or score != prev_score:
+                        tracker.add_mini_event_click()
+                        if upgrade:
+                            click_effects.append(
+                                ClickEffect(event.pos[0], event.pos[1], "Upgrade Obtido!"))
+                        else:
+                            click_effects.append(
+                                ClickEffect(event.pos[0], event.pos[1], "+Pontos!"))
+                        continue
+
                 prev_vis = upgrade_menu.visible
                 new_score, _ = upgrade_menu.handle_event(event, score)
                 if new_score != score or upgrade_menu.visible != prev_vis:
@@ -204,21 +227,18 @@ def main():
 
                 button._update_rect()
 
-                if not (
-                    config_menu.settings_menu.visible
-                    or config_menu.achievements_menu.visible
-                    or console.visible
-                    or exit_handler.active
-                ):
+                if not (config_menu.settings_menu.visible or 
+                       config_menu.achievements_menu.visible or 
+                       console.visible or 
+                       exit_handler.active):
                     if config_menu.settings_menu.is_click_allowed(event.button):
                         if button.is_clicked(event.pos):
                             button.click()
                             score += upgrade_menu.get_bonus()
-                            tracker.add_normal_click()  # Registra clique normal
+                            tracker.add_normal_click()
                             tracker.check_unlock(score)
                             click_effects.append(
-                                ClickEffect(event.pos[0], event.pos[1], f"+{upgrade_menu.get_bonus()}")
-                            )
+                                ClickEffect(event.pos[0], event.pos[1], f"+{upgrade_menu.get_bonus()}"))
                             score_manager.save_data(
                                 score,
                                 config_menu.controls_menu.visible,
@@ -227,16 +247,6 @@ def main():
                                 last_mini_event_click_time
                             )
                             continue
-
-                if mini_event and mini_event.visible:
-                    score, upgrade = mini_event.handle_click(event.pos, score, upgrade_menu)
-                    tracker.add_mini_event_click()  # Registra clique no mini evento
-                    if upgrade:
-                        click_effects.append(
-                            ClickEffect(event.pos[0], event.pos[1], "Upgrade Obtido!"))
-                    else:
-                        click_effects.append(
-                            ClickEffect(event.pos[0], event.pos[1], "+Pontos!"))
 
                 if console.visible:
                     console.handle_event(event)
