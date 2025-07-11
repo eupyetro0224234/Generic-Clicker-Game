@@ -21,17 +21,32 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Just Another Generic Clicker Game, But With References")
     
-    # Carregar e definir o ícone da janela
+    # ===== CONFIGURAÇÃO AVANÇADA DO ÍCONE =====
     icon_path = os.path.join(os.getenv("LOCALAPPDATA") or ".", ".assets", "icone.ico")
     try:
         if os.path.exists(icon_path):
-            icon = pygame.image.load(icon_path)
-            pygame.display.set_icon(icon)
+            # Método com Pillow (melhor para .ico)
+            try:
+                from PIL import Image
+                img = Image.open(icon_path)
+                icon = pygame.image.fromstring(
+                    img.tobytes(), img.size, img.mode
+                )
+                pygame.display.set_icon(icon)
+                
+                # Configuração especial para Windows (barra de tarefas)
+                if sys.platform == 'win32':
+                    import ctypes
+                    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("GenericClickerGame.1.0")
+            except ImportError:
+                # Fallback se Pillow não estiver instalado
+                icon = pygame.image.load(icon_path)
+                pygame.display.set_icon(icon)
     except Exception as e:
-        print(f"Erro ao carregar ícone: {e}")
+        print(f"[AVISO] Erro ao carregar ícone: {e}")
 
+    # ===== RESTANTE DO CÓDIGO ORIGINAL =====
     clock = pygame.time.Clock()
-
     pygame.mixer.init()
 
     loading = LoadingScreen(screen, WIDTH, HEIGHT)

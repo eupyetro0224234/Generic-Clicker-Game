@@ -184,7 +184,8 @@ Pyetro — eu.pyetro.022@gmail.com
 
 Igualmente a 0.0.02.1, essa atualização serviu apenas para correções.
 
-- Bug ao clicar em qualquer lugar da tela enquanto o evento está ativo considera como click no evento corrigido.
+- Bug ao clicar em qualquer lugar da tela enquanto o evento está ativo considera como click no evento corrigido,
+- Bug do ícone não exibir na barra de tarefas corrigido (a partir da segunda vez que abrir o jogo, o ícone aparecerá normalmente).
 
 <details>
   <summary>0.0.03 - 11/07/25</summary>
