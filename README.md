@@ -174,7 +174,7 @@ Pyetro — eu.pyetro.022@gmail.com
 * Minecraft Wiki: [Gif do Livro Encantado](https://pt.minecraft.wiki/w/Livro_Encantado)
 * Stardew Valley Wiki: [Ícone de configurações](https://pt.stardewvalleywiki.com/Controles_m%C3%B3veis)
 * Potion Permit Wiki: [Botão do menu de upgrades](https://potion-permit.fandom.com/pt-br/wiki/Di%C3%A1rio_M%C3%A9dico)
-* Bloons Wiki: [Mini corações que dão pontos](https://bloons.fandom.com/wiki/List_of_Bloons)
+* Bloons Wiki: [Coração do mini evento](https://bloons.fandom.com/wiki/List_of_Bloons)
 * Modpack Crash Landing: [Som de conquista concluída](https://www.curseforge.com/minecraft/modpacks/crash-landing)
 
 ## Changelogs
