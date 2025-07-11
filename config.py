@@ -46,6 +46,9 @@ class FullSettingsMenu:
 
         self.hovered_option = None
         self.button_rects = []
+        
+        # Adiciona uma flag para controlar se o console está ativo
+        self.console_ativo = False
 
     def is_click_allowed(self, button):
         if button == 1:
@@ -89,14 +92,18 @@ class FullSettingsMenu:
         self.save_config()
 
     def add_console_option(self):
-        if "Manter console aberto" not in self.options:
-            self.options["Manter console aberto"] = False
-            self.save_config()
+        if not self.console_ativo:
+            self.console_ativo = True
+            if "Manter console aberto" not in self.options:
+                self.options["Manter console aberto"] = False
+                self.save_config()
 
     def remove_console_option(self):
-        if "Manter console aberto" in self.options:
-            del self.options["Manter console aberto"]
-            self.save_config()
+        if self.console_ativo:
+            self.console_ativo = False
+            if "Manter console aberto" in self.options:
+                del self.options["Manter console aberto"]
+                self.save_config()
 
     def draw_section_title(self, title, x, y):
         box_width = self.width - 2 * x
@@ -182,7 +189,8 @@ class FullSettingsMenu:
             "Verificar atualizações",
             "Mostrar conquistas ocultas"
         ]
-        if "Manter console aberto" in self.options:
+        # Só mostra a opção do console se ele estiver ativo
+        if self.console_ativo and "Manter console aberto" in self.options:
             outros_keys.append("Manter console aberto")
 
         self.draw_options(outros_keys, x, y)
