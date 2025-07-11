@@ -244,7 +244,7 @@ class AchievementsMenu:
             pygame.draw.rect(self.screen, border_color, rect, 2, border_radius=self.radius)
 
             # Ícone
-            icon = "★" if ach.unlocked else "☆"
+            icon = "⭐" if ach.unlocked else "☆"
             icon_surf = self.icon_font.render(icon, True, border_color)
             self.screen.blit(icon_surf, (rect.left + 10, rect.top + 8))
 
