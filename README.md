@@ -1,6 +1,6 @@
 # Just Another Generic Clicker Game, But With References
 
-![Badge de versão](https://img.shields.io/badge/version-0.0.02.1-yellow) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
+![Badge de versão](https://img.shields.io/badge/version-0.0.03-yellow) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
 
 **Desative o tradutor do seu navegador ao ler**
 
@@ -177,6 +177,23 @@ Pyetro — eu.pyetro.022@gmail.com
 * Bloons Wiki: [Mini corações que dão pontos](https://bloons.fandom.com/wiki/List_of_Bloons)
 
 ## Changelogs
+
+<details>
+  <summary>0.0.03 - 11/07/25</summary>
+
+Essa foi uma pequena atualização, o foco dela foi correção de bugs
+  
+- Novas conquistas,
+- Aviso sonoro de conquistas concluídas,
+- Alterações visuais no menu de configurações e controles,
+- Mini evento adicionado,
+- Ícone novo,
+- Novos comandos para o console,
+- Configurações novas: Manter o console aberto e Mostrar conquistas ocultas,
+- Correção de diversos bugs,
+- O precisa apertar enter para abrir agora.
+
+</details>
 
 <details>
   <summary>0.0.02.1 - 07/07/25</summary>
