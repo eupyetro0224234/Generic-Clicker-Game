@@ -1,6 +1,6 @@
 # Just Another Generic Clicker Game, But With References
 
-![Badge de versão](https://img.shields.io/badge/version-0.0.03-yellow) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
+![Badge de versão](https://img.shields.io/badge/version-0.0.03.1-yellow) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
 
 **Desative o tradutor do seu navegador ao ler**
 
@@ -175,13 +175,21 @@ Pyetro — eu.pyetro.022@gmail.com
 * Stardew Valley Wiki: [Ícone de configurações](https://pt.stardewvalleywiki.com/Controles_m%C3%B3veis)
 * Potion Permit Wiki: [Botão do menu de upgrades](https://potion-permit.fandom.com/pt-br/wiki/Di%C3%A1rio_M%C3%A9dico)
 * Bloons Wiki: [Mini corações que dão pontos](https://bloons.fandom.com/wiki/List_of_Bloons)
+* Modpack Crash Landing: [Som de conquista concluída](https://www.curseforge.com/minecraft/modpacks/crash-landing)
 
 ## Changelogs
 
 <details>
+  <summary>0.0.03.1 - 11/07/25</summary>
+
+Igualmente a 0.0.02.1, essa atualização serviu apenas para correções.
+
+- Bug ao clicar em qualquer lugar da tela enquanto o evento está ativo considera como click no evento corrigido.
+
+<details>
   <summary>0.0.03 - 11/07/25</summary>
 
-Essa foi uma pequena atualização, o foco dela foi correção de bugs
+Essa foi uma pequena atualização, o foco dela foi correção de bugs.
   
 - Novas conquistas,
 - Aviso sonoro de conquistas concluídas,
