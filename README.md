@@ -138,7 +138,7 @@ Ou seja, alterações são permitidas para uso pessoal ou interno, mas para dist
 
 ## Mods e Texturas
 
-Atualmente, esse projeto suporta apenas modificações diretas no código. Eu sei que isso não é nada prático, mas estou trabalhando em um jeito menos complexo de criar e carregar mods.
+Atualmente, esse projeto suporta apenas modificações diretas no código. Eu sei que isso não é nada prático, mas estou trabalhando junto com a atualização 0.0.04 em um jeito menos complexo de criar e carregar mods.
 
 ## Questões Comuns
 
