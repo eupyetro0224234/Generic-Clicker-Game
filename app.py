@@ -3,6 +3,7 @@ import pygame
 import random
 import json
 import sys
+import time
 from background import draw_background, WIDTH, HEIGHT
 from button import AnimatedButton
 from score_manager import ScoreManager
@@ -16,41 +17,130 @@ from exit_handler import ExitHandler
 import updates
 from mini_event import MiniEvent
 
+def carregar_icone():
+    icon_path = os.path.join(os.getenv("LOCALAPPDATA") or ".", ".assets", "icone.ico")
+    if os.path.exists(icon_path):
+        try:
+            try:
+                from PIL import Image
+                img = Image.open(icon_path)
+                icon = pygame.image.fromstring(img.tobytes(), img.size, img.mode)
+                pygame.display.set_icon(icon)
+            except ImportError:
+                icon = pygame.image.load(icon_path)
+                pygame.display.set_icon(icon)
+
+            if sys.platform == 'win32':
+                import ctypes
+                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("GenericClickerGame.1.0")
+        except Exception as e:
+            print(f"[AVISO] Erro ao carregar ícone: {e}")
+    else:
+        print("Arquivo icone.ico não encontrado na pasta .assets")
+
+def show_confirmation_dialog(screen, width, height, message):
+    class ConfirmationDialog:
+        def __init__(self, screen, width, height, message):
+            self.screen = screen
+            self.width = width
+            self.height = height
+            self.message = message
+            self.font = pygame.font.SysFont(None, 32)
+            self.prompt_font = pygame.font.SysFont(None, 28)
+            self.text_color = (40, 40, 60)
+            self.bg_box_color = (180, 210, 255)
+            self.box_color = (255, 255, 255)
+            self.bg_rect = pygame.Rect(width // 2 - 250, height // 2 - 100, 500, 200)
+            btn_width = 120
+            btn_height = 45
+            self.yes_btn = pygame.Rect(width // 2 - 140, height // 2 + 30, btn_width, btn_height)
+            self.no_btn = pygame.Rect(width // 2 + 20, height // 2 + 30, btn_width, btn_height)
+            self.result = None
+        
+        def handle_event(self, event):
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    self.result = True
+                    return True
+                elif event.key == pygame.K_ESCAPE:
+                    self.result = False
+                    return True
+            
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.yes_btn.collidepoint(event.pos):
+                    self.result = True
+                    return True
+                elif self.no_btn.collidepoint(event.pos):
+                    self.result = False
+                    return True
+            
+            return False
+        
+        def draw(self):
+            pygame.draw.rect(self.screen, self.bg_box_color, self.bg_rect, border_radius=16)
+            lines = [self.message[i:i+50] for i in range(0, len(self.message), 50)]
+            for i, line in enumerate(lines):
+                prompt_surf = self.prompt_font.render(line, True, self.text_color)
+                prompt_rect = prompt_surf.get_rect(center=(self.width // 2, self.bg_rect.y + 60 + i*30))
+                self.screen.blit(prompt_surf, prompt_rect)
+            pygame.draw.rect(self.screen, (70, 180, 70), self.yes_btn, border_radius=8)
+            pygame.draw.rect(self.screen, (200, 70, 70), self.no_btn, border_radius=8)
+            yes_text = self.font.render("Sim (R)", True, (255, 255, 255))
+            no_text = self.font.render("Não (ESC)", True, (255, 255, 255))
+            self.screen.blit(yes_text, (self.yes_btn.centerx - yes_text.get_width()//2, 
+                                      self.yes_btn.centery - yes_text.get_height()//2))
+            self.screen.blit(no_text, (self.no_btn.centerx - no_text.get_width()//2, 
+                                     self.no_btn.centery - no_text.get_height()//2))
+    
+    dialog = ConfirmationDialog(screen, width, height, message)
+    s = pygame.Surface((width, height), pygame.SRCALPHA)
+    s.fill((0, 0, 0, 150))
+    screen.blit(s, (0, 0))
+    waiting = True
+    while waiting:
+        dialog.draw()
+        pygame.display.flip()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+            if dialog.handle_event(event):
+                waiting = False
+        pygame.time.delay(10)
+    return dialog.result
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Just Another Generic Clicker Game, But With References")
-    
-    # ===== CONFIGURAÇÃO AVANÇADA DO ÍCONE =====
-    icon_path = os.path.join(os.getenv("LOCALAPPDATA") or ".", ".assets", "icone.ico")
-    try:
-        if os.path.exists(icon_path):
-            # Método com Pillow (melhor para .ico)
-            try:
-                from PIL import Image
-                img = Image.open(icon_path)
-                icon = pygame.image.fromstring(
-                    img.tobytes(), img.size, img.mode
-                )
-                pygame.display.set_icon(icon)
-                
-                # Configuração especial para Windows (barra de tarefas)
-                if sys.platform == 'win32':
-                    import ctypes
-                    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("GenericClickerGame.1.0")
-            except ImportError:
-                # Fallback se Pillow não estiver instalado
-                icon = pygame.image.load(icon_path)
-                pygame.display.set_icon(icon)
-    except Exception as e:
-        print(f"[AVISO] Erro ao carregar ícone: {e}")
 
-    # ===== RESTANTE DO CÓDIGO ORIGINAL =====
+    carregar_icone()
+
     clock = pygame.time.Clock()
     pygame.mixer.init()
 
-    loading = LoadingScreen(screen, WIDTH, HEIGHT)
-    download_assets(screen, WIDTH, HEIGHT)
+    score_manager = ScoreManager()
+
+    # Tenta carregar os dados
+    try:
+        score, controls_visible, saved_achievements, saved_upgrades, mini_event_click_count = score_manager.load_data()
+    except Exception as e:
+        print(f"Erro crítico ao carregar dados: {e}")
+        # Tenta um último recurso - carregar diretamente do backup
+        backup_data = score_manager.load_backup()
+        if backup_data:
+            score, controls_visible, saved_achievements, saved_upgrades, mini_event_click_count = backup_data
+            # Tenta salvar os dados recuperados no formato principal
+            score_manager.save_data(score, controls_visible, saved_achievements, saved_upgrades, mini_event_click_count)
+        else:
+            score, controls_visible, saved_achievements, saved_upgrades, mini_event_click_count = 0, False, [], {}, 0
+
+    config_menu = ConfigMenu(screen, WIDTH, HEIGHT, score_manager=score_manager)
+
+    pular_loading = False
+    if hasattr(config_menu, "settings_menu") and config_menu.settings_menu:
+        pular_loading = config_menu.settings_menu.get_option("Pular o loading")
+
+    download_assets(screen, WIDTH, HEIGHT, skip_loading=pular_loading)
 
     FONT = pygame.font.SysFont(None, 64)
     TEXT_COLOR_SCORE = (40, 40, 60)
@@ -62,21 +152,21 @@ def main():
         os.path.join(os.getenv("LOCALAPPDATA") or ".", ".assets", "button.gif")
     )
 
-    score_manager = ScoreManager()
-    score, controls_visible, saved_achievements, saved_upgrades, last_mini_event_click_time = score_manager.load_data()
-
-    config_menu = ConfigMenu(screen, WIDTH, HEIGHT, loading_callback=loading.draw)
     config_menu.controls_menu.visible = controls_visible
 
     tracker = AchievementTracker(screen)
     tracker.load_unlocked(saved_achievements)
     tracker.load_sound()
+    tracker.mini_event_clicks = mini_event_click_count
 
-    upgrade_menu = UpgradeMenu(screen, WIDTH, HEIGHT)
+    upgrade_menu = UpgradeMenu(screen, WIDTH, HEIGHT, achievement_tracker=tracker)
     upgrade_menu.load_upgrades(saved_upgrades)
 
     click_effects = []
     auto_click_counter = 0
+
+    hold_click_start_time = None
+    hold_click_accumulator = 0
 
     def on_console_open():
         config_menu.enable_console(add_option=True)
@@ -147,6 +237,8 @@ def main():
     verificar_update()
 
     last_save_time = pygame.time.get_ticks()
+    last_backup_save_time = pygame.time.get_ticks()
+
     running = True
     while running:
         if exit_handler.fading_out:
@@ -177,13 +269,25 @@ def main():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r and not console.visible:
-                    score = 0
-                    tracker.unlocked.clear()
-                    tracker.normal_clicks = 0
-                    tracker.mini_event_clicks = 0
-                    for ach in tracker.achievements:
-                        ach.unlocked = False
-                    upgrade_menu.reset_upgrades()
+                    confirmed = show_confirmation_dialog(
+                        screen, WIDTH, HEIGHT, 
+                        "Deseja realmente resetar TODOS os dados do jogo?"
+                    )
+                    if confirmed:
+                        score = 0
+                        tracker.unlocked.clear()
+                        tracker.normal_clicks = 0
+                        tracker.mini_event_clicks = 0
+                        for ach in tracker.achievements:
+                            ach.unlocked = False
+                        upgrade_menu.reset_upgrades()
+                        score_manager.save_data(
+                            score,
+                            config_menu.controls_menu.visible,
+                            list(tracker.unlocked),
+                            upgrade_menu.purchased,
+                            tracker.mini_event_clicks
+                        )
                     continue
 
                 if event.key == pygame.K_u and not console.visible:
@@ -193,7 +297,7 @@ def main():
                         config_menu.controls_menu.visible,
                         list(tracker.unlocked),
                         upgrade_menu.purchased,
-                        last_mini_event_click_time
+                        tracker.mini_event_clicks
                     )
                     continue
 
@@ -232,6 +336,13 @@ def main():
                         else:
                             click_effects.append(
                                 ClickEffect(event.pos[0], event.pos[1], "+Pontos!"))
+                        score_manager.save_data(
+                            score,
+                            config_menu.controls_menu.visible,
+                            list(tracker.unlocked),
+                            upgrade_menu.purchased,
+                            tracker.mini_event_clicks
+                        )
                         continue
 
                 prev_vis = upgrade_menu.visible
@@ -259,7 +370,7 @@ def main():
                                 config_menu.controls_menu.visible,
                                 list(tracker.unlocked),
                                 upgrade_menu.purchased,
-                                last_mini_event_click_time
+                                tracker.mini_event_clicks
                             )
                             continue
 
@@ -281,6 +392,30 @@ def main():
                 tracker.check_unlock(score)
                 click_effects.append(
                     ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{bonus_auto} (Auto)"))
+
+        mouse_buttons = pygame.mouse.get_pressed()
+        current_ticks = pygame.time.get_ticks()
+
+        if mouse_buttons[0]:
+            hold_click_qtd = upgrade_menu.purchased.get("hold_click", 0)
+            if hold_click_qtd > 0:
+                if hold_click_start_time is None:
+                    hold_click_start_time = current_ticks
+                    hold_click_accumulator = 0
+                else:
+                    elapsed = current_ticks - hold_click_start_time
+                    if elapsed >= 3000:
+                        hold_click_accumulator += clock.get_time()
+                        if hold_click_accumulator >= 500:
+                            hold_click_accumulator = 0
+                            score += hold_click_qtd
+                            tracker.add_normal_click()
+                            tracker.check_unlock(score)
+                            click_effects.append(
+                                ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{hold_click_qtd} (Hold)"))
+        else:
+            hold_click_start_time = None
+            hold_click_accumulator = 0
 
         current_time = pygame.time.get_ticks()
         if (current_time - last_mini_event_time > mini_event_cooldown and
@@ -333,15 +468,28 @@ def main():
         clock.tick(60)
 
         current_time = pygame.time.get_ticks()
-        if current_time - last_save_time >= 5000:
+
+        # Salvar dados a cada 1 segundo
+        if current_time - last_save_time >= 1000:
             score_manager.save_data(
                 score,
                 config_menu.controls_menu.visible,
                 list(tracker.unlocked),
                 upgrade_menu.purchased,
-                last_mini_event_click_time
+                tracker.mini_event_clicks
             )
             last_save_time = current_time
+
+        # Salvar backup old.json a cada 1 segundo se houver update
+        if aviso_update and (current_time - last_backup_save_time >= 1000):
+            score_manager.save_backup(
+                score,
+                config_menu.controls_menu.visible,
+                list(tracker.unlocked),
+                upgrade_menu.purchased,
+                tracker.mini_event_clicks
+            )
+            last_backup_save_time = current_time
 
     pygame.quit()
     sys.exit()

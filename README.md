@@ -165,7 +165,7 @@ Atualmente, esse projeto suporta apenas modificações diretas no código. Eu se
 
 - Os dados salvos de uma versão funcionam em outra?
 
-**Atualmente, não, pois o arquivo que gerencia os dados salvos sofre mudanças constantes, assim, dificultando muito que mantenha a mesma estrutura pra todas as versões**
+**Atualmente, somente a partir da 0.0.04, pois foi colocado um método pra salvar os pontos. Versões anteriores só são compatíveis entre si com as mesma numerações (por exemplo, 0.0.03 e 0.0.03.1)**
 
 ## Contato
 Pyetro — contato.eupyetro022@gmail.com

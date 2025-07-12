@@ -38,12 +38,10 @@ class AnimatedButton:
         self.current_frame = 0
         self.last_update = pygame.time.get_ticks()
 
-        # Estado da animação de clique
         self.is_animating_click = False
-        self.click_anim_progress = 0.0  # de 0 a 1
-        self.click_anim_speed = 0.1     # controla velocidade da animação
+        self.click_anim_progress = 0.0
+        self.click_anim_speed = 0.1
 
-        # Scale inicial e cálculo de rect
         self.current_scale = 1.0
         self._update_rect()
 
@@ -108,7 +106,6 @@ class AnimatedButton:
                 self.is_animating_click = False
                 self.current_scale = 1.0
             else:
-                # Anima escala entre 1.0 e 0.9
                 if self.click_anim_progress < 0.5:
                     self.current_scale = 1.0 - 0.2 * (self.click_anim_progress * 2)
                 else:
@@ -131,9 +128,7 @@ class AnimatedButton:
         self.click_anim_progress = 0.0
 
     def handle_event(self, event):
-        """
-        Trata o clique do mouse e retorna True se consumiu o evento.
-        """
+
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             self._update_rect()
             if self.is_clicked(event.pos):

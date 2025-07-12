@@ -8,7 +8,6 @@ class MiniEvent:
         self.width = width
         self.height = height
         
-        # Caminho para a imagem do mini evento
         localappdata = os.getenv("LOCALAPPDATA") or "."
         self.image_path = os.path.join(localappdata, ".assets", "mini-event.png")
         
@@ -16,7 +15,6 @@ class MiniEvent:
             self.image = pygame.image.load(self.image_path).convert_alpha()
             self.image = pygame.transform.scale(self.image, (50, 50))
         except Exception as e:
-            # Criar um placeholder visual se a imagem não carregar
             self.image = pygame.Surface((50, 50))
             self.image.fill((255, 0, 0))
             font = pygame.font.SysFont(None, 20)
@@ -29,7 +27,7 @@ class MiniEvent:
         self.spawn_time = pygame.time.get_ticks()
         self.visible = True
         self.font = pygame.font.SysFont("Arial", 20)
-        self.rect = pygame.Rect(self.x, self.y, 50, 50)  # Área de colisão
+        self.rect = pygame.Rect(self.x, self.y, 50, 50)
 
     def update(self):
         if not self.visible:

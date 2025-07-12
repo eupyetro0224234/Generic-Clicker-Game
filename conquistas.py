@@ -1,7 +1,6 @@
 import pygame
 import time
 import os
-import math
 
 class Achievement:
     def __init__(self, id, name, description, threshold=-1):
@@ -24,7 +23,21 @@ class AchievementTracker:
             Achievement("console", "Ativar Console", "Você descobriu o console secreto!"),
             Achievement("mini_event_1", "Mini Evento: Primeiro Clique", "Clique pela primeira vez no mini evento", 1),
             Achievement("mini_event_10", "Mini Evento: 10 Cliques", "Clique 10 vezes no mini evento", 10),
-            Achievement("mini_event_100", "Mini Evento: 100 Cliques", "Clique 100 vezes no mini evento", 100)
+            Achievement("mini_event_100", "Mini Evento: 100 Cliques", "Clique 100 vezes no mini evento", 100),
+
+            # Nova conquista adicionada:
+            Achievement(
+                "manual_phase",
+                "Antes de Automação, vem a fase manual",
+                "Compre o upgrade de clique manual (segurar botão)"
+            ),
+
+            # Conquista Perfeição 1.5 - desbloqueada ao completar todas as conquistas
+            Achievement(
+                "perfeicao_15",
+                "Perfeição 1.5",
+                "Complete todas as conquistas"
+            )
         ]
         self.unlocked = set()
         self.achievement_queue = []
@@ -83,6 +96,7 @@ class AchievementTracker:
         if new_achievements:
             self.achievement_queue.extend(new_achievements)
             self._start_next_achievement()
+            self.check_all_achievements_completed()
 
     def check_unlock(self, score):
         new_achievements = []
@@ -94,6 +108,7 @@ class AchievementTracker:
         if new_achievements:
             self.achievement_queue.extend(new_achievements)
             self._start_next_achievement()
+            self.check_all_achievements_completed()
 
     def unlock_secret(self, id):
         for ach in self.achievements:
@@ -102,6 +117,19 @@ class AchievementTracker:
                 self.unlocked.add(ach.id)
                 self.achievement_queue.append(ach)
                 self._start_next_achievement()
+                self.check_all_achievements_completed()
+
+    def check_all_achievements_completed(self):
+        # Verifica se todas as conquistas exceto a "perfeicao_15" estão desbloqueadas
+        all_unlocked = all(
+            ach.unlocked for ach in self.achievements if ach.id != "perfeicao_15"
+        )
+        perfeicao_ach = next((ach for ach in self.achievements if ach.id == "perfeicao_15"), None)
+        if all_unlocked and perfeicao_ach and not perfeicao_ach.unlocked:
+            perfeicao_ach.unlocked = True
+            self.unlocked.add("perfeicao_15")
+            self.achievement_queue.append(perfeicao_ach)
+            self._start_next_achievement()
 
     def _start_next_achievement(self):
         if self.current_achievement is None and self.achievement_queue:
@@ -154,27 +182,21 @@ class AchievementTracker:
         x = (self.screen.get_width() - w) // 2
         y = int(25 + (1 - eased_progress) * 20)
 
-        # Sombra externa
         shadow_offset = 5
         shadow_surface = pygame.Surface((w + shadow_offset, h + shadow_offset), pygame.SRCALPHA)
         pygame.draw.rect(shadow_surface, (150, 120, 130, alpha // 2), (shadow_offset, shadow_offset, w, h), border_radius=20)
         self.screen.blit(shadow_surface, (x - 3, y - 3))
 
-        # Superfície do popup
         popup_surface = pygame.Surface((w, h), pygame.SRCALPHA)
 
-        # Fundo rosa da imagem original
         bg_color = (230, 178, 186, alpha)
         pygame.draw.rect(popup_surface, bg_color, (0, 0, w, h), border_radius=20)
 
-        # Borda decorativa
         border_color = (190, 100, 110, alpha)
         pygame.draw.rect(popup_surface, border_color, (0, 0, w, h), 2, border_radius=20)
 
-        # Texto
         popup_surface.blit(text_surface, ((w - text_width) // 2, (h - text_height) // 2))
 
-        # Blit final
         self.screen.blit(popup_surface, (x, y))
 
 class AchievementsMenu:
@@ -187,7 +209,7 @@ class AchievementsMenu:
         self.unlocked = set()
         self.config_menu = config_menu
 
-        self.bg_color = (235, 225, 240, 230)  # fundo lilás suave
+        self.bg_color = (235, 225, 240, 230)
         self.box_color = (255, 255, 255)
         self.text_color = (40, 50, 70)
         self.border_color = (180, 190, 210)
@@ -195,7 +217,6 @@ class AchievementsMenu:
         self.locked_color = (160, 160, 160)
         self.shadow_color = (0, 0, 0, 25)
 
-        # Fontes mais leves e naturais
         self.title_font = pygame.font.SysFont("Arial", 32)
         self.item_font = pygame.font.SysFont("Arial", 20)
         self.desc_font = pygame.font.SysFont("Arial", 16)
@@ -221,12 +242,11 @@ class AchievementsMenu:
 
         filtered = [a for a in self.achievements if a.unlocked or show_hidden]
 
-        # Layout
         cols = 2
         spacing_x = 30
         spacing_y = 20
         card_width = (self.width - spacing_x * (cols + 1)) // cols
-        card_height = 60  # altura menor
+        card_height = 60
         start_y = 90
 
         for i, ach in enumerate(filtered):
@@ -243,18 +263,15 @@ class AchievementsMenu:
             pygame.draw.rect(self.screen, bg_color, rect, border_radius=self.radius)
             pygame.draw.rect(self.screen, border_color, rect, 2, border_radius=self.radius)
 
-            # Ícone
             icon = "⭐" if ach.unlocked else "☆"
             icon_surf = self.icon_font.render(icon, True, border_color)
             self.screen.blit(icon_surf, (rect.left + 10, rect.top + 8))
 
-            # Textos
             name_color = self.text_color if ach.unlocked else self.locked_color
             name_surf = self.item_font.render(ach.name, True, name_color)
             desc_color = (110, 110, 110) if ach.unlocked else (140, 140, 140)
             desc_surf = self.desc_font.render(ach.description, True, desc_color)
 
-            # Corte de texto se exceder a largura
             max_text_width = card_width - 60
 
             if name_surf.get_width() > max_text_width:
@@ -272,7 +289,6 @@ class AchievementsMenu:
             self.screen.blit(name_surf, (rect.left + 45, rect.top + 6))
             self.screen.blit(desc_surf, (rect.left + 45, rect.top + 30))
 
-        # Título central
         title_text = "🏆 Conquistas"
         title_surf = self.title_font.render(title_text, True, (60, 50, 80))
         self.screen.blit(title_surf, (self.width // 2 - title_surf.get_width() // 2, 25))

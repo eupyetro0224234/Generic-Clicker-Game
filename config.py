@@ -31,7 +31,8 @@ class FullSettingsMenu:
             "Ativar Mods": False,
             "Ativar Texturas": False,
             "Verificar atualizações": True,
-            "Mostrar conquistas ocultas": False
+            "Mostrar conquistas ocultas": False,
+            "Pular o loading": False  # nova opção padrão
         }
 
         self.visible = False
@@ -47,7 +48,6 @@ class FullSettingsMenu:
         self.hovered_option = None
         self.button_rects = []
         
-        # Adiciona uma flag para controlar se o console está ativo
         self.console_ativo = False
 
     def is_click_allowed(self, button):
@@ -68,6 +68,7 @@ class FullSettingsMenu:
                     loaded_options = json.load(f)
                     self.options = {**self.default_config}
                     for key in loaded_options:
+                        # Mantém todas as opções padrão + "Manter console aberto" se estiver presente
                         if key in self.default_config or key == "Manter console aberto":
                             self.options[key] = loaded_options[key]
             else:
@@ -133,7 +134,7 @@ class FullSettingsMenu:
             option_y = y + row * (self.option_height + self.spacing_y)
 
             option_rect = pygame.Rect(option_x, option_y, button_width, self.option_height)
-            self.button_rects.append((option_rect, key))  # ADICIONA em vez de substituir
+            self.button_rects.append((option_rect, key))
 
             color = (220, 235, 255) if option_rect.collidepoint(mouse_pos) else (255, 255, 255)
 
@@ -156,7 +157,7 @@ class FullSettingsMenu:
         if not self.visible:
             return
 
-        self.button_rects = []  # Limpa os botões uma vez por frame
+        self.button_rects = []
 
         overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         pygame.draw.rect(overlay, self.bg_color, (0, 0, self.width, self.height), border_radius=self.option_radius)
@@ -187,10 +188,14 @@ class FullSettingsMenu:
             "Ativar Mods",
             "Ativar Texturas",
             "Verificar atualizações",
-            "Mostrar conquistas ocultas"
+            "Mostrar conquistas ocultas",
+            "Pular o loading"
         ]
-        # Só mostra a opção do console se ele estiver ativo
+
+        # Se console ativo, inclui a opção "Manter console aberto" sempre por último
         if self.console_ativo and "Manter console aberto" in self.options:
+            if "Manter console aberto" in outros_keys:
+                outros_keys.remove("Manter console aberto")
             outros_keys.append("Manter console aberto")
 
         self.draw_options(outros_keys, x, y)

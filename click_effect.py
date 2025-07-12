@@ -6,7 +6,7 @@ class ClickEffect:
         self.y = y
         self.text = text
         self.alpha = 255
-        self.dy = -1  # movimento vertical para cima
+        self.dy = -1
         self.font = pygame.font.SysFont(None, 32)
         self.finished = False
 

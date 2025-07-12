@@ -1,4 +1,3 @@
-# upgrades.py (versão sem arquivo JSON)
 import pygame
 import random
 import os
@@ -11,10 +10,11 @@ class Upgrade:
         self.bonus = bonus
 
 class UpgradeMenu:
-    def __init__(self, screen, window_width, window_height):
+    def __init__(self, screen, window_width, window_height, achievement_tracker=None):
         self.screen = screen
         self.window_width = window_width
         self.window_height = window_height
+        self.achievement_tracker = achievement_tracker  # novo parâmetro para conquistas
 
         self.x = 10
         self.y = 10
@@ -23,11 +23,12 @@ class UpgradeMenu:
         self.animation = 0.0
         self.speed = 0.12
         self.font = pygame.font.SysFont(None, 24)
-        self.purchased = {}  # {id: quantidade}
+        self.purchased = {}
         self.auto_click_timer = 0
 
         self.upgrades = [
-            Upgrade("auto_click", "Auto Clique", 5000, 1),  # bonus 1 ponto por tick
+            Upgrade("hold_click", "Clique ao Segurar", 2500, 1),  # upgrade que desbloqueia conquista
+            Upgrade("auto_click", "Auto Clique", 5000, 1),
             Upgrade("double", "Pontos em Dobro", 20000, 1),
             Upgrade("mega", "Mega Clique", 75000, 4),
         ]
@@ -42,7 +43,6 @@ class UpgradeMenu:
         self.padding_x = 14
         self.spacing = 8
 
-        # Caminho para a imagem local, sem baixar automaticamente
         localappdata = os.getenv("LOCALAPPDATA")
         self.assets_path = os.path.join(localappdata, ".assets")
         os.makedirs(self.assets_path, exist_ok=True)
@@ -82,13 +82,19 @@ class UpgradeMenu:
         if self.animation <= 0:
             return
 
-        full_h = len(self.upgrades) * (self.option_height + self.spacing) - self.spacing + 12
+        # Filtra upgrades para mostrar, excluindo hold_click se já comprado
+        upgrades_to_show = [
+            upg for upg in self.upgrades
+            if not (upg.id == "hold_click" and self.purchased.get("hold_click", 0) >= 1)
+        ]
+
+        full_h = len(upgrades_to_show) * (self.option_height + self.spacing) - self.spacing + 12
         height = int(full_h * self.animation)
 
         panel = pygame.Surface((self.width, height), pygame.SRCALPHA)
         pygame.draw.rect(panel, self.bg_color, (0, 0, self.width, height), border_radius=12)
 
-        for i, upg in enumerate(self.upgrades):
+        for i, upg in enumerate(upgrades_to_show):
             oy = 6 + i * (self.option_height + self.spacing)
             if oy + self.option_height > height:
                 break
@@ -112,7 +118,13 @@ class UpgradeMenu:
                 return score, self.purchased
 
             if self.visible:
-                for i, upg in enumerate(self.upgrades):
+                # Filtra upgrades para clique, excluindo hold_click se comprado
+                upgrades_to_click = [
+                    upg for upg in self.upgrades
+                    if not (upg.id == "hold_click" and self.purchased.get("hold_click", 0) >= 1)
+                ]
+
+                for i, upg in enumerate(upgrades_to_click):
                     upg_rect = pygame.Rect(
                         self.x + self.padding_x,
                         self.y + 66 + i * (self.option_height + self.spacing),
@@ -121,9 +133,14 @@ class UpgradeMenu:
                     )
                     if upg_rect.collidepoint(event.pos):
                         qtd = self.purchased.get(upg.id, 0)
-                        if score >= upg.cost:
+                        # Só permite comprar hold_click se ainda não comprado
+                        if score >= upg.cost and (upg.id != "hold_click" or qtd == 0):
                             self.purchased[upg.id] = qtd + 1
                             score -= upg.cost
+
+                            # Desbloqueia conquista ao comprar hold_click
+                            if upg.id == "hold_click" and self.achievement_tracker:
+                                self.achievement_tracker.unlock_secret("manual_phase")
                         break
         return score, self.purchased
 
@@ -134,15 +151,12 @@ class UpgradeMenu:
         else:
             self.purchased = upgrades
 
-    # REMOVIDO: método save_upgrades completamente
-    # Não salva mais em arquivo separado
-
     def get_bonus(self):
-        bonus = 1  # clique normal sempre dá 1 ponto base
+        bonus = 1 
         for upg in self.upgrades:
             qtd = self.purchased.get(upg.id, 0)
             if upg.id == "auto_click":
-                continue  # auto click não soma no clique manual
+                continue
             bonus += upg.bonus * qtd
         return bonus
 
@@ -155,7 +169,7 @@ class UpgradeMenu:
     def reset_upgrades(self):
         """Reseta os upgrades comprados e retorna o bônus a 0"""
         self.purchased.clear()
-        self.auto_click_timer = 0  # Zera o temporizador do auto clicker
+        self.auto_click_timer = 0
 
     def purchase_random_upgrade(self):
         """Compra um upgrade aleatório (usado no mini evento)."""

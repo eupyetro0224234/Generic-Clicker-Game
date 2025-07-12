@@ -17,12 +17,10 @@ class LoadingScreen:
     def draw(self, percent, message="Carregando..."):
         self.screen.fill(self.bg_color)
 
-        # Mensagem de texto
         text = self.font.render(message, True, self.text_color)
         text_rect = text.get_rect(center=(self.width // 2, self.height // 2 - 50))
         self.screen.blit(text, text_rect)
 
-        # Barra de progresso
         bar_width = 400
         bar_height = 30
         bar_x = (self.width - bar_width) // 2
@@ -45,7 +43,7 @@ def download_file_requests(url, path, loading_screen, start_pct, end_pct):
             total_length = r.headers.get('content-length')
             total_length = int(total_length) if total_length else 0
             downloaded = 0
-            chunk_size = 65536  # 64 KB
+            chunk_size = 65536
 
             with open(path, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=chunk_size):
@@ -61,10 +59,7 @@ def download_file_requests(url, path, loading_screen, start_pct, end_pct):
     except Exception as e:
         print(f"Erro ao baixar {url}: {e}")
 
-def download_assets(screen, width, height):
-    loading_screen = LoadingScreen(screen, width, height)
-
-    # Pasta para salvar as imagens
+def download_assets(screen, width, height, skip_loading=False):
     localappdata = os.getenv("LOCALAPPDATA") or "."
     assets_path = os.path.join(localappdata, ".assets")
     os.makedirs(assets_path, exist_ok=True)
@@ -78,10 +73,19 @@ def download_assets(screen, width, height):
         ("https://drive.google.com/uc?export=download&id=1efFuMey_F8GWfu6LsATLXPb98O6hnovy", os.path.join(assets_path, "icone.ico")),
     ]
 
+    # Verifica se falta algum arquivo
+    missing_files = [path for _, path in assets if not os.path.exists(path)]
+
+    if skip_loading and not missing_files:
+        # Não há arquivos faltando e opção para pular loading está ativada
+        return
+
+    loading_screen = LoadingScreen(screen, width, height)
+
     total = len(assets)
     for i, (url, path) in enumerate(assets, start=1):
         if not os.path.exists(path):
-            start_pct = (i-1) / total * 100
+            start_pct = (i - 1) / total * 100
             end_pct = i / total * 100
             download_file_requests(url, path, loading_screen, start_pct, end_pct)
         else:
