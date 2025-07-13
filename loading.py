@@ -73,11 +73,9 @@ def download_assets(screen, width, height, skip_loading=False):
         ("https://drive.google.com/uc?export=download&id=1efFuMey_F8GWfu6LsATLXPb98O6hnovy", os.path.join(assets_path, "icone.ico")),
     ]
 
-    # Verifica se falta algum arquivo
     missing_files = [path for _, path in assets if not os.path.exists(path)]
 
     if skip_loading and not missing_files:
-        # Não há arquivos faltando e opção para pular loading está ativada
         return
 
     loading_screen = LoadingScreen(screen, width, height)

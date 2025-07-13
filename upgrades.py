@@ -118,6 +118,19 @@ class UpgradeMenu:
                 return score, self.purchased
 
             if self.visible:
+                # Calcula a área total do menu aberto
+                upgrades_to_show = [
+                    upg for upg in self.upgrades
+                    if not (upg.id == "hold_click" and self.purchased.get("hold_click", 0) >= 1)
+                ]
+                menu_height = len(upgrades_to_show) * (self.option_height + self.spacing) + 12
+                menu_rect = pygame.Rect(self.x, self.y + 60, self.width, menu_height)
+                
+                # Se clicou fora do menu, fecha ele
+                if not menu_rect.collidepoint(event.pos):
+                    self.visible = False
+                    return score, self.purchased
+
                 # Filtra upgrades para clique, excluindo hold_click se comprado
                 upgrades_to_click = [
                     upg for upg in self.upgrades

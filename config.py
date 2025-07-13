@@ -32,7 +32,8 @@ class FullSettingsMenu:
             "Ativar Texturas": False,
             "Verificar atualizações": True,
             "Mostrar conquistas ocultas": False,
-            "Pular o loading": False  # nova opção padrão
+            "Pular o loading": False,
+            "Menu vertical": False  # <-- Nova opção adicionada aqui
         }
 
         self.visible = False
@@ -68,7 +69,6 @@ class FullSettingsMenu:
                     loaded_options = json.load(f)
                     self.options = {**self.default_config}
                     for key in loaded_options:
-                        # Mantém todas as opções padrão + "Manter console aberto" se estiver presente
                         if key in self.default_config or key == "Manter console aberto":
                             self.options[key] = loaded_options[key]
             else:
@@ -189,7 +189,8 @@ class FullSettingsMenu:
             "Ativar Texturas",
             "Verificar atualizações",
             "Mostrar conquistas ocultas",
-            "Pular o loading"
+            "Pular o loading",
+            "Menu vertical"  # <-- Adicionado aqui
         ]
 
         # Se console ativo, inclui a opção "Manter console aberto" sempre por último

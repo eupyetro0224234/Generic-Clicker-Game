@@ -45,7 +45,6 @@ class ConfigMenu:
         self.icon_rect = self.icon_image.get_rect() if self.icon_image else pygame.Rect(0, 0, 48, 48)
         self.icon_rect.topright = (window_width - 6, 6)
 
-        # Opções base sem "Restaurar dados"
         self.base_options = ["Configurações", "Controles", "Conquistas", "Sair"]
         self.options = list(self.base_options)
 
@@ -83,10 +82,8 @@ class ConfigMenu:
             self.console_enabled = True
             if "Console" not in self.options:
                 self.options.insert(len(self.options)-1, "Console")
-            
             if self.console_instance:
                 self.console_instance.open()
-            
             if add_option and hasattr(self.settings_menu, 'add_console_option'):
                 self.settings_menu.add_console_option()
 
@@ -97,7 +94,6 @@ class ConfigMenu:
                 self.options.remove("Console")
             if self.console_instance:
                 self.console_instance.visible = False
-            
             if remove_option and hasattr(self.settings_menu, 'remove_console_option'):
                 self.settings_menu.remove_console_option()
 
@@ -120,78 +116,139 @@ class ConfigMenu:
 
         unlocked_count = len(self.achievements_menu.tracker.unlocked) if hasattr(self.achievements_menu, "tracker") else 0
 
-        menu_items = []
-        menu_items.append(("Configurações", False))
-        menu_items.append(("Controles", False))
-        menu_items.append((f"Conquistas ({unlocked_count})", False))
-        
+        # Preparar itens do menu
+        menu_items = [
+            ("Configurações", False),
+            ("Controles", False),
+            (f"Conquistas ({unlocked_count})", False)
+        ]
+
         if self.console_enabled:
             menu_items.append(("Console", False))
-        
-        # "Sair" sempre no final
+
+        # "Sair" só ocupa largura total se o console estiver ativado
         menu_items.append(("Sair", self.console_enabled))
 
-        width = 420
-        vertical_padding = 14
-        button_height = self.option_height
-        button_spacing = self.spacing_y
+        vertical_menu = False
+        if hasattr(self.settings_menu, "get_option"):
+            vertical_menu = self.settings_menu.get_option("Menu vertical")
 
+        # Configurações comuns
+        button_height = self.option_height
+        vertical_padding = 14
+        horizontal_padding = self.padding_x
+        button_spacing = self.spacing_y
+        button_width = 200  # Largura padrão dos botões
+        
         mouse_pos = pygame.mouse.get_pos()
         self.menu_rects = []
 
-        # Calcular linhas e layout considerando se console está ativo
-        if self.console_enabled:
-            # "Sair" ocupa 2 colunas na última linha
-            num_buttons_except_sair = len(menu_items) - 1
-            num_rows_except_sair = (num_buttons_except_sair + 1) // 2  
-            total_rows = num_rows_except_sair + 1  # +1 para a linha do "Sair"
+        if vertical_menu:
+            # Modo vertical - todas as opções em uma coluna
+            menu_width = button_width + 2 * horizontal_padding
+            total_height = len(menu_items) * (button_height + button_spacing) - button_spacing + 2 * vertical_padding
+            height = int(total_height * self.animation_progress)
+            
+            x_pos = self.window_width - menu_width - 6
+            y_pos = self.icon_rect.bottom + 8
+            
+            surf = pygame.Surface((menu_width, height), pygame.SRCALPHA)
+            pygame.draw.rect(surf, self.bg_color, (0, 0, menu_width, height), border_radius=18)
+            
+            for i, (text, full_width) in enumerate(menu_items):
+                current_width = menu_width - 2 * horizontal_padding if full_width else button_width
+                button_x = (menu_width - current_width) // 2  # Centraliza o botão
+                button_y = vertical_padding + i * (button_height + button_spacing)
+                
+                abs_rect = pygame.Rect(
+                    x_pos + button_x,
+                    y_pos + button_y,
+                    current_width,
+                    button_height
+                )
+                self.menu_rects.append((abs_rect, text))
+
+                color = self.option_hover_color if abs_rect.collidepoint(mouse_pos) else self.option_color
+                pygame.draw.rect(surf, color, (button_x, button_y, current_width, button_height), border_radius=10)
+                pygame.draw.rect(surf, self.option_border, (button_x, button_y, current_width, button_height), 2, border_radius=10)
+
+                txt = self.font.render(text, True, self.text_color)
+                txt_rect = txt.get_rect(center=(button_x + current_width // 2, button_y + button_height // 2))
+                surf.blit(txt, txt_rect)
         else:
-            total_buttons = len(menu_items)
-            total_rows = (total_buttons + 1) // 2
+            # Modo horizontal - 2 colunas
+            menu_width = 2 * button_width + self.spacing_x + 2 * horizontal_padding
+            
+            # Calcular número de linhas
+            num_regular_items = len(menu_items) - 1  # Todos exceto Sair
+            num_rows = (num_regular_items + 1) // 2  # Arredonda para cima
+            
+            # Se Sair ocupa largura total, adiciona mais uma linha
+            if menu_items[-1][1]:  # Se último item tem full_width=True
+                num_rows += 1
+            
+            total_height = num_rows * (button_height + button_spacing) - button_spacing + 2 * vertical_padding
+            height = int(total_height * self.animation_progress)
+            
+            x_pos = self.window_width - menu_width - 6
+            y_pos = self.icon_rect.bottom + 8
+            
+            surf = pygame.Surface((menu_width, height), pygame.SRCALPHA)
+            pygame.draw.rect(surf, self.bg_color, (0, 0, menu_width, height), border_radius=18)
+            
+            # Desenhar itens regulares (todos exceto Sair)
+            for i, (text, full_width) in enumerate(menu_items[:-1]):  # Todos exceto o último (Sair)
+                col = i % 2
+                row = i // 2
+                
+                button_x = horizontal_padding + col * (button_width + self.spacing_x)
+                button_y = vertical_padding + row * (button_height + button_spacing)
+                
+                abs_rect = pygame.Rect(
+                    x_pos + button_x,
+                    y_pos + button_y,
+                    button_width,
+                    button_height
+                )
+                self.menu_rects.append((abs_rect, text))
 
-        total_height = total_rows * (button_height + button_spacing) - button_spacing + 2 * vertical_padding
-        height = int(total_height * self.animation_progress)
-        x_pos = self.window_width - width - 6
-        y_pos = self.icon_rect.bottom + 8
+                color = self.option_hover_color if abs_rect.collidepoint(mouse_pos) else self.option_color
+                pygame.draw.rect(surf, color, (button_x, button_y, button_width, button_height), border_radius=10)
+                pygame.draw.rect(surf, self.option_border, (button_x, button_y, button_width, button_height), 2, border_radius=10)
 
-        surf = pygame.Surface((width, height), pygame.SRCALPHA)
-        pygame.draw.rect(surf, self.bg_color, (0, 0, width, height), border_radius=18)
-
-        for i, (text, full_width) in enumerate(menu_items):
-            if self.console_enabled and text == "Sair":
-                # "Sair" ocupa toda largura (2 colunas)
-                button_width = width - 2 * self.padding_x
-                col = 0
-                row = total_rows - 1  # última linha
+                txt = self.font.render(text, True, self.text_color)
+                txt_rect = txt.get_rect(center=(button_x + button_width // 2, button_y + button_height // 2))
+                surf.blit(txt, txt_rect)
+            
+            # Desenhar Sair (último item)
+            sair_text, sair_full_width = menu_items[-1]
+            row = num_rows - 1
+            
+            if sair_full_width:
+                # Sair ocupa linha completa
+                button_x = horizontal_padding
+                button_width_sair = menu_width - 2 * horizontal_padding
             else:
-                button_width = (width - 2 * self.padding_x - self.spacing_x) // 2
-                # Ajustar índices para itens exceto "Sair" quando console ativo
-                if self.console_enabled and text != "Sair":
-                    # O índice do botão entre os demais, ignorando "Sair"
-                    idx = i if text != "Sair" else None
-                    col = i % 2
-                    row = i // 2
-                else:
-                    col = i % 2
-                    row = i // 2
-
-            button_x = self.padding_x + col * (button_width + self.spacing_x)
+                # Sair ocupa espaço normal (metade)
+                button_x = horizontal_padding + ((num_regular_items % 2) * (button_width + self.spacing_x))
+                button_width_sair = button_width
+            
             button_y = vertical_padding + row * (button_height + button_spacing)
-
+            
             abs_rect = pygame.Rect(
                 x_pos + button_x,
                 y_pos + button_y,
-                button_width,
+                button_width_sair,
                 button_height
             )
-            self.menu_rects.append((abs_rect, text))
+            self.menu_rects.append((abs_rect, sair_text))
 
             color = self.option_hover_color if abs_rect.collidepoint(mouse_pos) else self.option_color
-            pygame.draw.rect(surf, color, (button_x, button_y, button_width, button_height), border_radius=10)
-            pygame.draw.rect(surf, self.option_border, (button_x, button_y, button_width, button_height), 2, border_radius=10)
+            pygame.draw.rect(surf, color, (button_x, button_y, button_width_sair, button_height), border_radius=10)
+            pygame.draw.rect(surf, self.option_border, (button_x, button_y, button_width_sair, button_height), 2, border_radius=10)
 
-            txt = self.font.render(text, True, self.text_color)
-            txt_rect = txt.get_rect(center=(button_x + button_width // 2, button_y + button_height // 2))
+            txt = self.font.render(sair_text, True, self.text_color)
+            txt_rect = txt.get_rect(center=(button_x + button_width_sair // 2, button_y + button_height // 2))
             surf.blit(txt, txt_rect)
 
         self.screen.blit(surf, (x_pos, y_pos))
@@ -251,7 +308,7 @@ class ConfigMenu:
                                     self.console_instance.open()
                         self.is_open = False
                         return True
-                
+
                 self.is_open = False
                 return True
 
