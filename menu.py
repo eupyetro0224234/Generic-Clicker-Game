@@ -45,8 +45,8 @@ class ConfigMenu:
         self.icon_rect = self.icon_image.get_rect() if self.icon_image else pygame.Rect(0, 0, 48, 48)
         self.icon_rect.topright = (window_width - 6, 6)
 
-        # Opções base incluindo "Restaurar dados"
-        self.base_options = ["Configurações", "Controles", "Conquistas", "Restaurar dados", "Sair"]
+        # Opções base sem "Restaurar dados"
+        self.base_options = ["Configurações", "Controles", "Conquistas", "Sair"]
         self.options = list(self.base_options)
 
         self.controls_menu = ControlsMenu(screen, window_width, window_height)
@@ -128,7 +128,7 @@ class ConfigMenu:
         if self.console_enabled:
             menu_items.append(("Console", False))
         
-        menu_items.append(("Restaurar dados", False))
+        # "Sair" sempre no final
         menu_items.append(("Sair", self.console_enabled))
 
         width = 420
@@ -136,10 +136,20 @@ class ConfigMenu:
         button_height = self.option_height
         button_spacing = self.spacing_y
 
-        num_items = len(menu_items)
-        num_rows = (num_items + 1) // 2  # calcula linhas para 2 colunas
+        mouse_pos = pygame.mouse.get_pos()
+        self.menu_rects = []
 
-        total_height = num_rows * (button_height + button_spacing) - button_spacing + 2 * vertical_padding
+        # Calcular linhas e layout considerando se console está ativo
+        if self.console_enabled:
+            # "Sair" ocupa 2 colunas na última linha
+            num_buttons_except_sair = len(menu_items) - 1
+            num_rows_except_sair = (num_buttons_except_sair + 1) // 2  
+            total_rows = num_rows_except_sair + 1  # +1 para a linha do "Sair"
+        else:
+            total_buttons = len(menu_items)
+            total_rows = (total_buttons + 1) // 2
+
+        total_height = total_rows * (button_height + button_spacing) - button_spacing + 2 * vertical_padding
         height = int(total_height * self.animation_progress)
         x_pos = self.window_width - width - 6
         y_pos = self.icon_rect.bottom + 8
@@ -147,13 +157,24 @@ class ConfigMenu:
         surf = pygame.Surface((width, height), pygame.SRCALPHA)
         pygame.draw.rect(surf, self.bg_color, (0, 0, width, height), border_radius=18)
 
-        mouse_pos = pygame.mouse.get_pos()
-        self.menu_rects = []
+        for i, (text, full_width) in enumerate(menu_items):
+            if self.console_enabled and text == "Sair":
+                # "Sair" ocupa toda largura (2 colunas)
+                button_width = width - 2 * self.padding_x
+                col = 0
+                row = total_rows - 1  # última linha
+            else:
+                button_width = (width - 2 * self.padding_x - self.spacing_x) // 2
+                # Ajustar índices para itens exceto "Sair" quando console ativo
+                if self.console_enabled and text != "Sair":
+                    # O índice do botão entre os demais, ignorando "Sair"
+                    idx = i if text != "Sair" else None
+                    col = i % 2
+                    row = i // 2
+                else:
+                    col = i % 2
+                    row = i // 2
 
-        for i, (text, center) in enumerate(menu_items):
-            button_width = (width - 2 * self.padding_x - self.spacing_x) // 2
-            col = i % 2
-            row = i // 2
             button_x = self.padding_x + col * (button_width + self.spacing_x)
             button_y = vertical_padding + row * (button_height + button_spacing)
 
@@ -170,7 +191,7 @@ class ConfigMenu:
             pygame.draw.rect(surf, self.option_border, (button_x, button_y, button_width, button_height), 2, border_radius=10)
 
             txt = self.font.render(text, True, self.text_color)
-            txt_rect = txt.get_rect(center=(button_x + button_width//2, button_y + button_height//2))
+            txt_rect = txt.get_rect(center=(button_x + button_width // 2, button_y + button_height // 2))
             surf.blit(txt, txt_rect)
 
         self.screen.blit(surf, (x_pos, y_pos))
@@ -219,8 +240,6 @@ class ConfigMenu:
                             self.controls_menu.visible = True
                         elif text.startswith("Conquistas"):
                             self.achievements_menu.visible = True
-                        elif text == "Restaurar dados":
-                            self.confirmar_restaurar_dados()
                         elif text == "Sair":
                             self.exit_handler.start()
                         elif text == "Console":
@@ -258,56 +277,3 @@ class ConfigMenu:
                     return True
 
         return False
-
-    def confirmar_restaurar_dados(self):
-        # Import local para evitar importação circular
-        from app import show_confirmation_dialog
-
-        confirmed = show_confirmation_dialog(
-            self.screen, self.window_width, self.window_height,
-            "Deseja realmente restaurar os dados do backup? Isso substituirá os dados atuais."
-        )
-        if confirmed:
-            self.restaurar_dados()
-
-    def restaurar_dados(self):
-        if not self.score_manager:
-            print("[Erro] ScoreManager não está configurado no ConfigMenu.")
-            return
-
-        backup_path = os.path.join(os.getenv("LOCALAPPDATA") or ".", ".assets", "old.json")
-        if not os.path.exists(backup_path):
-            print("[Info] Backup old.json não encontrado.")
-            return
-        
-        try:
-            with open(backup_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-
-            score = data.get("score", 0)
-            controls_visible = data.get("controls_visible", False)
-            achievements = data.get("achievements", [])
-            upgrades = data.get("upgrades", {})
-            mini_event_click_count = data.get("mini_event_click_count", 0)
-
-            print("Dados restaurados do backup:")
-            print(f"Pontos: {score}")
-            print(f"Conquistas: {achievements}")
-            print(f"Upgrades: {upgrades}")
-            print(f"Mini event clicks: {mini_event_click_count}")
-
-            # Atualize os dados na memória do jogo
-            self.score_manager.save_data(score, controls_visible, achievements, upgrades, mini_event_click_count)
-
-            # Aqui, faça o reload dos dados para as variáveis do jogo, se necessário.
-            # Exemplo:
-            # game_instance.score = score
-            # game_instance.achievements = achievements
-            # game_instance.upgrades = upgrades
-            # game_instance.mini_event_click_count = mini_event_click_count
-
-            os.remove(backup_path)
-            print("[Sucesso] Dados restaurados e backup apagado.")
-
-        except Exception as e:
-            print(f"[Erro] Falha ao restaurar dados: {e}")

@@ -49,15 +49,10 @@ class ScoreManager:
             'mini_event_click_count': mini_event_click_count,
             'timestamp': int(time.time())
         }
-        
-        # Primeiro salva o backup (old.json)
-        self.save_backup(score, controls_visible, achievements, upgrades, mini_event_click_count)
-        
-        # Depois salva o arquivo principal (score.dat)
+
         encrypted = self.encrypt_data(data_dict)
         if encrypted:
             try:
-                # Salvamento atômico
                 temp_path = self.file_path + ".tmp"
                 with open(temp_path, "wb") as file:
                     file.write(encrypted)
@@ -75,22 +70,40 @@ class ScoreManager:
                 except:
                     pass
         return False
-    
+
+    def load_existing_data_dict(self):
+        if os.path.isfile(self.file_path):
+            try:
+                with open(self.file_path, "rb") as file:
+                    encrypted = file.read()
+                data = self.decrypt_data(encrypted)
+                if isinstance(data, dict):
+                    return data
+            except Exception:
+                pass
+        return {}
+
     def load_data(self):
         """SEMPRE carrega primeiro do old.json e depois sincroniza com score.dat"""
-        # 1. Tenta carregar do backup (old.json)
         backup_data = self.load_backup()
         
         if backup_data:
             score, controls_visible, achievements, upgrades, mini_event_clicks = backup_data
             print("Dados carregados do backup old.json")
             
-            # 2. Atualiza o score.dat com os dados do backup
+            # Atualiza o score.dat com os dados do backup
             self.save_data(score, controls_visible, achievements, upgrades, mini_event_clicks)
-            
+
+            # Apaga o backup após restaurar com sucesso
+            try:
+                os.remove(self.backup_path)
+                print("[Sucesso] old.json apagado após restauração.")
+            except Exception as e:
+                print(f"[Aviso] Não foi possível apagar old.json: {e}")
+
             return score, controls_visible, achievements, upgrades, mini_event_clicks
-        
-        # 3. Se não tem backup, tenta carregar do score.dat (fallback)
+
+        # Fallback: carregar do score.dat
         if os.path.isfile(self.file_path):
             try:
                 with open(self.file_path, "rb") as file:
@@ -108,12 +121,10 @@ class ScoreManager:
             except Exception as e:
                 print(f"Erro ao carregar score.dat: {e}")
 
-        # 4. Se tudo falhar, retorna valores padrão
         print("Nenhum dado salvo encontrado, iniciando com valores padrão")
         return 0, False, [], {}, 0
 
     def save_backup(self, score: int, controls_visible: bool, achievements: list[str], upgrades: dict[str, int], mini_event_click_count: int):
-        """Salva um backup não criptografado (old.json)"""
         data_dict = {
             'score': score,
             'controls_visible': controls_visible,
@@ -123,9 +134,8 @@ class ScoreManager:
             'timestamp': int(time.time()),
             'backup_note': 'Arquivo de backup principal. O jogo prioriza esses dados na inicialização.'
         }
-        
+
         try:
-            # Salvamento atômico
             temp_path = self.backup_path + ".tmp"
             with open(temp_path, "w", encoding="utf-8") as f:
                 json.dump(data_dict, f, ensure_ascii=False, indent=4)
@@ -145,15 +155,12 @@ class ScoreManager:
             return False
 
     def load_backup(self):
-        """Carrega dados diretamente do backup old.json (prioridade máxima)"""
         if os.path.isfile(self.backup_path):
             try:
                 with open(self.backup_path, "r", encoding="utf-8") as f:
                     data_dict = json.load(f)
-                
                 if not isinstance(data_dict, dict):
                     return None
-                    
                 return (
                     data_dict.get('score', 0),
                     data_dict.get('controls_visible', False),

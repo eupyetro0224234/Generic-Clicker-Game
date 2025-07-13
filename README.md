@@ -88,7 +88,7 @@ pip install -r requirements.txt
 *ou, caso prefira instalar manualmente
 
 ```bash
-pip install certifi==2025.6.15 charset-normalizer==3.4.2 idna==3.10 pillow==11.3.0 pygame==2.6.1 requests==2.32.4 urllib3==2.5.0
+pip install certifi==2025.7.9 charset-normalizer==3.4.2 idna==3.10 Naked==0.1.32 pillow==11.3.0 pycryptodome==3.23.0 pygame==2.6.1 PyYAML==6.0.2 requests==2.32.4 shellescape==3.8.1 urllib3==2.5.0
 ```
 
 Rode o projeto

@@ -120,17 +120,27 @@ def main():
 
     score_manager = ScoreManager()
 
-    # Tenta carregar os dados
+    # Tenta carregar os dados, mas se der erro pergunta antes de restaurar backup
     try:
         score, controls_visible, saved_achievements, saved_upgrades, mini_event_click_count = score_manager.load_data()
     except Exception as e:
         print(f"Erro crítico ao carregar dados: {e}")
-        # Tenta um último recurso - carregar diretamente do backup
-        backup_data = score_manager.load_backup()
-        if backup_data:
-            score, controls_visible, saved_achievements, saved_upgrades, mini_event_click_count = backup_data
-            # Tenta salvar os dados recuperados no formato principal
-            score_manager.save_data(score, controls_visible, saved_achievements, saved_upgrades, mini_event_click_count)
+        
+        restore_backup = show_confirmation_dialog(
+            screen, WIDTH, HEIGHT,
+            "Erro ao carregar os dados do jogo.\nDeseja restaurar o backup antigo?"
+        )
+        
+        if restore_backup:
+            backup_data = score_manager.load_backup()
+            if backup_data:
+                score, controls_visible, saved_achievements, saved_upgrades, mini_event_click_count = backup_data
+                score_manager.save_data(
+                    score, controls_visible, saved_achievements, saved_upgrades, mini_event_click_count
+                )
+            else:
+                print("Backup não encontrado ou corrompido. Iniciando com dados zerados.")
+                score, controls_visible, saved_achievements, saved_upgrades, mini_event_click_count = 0, False, [], {}, 0
         else:
             score, controls_visible, saved_achievements, saved_upgrades, mini_event_click_count = 0, False, [], {}, 0
 
