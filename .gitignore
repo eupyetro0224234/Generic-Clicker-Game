@@ -1,4 +1,5 @@
 __pycache__/
 auto_commit.bat
 icone.ico
-comando-pyinstalller.txt
+comando_pyinstaller.txt
+.gitignore
