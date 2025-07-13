@@ -1,5 +1,5 @@
+.gitignore
 __pycache__/
 auto_commit.bat
 icone.ico
 comando_pyinstaller.txt
-.gitignore
