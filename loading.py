@@ -71,6 +71,7 @@ def download_assets(screen, width, height, skip_loading=False):
         ("https://i.postimg.cc/MKwpfL8Z/image-removebg-preview-7.png", os.path.join(assets_path, "mini-event.png")),
         ("https://drive.google.com/uc?export=download&id=1plzz02JEt1p0puxuZtoEnLAhrcj1O0RG", os.path.join(assets_path, "complete-quest.ogg")),
         ("https://drive.google.com/uc?export=download&id=1efFuMey_F8GWfu6LsATLXPb98O6hnovy", os.path.join(assets_path, "icone.ico")),
+        ("https://static.wikia.nocookie.net/kindergarten/images/d/d4/Nugget2.png/revision/latest/scale-to-width-down/1000?cb=20180406021902", os.path.join(assets_path, "trabalhador.png")),
     ]
 
     missing_files = [path for _, path in assets if not os.path.exists(path)]

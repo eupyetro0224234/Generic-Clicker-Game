@@ -108,43 +108,35 @@ def load_config():
         "Ativar Mods": False,
     }
     if not config_path or not os.path.isfile(config_path):
-        print("Configuração não encontrada, usando padrão (mods desativados).")
         return default_config
     try:
         with open(config_path, "r", encoding="utf-8") as f:
             cfg = json.load(f)
             return {**default_config, **cfg}
-    except Exception as e:
-        print(f"Erro ao ler config: {e}. Usando padrão.")
+    except Exception:
         return default_config
 
 def get_mods_folder():
     localappdata = os.getenv("LOCALAPPDATA")
     if not localappdata:
-        print("LOCALAPPDATA não definido, usando pasta atual para mods.")
         base_path = os.path.abspath(".")
     else:
         base_path = os.path.join(localappdata, ".assets", "mods")
     if not os.path.exists(base_path):
         os.makedirs(base_path, exist_ok=True)
-        print(f"Pasta de mods criada em: {base_path}")
     return base_path
 
 def load_selected_mod(mods_folder):
     mod_files = [f for f in os.listdir(mods_folder) if f.endswith('_mod.py')]
     if not mod_files:
-        print(f"Nenhum mod encontrado na pasta {mods_folder}, usando configurações padrão.")
         return None
     elif len(mod_files) == 1:
-        print(f"Carregando mod único encontrado: {mod_files[0]}")
         return os.path.join(mods_folder, mod_files[0])
     else:
         selected = choose_mod(mod_files)
         if selected:
-            print(f"Mod selecionado: {selected}")
             return os.path.join(mods_folder, selected)
         else:
-            print("Nenhum mod selecionado, usando padrão.")
             return None
 
 config = load_config()
@@ -157,11 +149,8 @@ if ativar_mods:
     if selected_mod_file:
         try:
             mod = load_mod_from_path(selected_mod_file)
-        except Exception as e:
-            print(f"Erro ao carregar mod {selected_mod_file}: {e}")
+        except Exception:
             mod = None
-else:
-    print("Mods desativados pela configuração.")
 
 TILE_SIZE = getattr(mod, 'TILE_SIZE', 40)
 BASE_COLORS = getattr(mod, 'BASE_COLORS', [

@@ -33,7 +33,7 @@ class FullSettingsMenu:
             "Verificar atualizações": True,
             "Mostrar conquistas ocultas": False,
             "Pular o loading": False,
-            "Menu vertical": False  # <-- Nova opção adicionada aqui
+            "Menu vertical": False
         }
 
         self.visible = False
@@ -74,16 +74,15 @@ class FullSettingsMenu:
             else:
                 self.options = self.default_config.copy()
                 self.save_config()
-        except Exception as e:
-            print(f"Erro ao carregar configurações: {e}")
+        except Exception:
             self.options = self.default_config.copy()
 
     def save_config(self):
         try:
             with open(self.config_path, "w", encoding="utf-8") as f:
                 json.dump(self.options, f, indent=4)
-        except Exception as e:
-            print(f"Erro ao salvar configurações: {e}")
+        except Exception:
+            pass
 
     def get_option(self, key):
         return self.options.get(key, False)
@@ -190,10 +189,9 @@ class FullSettingsMenu:
             "Verificar atualizações",
             "Mostrar conquistas ocultas",
             "Pular o loading",
-            "Menu vertical"  # <-- Adicionado aqui
+            "Menu vertical"
         ]
 
-        # Se console ativo, inclui a opção "Manter console aberto" sempre por último
         if self.console_ativo and "Manter console aberto" in self.options:
             if "Manter console aberto" in outros_keys:
                 outros_keys.remove("Manter console aberto")

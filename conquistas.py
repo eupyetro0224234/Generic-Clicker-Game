@@ -24,15 +24,11 @@ class AchievementTracker:
             Achievement("mini_event_1", "Mini Evento: Primeiro Clique", "Clique pela primeira vez no mini evento", 1),
             Achievement("mini_event_10", "Mini Evento: 10 Cliques", "Clique 10 vezes no mini evento", 10),
             Achievement("mini_event_100", "Mini Evento: 100 Cliques", "Clique 100 vezes no mini evento", 100),
-
-            # Nova conquista adicionada:
             Achievement(
                 "manual_phase",
                 "Antes de Automação, vem a fase manual",
                 "Compre o upgrade de clique manual (segurar botão)"
             ),
-
-            # Conquista Perfeição 1.5 - desbloqueada ao completar todas as conquistas
             Achievement(
                 "perfeicao_15",
                 "Perfeição 1.5",
@@ -56,8 +52,8 @@ class AchievementTracker:
             localappdata = os.getenv("LOCALAPPDATA") or "."
             sound_path = os.path.join(localappdata, ".assets", "complete-quest.ogg")
             self.sound = pygame.mixer.Sound(sound_path)
-        except Exception as e:
-            print(f"Erro ao carregar som de conquista: {e}")
+        except Exception:
+            pass
 
     def load_unlocked(self, saved_ids):
         for ach in self.achievements:
@@ -120,7 +116,6 @@ class AchievementTracker:
                 self.check_all_achievements_completed()
 
     def check_all_achievements_completed(self):
-        # Verifica se todas as conquistas exceto a "perfeicao_15" estão desbloqueadas
         all_unlocked = all(
             ach.unlocked for ach in self.achievements if ach.id != "perfeicao_15"
         )
