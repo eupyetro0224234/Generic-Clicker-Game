@@ -178,25 +178,6 @@ Pyetro — contato.eupyetro022@gmail.com
 * Modpack Crash Landing: [Som de conquista concluída](https://www.curseforge.com/minecraft/modpacks/crash-landing)
 
 ## Changelogs
-<details>
-  <summary>0.0.04 - 25/07/25</summary>
-
-Essa é uma grande atualização (provavelmente não a maior em adições pro jogo, mas a maior em mecanicas e personalização)
-
-- Primeiro suporte para mods adicionado: Mudar o fundo,
-- Confirmação de reset ao apertar o R,
-- Agora a quantidade de clicks dados no mini evento são salvos,
-- Tela para escolher o mod que queira usar, caso tenha mais de um,
-- Correção do bug nas conquistas dos mini eventos (antes ao reiniciar o jogo, ele resetava a quantidade de mini eventos clicados),
-- Novo upgrade: Segurar com o botão esquerdo sobe 2 pontos por segundo,
-- Novas conquistas: Antes da automação, vem a fase manual e Perfeição 1.5
-- Novas configuraçãos: Pular loading e Menu vertical,
-- Sistema de carregar dados de uma versão para a outra (funcionando somente a partir dessa. Quando o jogo localizar uma atualização, eke vai automaticamente criar um arquivo pra salvar os dados e quando atualizar, restaurar esses dados),
-- Clicar em qualquer lugar da tela com o menu de upgrades aberto o fecha agora,
-- Otimização de código: Como o jogo não abre o terminal, todos os prints() sem importância foram removidos,
-- Trabalhador temporário, que te da até 5000 pontos.
-
-</details>
 
 <details>
   <summary>0.0.03.1 - 11/07/25</summary>
