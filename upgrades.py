@@ -65,15 +65,12 @@ class UpgradeMenu:
             return None
 
     def is_trabalhador_comprado(self):
-        """Verifica se algum trabalhador foi comprado"""
         return self.purchased.get("trabalhador", 0) > 0
 
     def get_trabalhador_quantidade(self):
-        """Retorna quantos trabalhadores estão ativos"""
         return self.trabalhadores_ativos
 
     def set_trabalhadores_ativos(self, quantidade):
-        """Define a quantidade de trabalhadores ativos"""
         self.trabalhadores_ativos = quantidade
 
     def get_icon_rect(self):
@@ -124,16 +121,24 @@ class UpgradeMenu:
             rect = pygame.Rect(self.padding_x, oy, self.width - 2 * self.padding_x, self.option_height)
             qtd = self.purchased.get(upg.id, 0)
 
-            color = self.purchased_color if qtd > 0 else self.option_color
+            # Ajuste de cor para trabalhadores: se não tiver ativos, mostra como se nunca comprado
+            if upg.id == "trabalhador" and self.trabalhadores_ativos == 0:
+                color = self.option_color
+            else:
+                color = self.purchased_color if qtd > 0 else self.option_color
+
             pygame.draw.rect(panel, color, rect, border_radius=self.option_radius)
             pygame.draw.rect(panel, self.option_border, rect, width=2, border_radius=self.option_radius)
 
-            # Mostra quantidade ativa para trabalhadores
+            # Texto também ajustado
             if upg.id == "trabalhador":
-                main_text = f"{upg.name} (${upg.cost})" if qtd == 0 else f"{upg.name} x{self.trabalhadores_ativos}/{qtd}"
+                if self.trabalhadores_ativos == 0:
+                    main_text = f"{upg.name} (${upg.cost})"
+                else:
+                    main_text = f"{upg.name} x{self.trabalhadores_ativos}"
             else:
                 main_text = f"{upg.name} (${upg.cost})" if qtd == 0 else f"{upg.name} x{qtd}"
-            
+
             txt = self.font.render(main_text, True, self.text_color)
             text_rect = txt.get_rect(center=rect.center)
             panel.blit(txt, text_rect)
@@ -169,14 +174,14 @@ class UpgradeMenu:
                         if score >= upg.cost:
                             if upg.id == "trabalhador":
                                 self.purchased[upg.id] = self.purchased.get(upg.id, 0) + 1
-                                self.trabalhadores_ativos += 1  # Incrementa trabalhadores ativos
+                                self.trabalhadores_ativos += 1
                                 score -= upg.cost
                                 if self.achievement_tracker:
                                     if self.purchased[upg.id] == 1:
                                         self.achievement_tracker.unlock_secret("worker")
                                     elif self.purchased[upg.id] >= 5:
                                         self.achievement_tracker.unlock_secret("worker_army")
-                                return score, True  # Indica que um trabalhador foi comprado
+                                return score, True
                             else:
                                 self.purchased[upg.id] = self.purchased.get(upg.id, 0) + 1
                                 score -= upg.cost
@@ -187,7 +192,6 @@ class UpgradeMenu:
 
     def load_upgrades(self, upgrades: dict):
         self.purchased = upgrades if upgrades else {}
-        # Inicializa trabalhadores ativos com a quantidade comprada
         self.trabalhadores_ativos = self.purchased.get("trabalhador", 0)
 
     def get_bonus(self):
@@ -206,10 +210,10 @@ class UpgradeMenu:
         return self.purchased.get("auto_click", 0)
 
     def get_trabalhador_pontos(self):
-        return 1  # Cada trabalhador gera 1 ponto por intervalo
+        return 1
 
     def get_trabalhador_intervalo(self):
-        return 5000  # Intervalo fixo de 5 segundos
+        return 5000
 
     def reset_upgrades(self):
         self.purchased.clear()

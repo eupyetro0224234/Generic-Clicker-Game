@@ -75,14 +75,19 @@ class Trabalhador:
 
     def update(self, current_time):
         """
-        Atualiza o trabalhador e retorna os pontos gerados
-        Retorna None se o trabalhador expirou
+        Atualiza o trabalhador e retorna os pontos gerados.
+        Retorna ('expired', pontos_restantes) se expirou.
+        Retorna 0 ou quantidade de pontos gerados se ainda ativo.
         """
+        if not self.active:
+            return None
+
         if current_time - self.start_time > self.lifetime:
-            # Gera os pontos restantes antes de morrer
+            self.active = False
+            self.visible = False
             pontos_restantes = self.pontos_total - self.pontos_gerados
             self.pontos_gerados = self.pontos_total
-            return pontos_restantes if pontos_restantes > 0 else None
+            return ("expired", pontos_restantes if pontos_restantes > 0 else 0)
 
         # Movimento
         if self.icon:
@@ -121,7 +126,7 @@ class Trabalhador:
         progresso = min(1.0, (pygame.time.get_ticks() - self.start_time) / self.lifetime)
         bar_width = self.icon.get_width()
         
-        # Barra de tempo (verde)
+        # Barra de tempo (cinza e verde)
         pygame.draw.rect(self.screen, (200, 200, 200), 
                          (self.pos[0], self.pos[1]-10, bar_width, 5))
         pygame.draw.rect(self.screen, (0, 200, 0), 

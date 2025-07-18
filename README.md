@@ -158,7 +158,7 @@ Atualmente, esse projeto suporta apenas modificações diretas no código e modi
 
 - Somente o Windows receberá o jogo ou outros sistemas também?
 
-**Por ser complicado ir portando o código conforme eu vou o modificando, por um bom tempo somente o windows terá suporte. Após o lançamento da 1.0 e de ter um sistema agradável pra mods, eu pensarei na portabilidade. Usando o [GameHub](https://gamehubemulator.com/), é possível jogar, mas é extremamente lento. Lançarei uma atualização para melhorar o desempenho.**
+**Por ser complicado ir portando o código conforme eu vou o modificando, por um bom tempo somente o windows terá suporte. Após o lançamento da 1.0 e de ter um sistema agradável pra mods, eu pensarei na portabilidade. Usando o [GameHub](https://gamehubemulator.com/), é possível jogar, mas é extremamente lento. Lançarei uma atualização para melhorar o desempenho em algum momento.**
 
 - Preciso do Python instalado?
 
@@ -172,23 +172,22 @@ Atualmente, esse projeto suporta apenas modificações diretas no código e modi
 Pyetro — contato.eupyetro022@gmail.com
 
 ## Créditos
-* Minecraft Wiki: [Gif do Livro Encantado](https://pt.minecraft.wiki/w/Livro_Encantado)
-* Stardew Valley Wiki: [Ícone de configurações](https://pt.stardewvalleywiki.com/Controles_m%C3%B3veis)
-* Potion Permit Wiki: [Botão do menu de upgrades](https://potion-permit.fandom.com/pt-br/wiki/Di%C3%A1rio_M%C3%A9dico)
+* [Minecraft Wiki](https://pt.minecraft.wiki/w/Livro_Encantado): Gif do Livro Encantado
+* [Stardew Valley Wiki](https://pt.stardewvalleywiki.com/Controles_m%C3%B3veis): Ícone de configurações
+* [Potion Permit Wiki](https://potion-permit.fandom.com/pt-br/wiki/Di%C3%A1rio_M%C3%A9dico): Botão do menu de upgrades
 * Bloons Wiki: [Coração do mini evento](https://bloons.fandom.com/wiki/List_of_Bloons)
-* Modpack Crash Landing: [Som de conquista concluída](https://www.curseforge.com/minecraft/modpacks/crash-landing)
-* Kindergarten Wiki: [Trabalhador](https://kindergarten.fandom.com/wiki/Nugget)
+* [Modpack Crash Landing](https://www.curseforge.com/minecraft/modpacks/crash-landing): Som de conquista concluída
+* [Kindergarten Wiki](https://kindergarten.fandom.com/wiki/Nugget): Trabalhador
 
 ## Changelogs
 <details>
-  <summary>0.0.04 - 25/07/25</summary>
+  <summary>0.0.04 - 18/07/25</summary>
 
 Essa é uma grande atualização (provavelmente não a maior em adições pro jogo, mas a maior em mecanicas e personalização)
 
 - Nome alterado para **Generic Clicker Game** (ou abreviado para GCM),
 - Primeiro suporte para mods adicionado: Mudar o fundo,
 - Confirmação de reset ao apertar o R,
-- Mesma fonte para tudo,
 - Agora a quantidade de clicks dados no mini evento são salvos,
 - Tela para escolher o mod que queira usar, caso tenha mais de um,
 - Correção do bug nas conquistas dos mini eventos (antes ao reiniciar o jogo, ele resetava a quantidade de mini eventos clicados),
