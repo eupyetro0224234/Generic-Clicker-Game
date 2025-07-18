@@ -1,15 +1,15 @@
-# Just Another Generic Clicker Game, But With References
+# Generic Clicker Game
 
-![Badge de versão](https://img.shields.io/badge/version-0.0.03.1-yellow) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
+![Projeto no Itch.io](https://i.postimg.cc/hPsCTZ9m/image.png) ![Badge de versão](https://img.shields.io/badge/version-0.0.03.1-yellow) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
 
 **Desative o tradutor do seu navegador ao ler**
 
-> _Just Another Generic Clicker Game, But With References é um projeto que nasceu com a minha curiosidade e para o meu aprendizado. Como grande fâ de jogos como Stardew Valley e Minecraft, quis criar um jogo de clicker para ir evoluindo com o tempo._
+> _Esse projeto foi criado para eu começar a aprender Python com ajuda de ia. Com alguns projetos anteriores, usei o meu conhecimento extremamente básico e decidi dar vida ao projeto Generic Clicker Game._
 
 ---
-
 ## Sumário
 
+- [Sobre a mudança de nome](#sobre-a-mudanca-de-nome)
 - [Sobre](#sobre)
 - [Funcionalidades](#funcionalidades)
 - [Instalação](#instalação)
@@ -23,18 +23,19 @@
 - [Changelogs](#changelogs)
 ---
 
+## Sobre a mudança de nome
+
+Eu acho Just Another Generic Clicker Game, But With References um nome gigante. Eu tentei criar diversas contas em vários aplicativos pra poder usar esse nome, por exemplo na página do twitter. Não consegui até agora pensar em nenhuma abreviação decente. JAGCMBWR? Isso não soa bem muito menos prático como apenas GMC ou se preferir, Generic Clicker Game. Como usei acima o exemplo do twitter, eu posso usar como se fosse um clã (viajei longe agora), por exemplo, GMC - eupyetro022. Por isso, eu decidi mudar o nome. Mas, o nome Just Another Generic Clicker Game, But With References pode ser utilizado pra algo no futuro...
+
 ## Sobre
 
-Este projeto é um jogo clicker desenvolvido em Python utilizando a biblioteca Pygame. Inspirado por jogos clássicos do gênero, ele oferece uma experiência divertida e simples de acumular pontos clicando em um botão central.
-O jogo inclui funcionalidades como sistema de upgrades para melhorar o ganho de pontos, conquistas para motivar o jogador a alcançar metas, menus interativos para configurar controles e visualizar o progresso, além de efeitos visuais que tornam a jogabilidade mais envolvente.
-Desenvolvido como um projeto pessoal, o objetivo é aprender e aplicar conceitos de programação de jogos, interfaces gráficas, persistência de dados e experiência do usuário. O código é modular e comentado, facilitando futuras melhorias e adaptações.
-
+Este projeto é um jogo clicker desenvolvido em Python utilizando a biblioteca Pygame. Inspirado por jogos gênero, como Cookie Clicker, ele oferece uma experiência divertida e simples de acumular pontos clicando em um botão. O jogo inclui funcionalidades como sistema de upgrades para melhorar o ganho de pontos, conquistas para motivar o jogador a alcançar metas, menus interativos para configurar controles, além de efeitos visuais que tornam a jogabilidade mais legal. Desenvolvido como um projeto pessoal, o objetivo é aprender e aplicar conceitos de programação de jogos.
 ---
 
 ## Funcionalidades
 
 ✅**Clique para ganhar pontos**
-- O jogador clica no botão central para acumular pontos.
+- O jogador clica no botão para acumular pontos.
 
 ✅**Sistema de upgrades**
 - Com os pontos acumulados, o jogador pode comprar upgrades que aumentam a quantidade de pontos por clique, como "Auto Clique", "Pontos em dobro" e "Mega clique".
@@ -43,7 +44,7 @@ Desenvolvido como um projeto pessoal, o objetivo é aprender e aplicar conceitos
 - Conquistas são desbloqueadas automaticamente conforme o jogador atinge determinados marcos, e podem ser visualizadas em um menu específico.
 
 ✅**Menus interativos**
-- Menus de Configurações, Controles, Conquistas e Upgrades, acessíveis por ícones no canto da tela, com animações de abertura e fechamento.
+- Menus de Configurações, Controles, Conquistas, Console secreto e Upgrades, acessíveis por ícones no canto da tela, com animações de abertura e fechamento.
 
 ✅**Efeitos visuais de clique**
 - Pequenas animações aparecem ao clicar, mostrando "+1" para dar feedback visual ao jogador.
@@ -53,9 +54,6 @@ Desenvolvido como um projeto pessoal, o objetivo é aprender e aplicar conceitos
 
 ✅**Tela de carregamento animada**
 - Apresenta mensagens e uma barra de progresso enquanto o jogo carrega, melhorando a experiência do usuário.
-
-✅**Controle por teclado**
-- Permite usar atalhos como ESC para fechar menus e R para resetar a pontuação e conquistas.
 
 ✅**Interface responsiva e estilizada**
 - Usa imagens externas para ícones e botões, animações suaves, e disposição intuitiva dos elementos na tela.
@@ -138,18 +136,21 @@ Ou seja, alterações são permitidas para uso pessoal ou interno, mas para dist
 
 ## Mods e Texturas
 
-Atualmente, esse projeto suporta apenas modificações diretas no código. Eu sei que isso não é nada prático, mas estou trabalhando junto com a atualização 0.0.04 em um jeito menos complexo de criar e carregar mods.
+Atualmente, esse projeto suporta apenas modificações diretas no código e modificação via código simplificado no background. Eu sei que isso não é nada prático, mas estou trabalhando junto com as atualizações em um jeito menos complexo de criar mods.
 
 ## Questões Comuns
+
+- Esse jogo foi feito com Inteligencia Artificial?
+
+**Sim, os códigos foram revisados e muitos bugs foram corrigidos com auxílio de ia.**
 
 - Por que meu antivírus apita ou bloqueia meu programa mesmo ele sendo seguro?
 
 **Antivírus usam técnicas para identificar comportamentos ou códigos suspeitos, mesmo em programas legítimos. Isso pode causar falsos positivos, quando o antivírus sinaliza algo como vírus sem que haja ameaça real. Isso acontece porque o software pode conter padrões ou operações parecidas com malware, ou por ser um arquivo novo e desconhecido.**
 
-
 - Quando será lançada a versão 1.0?
 
-**Essa é uma pergunta que eu nem eu sei responder. Só lançarei a versão final quando esse jogo tiver cumprindo minhas expectativas.**
+**Essa é uma pergunta que eu nem eu sei responder. Só lançarei a versão final quando esse jogo tiver cumprido minhas expectativas.**
 
 - Você pretende ir lançando atualizações frequentes?
 
@@ -157,7 +158,7 @@ Atualmente, esse projeto suporta apenas modificações diretas no código. Eu se
 
 - Somente o Windows receberá o jogo ou outros sistemas também?
 
-**Por ser complicado ir portando o código conforme eu vou o modificando, por um bom tempo somente o windows terá suporte. Após o lançamento da 1.0 e de ter um sistema agradável pra mods, eu pensarei na portabilidade.**
+**Por ser complicado ir portando o código conforme eu vou o modificando, por um bom tempo somente o windows terá suporte. Após o lançamento da 1.0 e de ter um sistema agradável pra mods, eu pensarei na portabilidade. Usando o [GameHub](https://gamehubemulator.com/), é possível jogar, mas é extremamente lento. Lançarei uma atualização para melhorar o desempenho.**
 
 - Preciso do Python instalado?
 
@@ -176,9 +177,30 @@ Pyetro — contato.eupyetro022@gmail.com
 * Potion Permit Wiki: [Botão do menu de upgrades](https://potion-permit.fandom.com/pt-br/wiki/Di%C3%A1rio_M%C3%A9dico)
 * Bloons Wiki: [Coração do mini evento](https://bloons.fandom.com/wiki/List_of_Bloons)
 * Modpack Crash Landing: [Som de conquista concluída](https://www.curseforge.com/minecraft/modpacks/crash-landing)
+* Kindergarten Wiki: [Trabalhador](https://kindergarten.fandom.com/wiki/Nugget)
 
 ## Changelogs
+<details>
+  <summary>0.0.04 - 25/07/25</summary>
 
+Essa é uma grande atualização (provavelmente não a maior em adições pro jogo, mas a maior em mecanicas e personalização)
+
+- Nome alterado para **Generic Clicker Game** (ou abreviado para GCM),
+- Primeiro suporte para mods adicionado: Mudar o fundo,
+- Confirmação de reset ao apertar o R,
+- Mesma fonte para tudo,
+- Agora a quantidade de clicks dados no mini evento são salvos,
+- Tela para escolher o mod que queira usar, caso tenha mais de um,
+- Correção do bug nas conquistas dos mini eventos (antes ao reiniciar o jogo, ele resetava a quantidade de mini eventos clicados),
+- Novo upgrade: Segurar com o botão esquerdo sobe 2 pontos por segundo,
+- Novas conquistas: Antes da automação, vem a fase manual e Perfeição 1.5
+- Novas configuraçãos: Pular loading e Menu vertical,
+- Sistema de carregar dados de uma versão para a outra (funcionando somente a partir dessa),
+- Clicar em qualquer lugar da tela com o menu de upgrades aberto o fecha agora,
+- Otimização de código: Como o jogo não abre o terminal, todos os prints() sem importância foram removidos,
+- Trabalhador temporário, que te da até 5000 pontos.
+
+</details>
 
 <details>
   <summary>0.0.03.1 - 11/07/25</summary>

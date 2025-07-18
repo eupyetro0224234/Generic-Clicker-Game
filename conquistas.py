@@ -24,22 +24,14 @@ class AchievementTracker:
             Achievement("mini_event_1", "Mini Evento: Primeiro Clique", "Clique pela primeira vez no mini evento", 1),
             Achievement("mini_event_10", "Mini Evento: 10 Cliques", "Clique 10 vezes no mini evento", 10),
             Achievement("mini_event_100", "Mini Evento: 100 Cliques", "Clique 100 vezes no mini evento", 100),
-            Achievement(
-                "manual_phase",
-                "Antes de Automação, vem a fase manual",
-                "Compre o upgrade de clique manual (segurar botão)"
-            ),
-            Achievement(
-                "perfeicao_15",
-                "Perfeição 1.5",
-                "Complete todas as conquistas"
-            )
+            Achievement("manual_phase","Antes de Automação, vem a fase manual","Compre o upgrade de clique manual (segurar botão)"),
+            Achievement("perfeicao_15","Perfeição 1.5","Complete todas as conquistas")
         ]
         self.unlocked = set()
         self.achievement_queue = []
         self.current_achievement = None
-        self.font = pygame.font.SysFont("Arial", 24, bold=True)
-        self.desc_font = pygame.font.SysFont("Arial", 18)
+        self.font = pygame.font.SysFont("None", 100, bold=True)
+        self.desc_font = pygame.font.SysFont("None", 100)
         self.icon_font = pygame.font.SysFont("Segoe UI Emoji", 30)
         self.sound = None
         self.animation_speed = 0.08
@@ -165,7 +157,7 @@ class AchievementTracker:
         alpha = int(eased_progress * 255)
 
         popup_text = f"Conquista desbloqueada: {ach.name}"
-        font = pygame.font.SysFont("Arial", 28, bold=True)
+        font = pygame.font.SysFont("None", 28, bold=True)
         text_surface = font.render(popup_text, True, (47, 24, 63))
         text_width = text_surface.get_width()
         text_height = text_surface.get_height()
@@ -212,9 +204,9 @@ class AchievementsMenu:
         self.locked_color = (160, 160, 160)
         self.shadow_color = (0, 0, 0, 25)
 
-        self.title_font = pygame.font.SysFont("Arial", 32)
-        self.item_font = pygame.font.SysFont("Arial", 20)
-        self.desc_font = pygame.font.SysFont("Arial", 16)
+        self.title_font = pygame.font.SysFont("None", 32)
+        self.item_font = pygame.font.SysFont("None", 27)
+        self.desc_font = pygame.font.SysFont("None", 23)
         self.icon_font = pygame.font.SysFont("Segoe UI Emoji", 28)
 
         self.radius = 12
@@ -284,7 +276,7 @@ class AchievementsMenu:
             self.screen.blit(name_surf, (rect.left + 45, rect.top + 6))
             self.screen.blit(desc_surf, (rect.left + 45, rect.top + 30))
 
-        title_text = "🏆 Conquistas"
+        title_text = "Conquistas"
         title_surf = self.title_font.render(title_text, True, (60, 50, 80))
         self.screen.blit(title_surf, (self.width // 2 - title_surf.get_width() // 2, 25))
 

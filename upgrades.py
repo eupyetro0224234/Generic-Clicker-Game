@@ -9,6 +9,7 @@ class Upgrade:
         self.name = name
         self.cost = cost
         self.bonus = bonus
+        self.amount = 0
 
 class UpgradeMenu:
     def __init__(self, screen, window_width, window_height, achievement_tracker=None):
@@ -17,16 +18,14 @@ class UpgradeMenu:
         self.window_height = window_height
         self.achievement_tracker = achievement_tracker
 
-        # Position and appearance
         self.x = 10
         self.y = 10
         self.width = 280
         self.visible = False
         self.animation = 0.0
         self.speed = 0.12
-        self.font = pygame.font.SysFont(None, 24)
-        
-        # Colors
+        self.font = pygame.font.SysFont("None", 24)
+
         self.bg_color = (180, 210, 255)
         self.option_color = (255, 255, 255)
         self.purchased_color = (170, 250, 170)
@@ -34,47 +33,57 @@ class UpgradeMenu:
         self.option_border = (100, 149, 237)
         self.text_color = (40, 40, 60)
 
-        # Layout
         self.option_height = 38
         self.option_radius = 10
         self.padding_x = 14
         self.spacing = 8
 
-        # Upgrades
         self.upgrades = [
             Upgrade("hold_click", "Clique ao Segurar", 2500, 1),
             Upgrade("auto_click", "Auto Clique", 5000, 1),
             Upgrade("double", "Pontos em Dobro", 20000, 1),
             Upgrade("mega", "Mega Clique", 75000, 4),
-            Upgrade("trabalhador", "Trabalhador", 1000, 0),
+            Upgrade("trabalhador", "Contratar Trabalhador", 1000, 0),
         ]
 
-        # Icon
         self.icon = self._load_icon()
         self.icon_rect = pygame.Rect(self.x, self.y, 50, 50)
-        
-        # State
+
         self.purchased = {}
-        self.auto_click_timer = 0
-        self.trabalhador_instancia = None
+        self.trabalhadores_ativos = 0
 
     def _load_icon(self):
         localappdata = os.getenv("LOCALAPPDATA")
         assets_path = os.path.join(localappdata, ".assets")
         os.makedirs(assets_path, exist_ok=True)
         icon_path = os.path.join(assets_path, "upgrades.png")
-        
+
         try:
             icon = pygame.image.load(icon_path).convert_alpha()
             return pygame.transform.smoothscale(icon, (42, 42))
         except Exception:
             return None
 
+    def is_trabalhador_comprado(self):
+        """Verifica se algum trabalhador foi comprado"""
+        return self.purchased.get("trabalhador", 0) > 0
+
+    def get_trabalhador_quantidade(self):
+        """Retorna quantos trabalhadores estão ativos"""
+        return self.trabalhadores_ativos
+
+    def set_trabalhadores_ativos(self, quantidade):
+        """Define a quantidade de trabalhadores ativos"""
+        self.trabalhadores_ativos = quantidade
+
     def get_icon_rect(self):
         return self.icon_rect
 
     def toggle_visibility(self):
         self.visible = not self.visible
+
+    def is_visible(self):
+        return self.visible
 
     def toggle(self):
         self.toggle_visibility()
@@ -111,25 +120,23 @@ class UpgradeMenu:
             oy = 6 + i * (self.option_height + self.spacing)
             if oy + self.option_height > height:
                 break
-                
+
             rect = pygame.Rect(self.padding_x, oy, self.width - 2 * self.padding_x, self.option_height)
             qtd = self.purchased.get(upg.id, 0)
-            
-            if upg.id == "trabalhador":
-                if self.trabalhador_instancia and self.trabalhador_instancia.active:
-                    color = self.active_color
-                elif qtd > 0:
-                    color = self.option_color
-                else:
-                    color = self.option_color
-            else:
-                color = self.purchased_color if qtd > 0 else self.option_color
-            
+
+            color = self.purchased_color if qtd > 0 else self.option_color
             pygame.draw.rect(panel, color, rect, border_radius=self.option_radius)
             pygame.draw.rect(panel, self.option_border, rect, width=2, border_radius=self.option_radius)
 
-            txt = self.font.render(f"{upg.name} (${upg.cost}) x{qtd}", True, self.text_color)
-            panel.blit(txt, txt.get_rect(center=rect.center))
+            # Mostra quantidade ativa para trabalhadores
+            if upg.id == "trabalhador":
+                main_text = f"{upg.name} (${upg.cost})" if qtd == 0 else f"{upg.name} x{self.trabalhadores_ativos}/{qtd}"
+            else:
+                main_text = f"{upg.name} (${upg.cost})" if qtd == 0 else f"{upg.name} x{qtd}"
+            
+            txt = self.font.render(main_text, True, self.text_color)
+            text_rect = txt.get_rect(center=rect.center)
+            panel.blit(txt, text_rect)
 
         self.screen.blit(panel, (self.x, self.y + 60))
 
@@ -137,7 +144,7 @@ class UpgradeMenu:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.icon_rect.collidepoint(event.pos):
                 self.toggle()
-                return score, self.purchased
+                return score, False
 
             if self.visible:
                 upgrades_to_show = [
@@ -149,7 +156,7 @@ class UpgradeMenu:
 
                 if not menu_rect.collidepoint(event.pos):
                     self.visible = False
-                    return score, self.purchased
+                    return score, False
 
                 for i, upg in enumerate(upgrades_to_show):
                     upg_rect = pygame.Rect(
@@ -159,36 +166,35 @@ class UpgradeMenu:
                         self.option_height
                     )
                     if upg_rect.collidepoint(event.pos):
-                        qtd = self.purchased.get(upg.id, 0)
                         if score >= upg.cost:
                             if upg.id == "trabalhador":
-                                if not self.trabalhador_instancia or not self.trabalhador_instancia.active:
-                                    self.purchased[upg.id] = 1
-                                    score -= upg.cost
-                                    now = pygame.time.get_ticks()
-                                    if self.trabalhador_instancia:
-                                        self.trabalhador_instancia.start(now)
-                                    else:
-                                        self.trabalhador_instancia = Trabalhador(self.screen, self.window_width, self.window_height)
-                                        self.trabalhador_instancia.start(now)
-                            elif upg.id != "hold_click" or qtd == 0:
-                                self.purchased[upg.id] = qtd + 1
+                                self.purchased[upg.id] = self.purchased.get(upg.id, 0) + 1
+                                self.trabalhadores_ativos += 1  # Incrementa trabalhadores ativos
                                 score -= upg.cost
-                                if upg.id == "hold_click" and self.achievement_tracker:
-                                    self.achievement_tracker.unlock_secret("manual_phase")
+                                if self.achievement_tracker:
+                                    if self.purchased[upg.id] == 1:
+                                        self.achievement_tracker.unlock_secret("worker")
+                                    elif self.purchased[upg.id] >= 5:
+                                        self.achievement_tracker.unlock_secret("worker_army")
+                                return score, True  # Indica que um trabalhador foi comprado
+                            else:
+                                self.purchased[upg.id] = self.purchased.get(upg.id, 0) + 1
+                                score -= upg.cost
+                                return score, False
                         break
-        return score, self.purchased
+
+        return score, False
 
     def load_upgrades(self, upgrades: dict):
         self.purchased = upgrades if upgrades else {}
-        if "trabalhador" in self.purchased:
-            self.trabalhador_instancia = Trabalhador(self.screen, self.window_width, self.window_height)
+        # Inicializa trabalhadores ativos com a quantidade comprada
+        self.trabalhadores_ativos = self.purchased.get("trabalhador", 0)
 
     def get_bonus(self):
         bonus = 1
         for upg in self.upgrades:
             qtd = self.purchased.get(upg.id, 0)
-            if upg.id == "auto_click":
+            if upg.id in ["auto_click", "trabalhador"]:
                 continue
             bonus += upg.bonus * qtd
         return bonus
@@ -199,24 +205,28 @@ class UpgradeMenu:
     def get_auto_click_bonus(self):
         return self.purchased.get("auto_click", 0)
 
+    def get_trabalhador_pontos(self):
+        return 1  # Cada trabalhador gera 1 ponto por intervalo
+
+    def get_trabalhador_intervalo(self):
+        return 5000  # Intervalo fixo de 5 segundos
+
     def reset_upgrades(self):
-        """Completely resets all upgrades including worker instance"""
         self.purchased.clear()
-        self.auto_click_timer = 0
-        if self.trabalhador_instancia:
-            self.trabalhador_instancia.active = False
-            self.trabalhador_instancia = None  # Remove worker completely
+        self.trabalhadores_ativos = 0
 
     def purchase_random_upgrade(self):
         available_upgrades = [
             upg for upg in self.upgrades
-            if upg.id not in self.purchased or self.purchased[upg.id] < 5
+            if upg.id not in self.purchased or (isinstance(self.purchased.get(upg.id, 0), int) and self.purchased[upg.id] < 5)
         ]
         if available_upgrades:
             upgrade = random.choice(available_upgrades)
             self.purchased[upgrade.id] = self.purchased.get(upgrade.id, 0) + 1
+            if upgrade.id == "trabalhador":
+                self.trabalhadores_ativos += 1
             return True
         return False
 
-    def set_trabalhador(self, trabalhador):
-        self.trabalhador_instancia = trabalhador
+    def get_upgrades_to_save(self):
+        return self.purchased.copy()

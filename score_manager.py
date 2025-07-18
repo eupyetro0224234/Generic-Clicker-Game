@@ -40,13 +40,15 @@ class ScoreManager:
             print(f"Erro ao descriptografar dados: {e}")
             return None
 
-    def save_data(self, score: int, controls_visible: bool, achievements: list[str], upgrades: dict[str, int], mini_event_click_count: int):
+    def save_data(self, score: int, controls_visible: bool, achievements: list[str], 
+                 upgrades: dict[str, int], mini_event_click_count: int, trabalhadores: list[dict] = None):
         data_dict = {
             'score': score,
             'controls_visible': controls_visible,
             'achievements': achievements,
             'upgrades': upgrades,
             'mini_event_click_count': mini_event_click_count,
+            'trabalhadores': trabalhadores if trabalhadores is not None else [],
             'timestamp': int(time.time())
         }
 
@@ -71,28 +73,16 @@ class ScoreManager:
                     pass
         return False
 
-    def load_existing_data_dict(self):
-        if os.path.isfile(self.file_path):
-            try:
-                with open(self.file_path, "rb") as file:
-                    encrypted = file.read()
-                data = self.decrypt_data(encrypted)
-                if isinstance(data, dict):
-                    return data
-            except Exception:
-                pass
-        return {}
-
     def load_data(self):
-        """SEMPRE carrega primeiro do old.json e depois sincroniza com score.dat"""
+        """Carrega dados, priorizando o backup se existir"""
         backup_data = self.load_backup()
         
         if backup_data:
-            score, controls_visible, achievements, upgrades, mini_event_clicks = backup_data
+            score, controls_visible, achievements, upgrades, mini_event_clicks, trabalhadores = backup_data
             print("Dados carregados do backup old.json")
             
             # Atualiza o score.dat com os dados do backup
-            self.save_data(score, controls_visible, achievements, upgrades, mini_event_clicks)
+            self.save_data(score, controls_visible, achievements, upgrades, mini_event_clicks, trabalhadores)
 
             # Apaga o backup após restaurar com sucesso
             try:
@@ -101,7 +91,7 @@ class ScoreManager:
             except Exception as e:
                 print(f"[Aviso] Não foi possível apagar old.json: {e}")
 
-            return score, controls_visible, achievements, upgrades, mini_event_clicks
+            return score, controls_visible, achievements, upgrades, mini_event_clicks, trabalhadores
 
         # Fallback: carregar do score.dat
         if os.path.isfile(self.file_path):
@@ -116,21 +106,24 @@ class ScoreManager:
                         data_dict.get("controls_visible", False),
                         data_dict.get("achievements", []),
                         data_dict.get("upgrades", {}),
-                        data_dict.get("mini_event_click_count", 0)
+                        data_dict.get("mini_event_click_count", 0),
+                        data_dict.get("trabalhadores", [])
                     )
             except Exception as e:
                 print(f"Erro ao carregar score.dat: {e}")
 
         print("Nenhum dado salvo encontrado, iniciando com valores padrão")
-        return 0, False, [], {}, 0
+        return 0, False, [], {}, 0, []
 
-    def save_backup(self, score: int, controls_visible: bool, achievements: list[str], upgrades: dict[str, int], mini_event_click_count: int):
+    def save_backup(self, score: int, controls_visible: bool, achievements: list[str], 
+                   upgrades: dict[str, int], mini_event_click_count: int, trabalhadores: list[dict] = None):
         data_dict = {
             'score': score,
             'controls_visible': controls_visible,
             'achievements': achievements,
             'upgrades': upgrades,
             'mini_event_click_count': mini_event_click_count,
+            'trabalhadores': trabalhadores if trabalhadores is not None else [],
             'timestamp': int(time.time()),
             'backup_note': 'Arquivo de backup principal. O jogo prioriza esses dados na inicialização.'
         }
@@ -166,7 +159,8 @@ class ScoreManager:
                     data_dict.get('controls_visible', False),
                     data_dict.get('achievements', []),
                     data_dict.get('upgrades', {}),
-                    data_dict.get('mini_event_click_count', 0)
+                    data_dict.get('mini_event_click_count', 0),
+                    data_dict.get('trabalhadores', [])
                 )
             except Exception as e:
                 print(f"Erro ao carregar backup: {e}")
