@@ -1,6 +1,6 @@
 # Generic Clicker Game
 
-![Projeto no Itch.io](https://i.postimg.cc/hPsCTZ9m/image.png) ![Badge de versão](https://img.shields.io/badge/version-0.0.03.1-yellow) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
+![Projeto no Itch.io](https://i.postimg.cc/hPsCTZ9m/image.png) ![Badge de versão](https://img.shields.io/badge/version-0.0.04-yellow) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
 
 **Desative o tradutor do seu navegador ao ler**
 
@@ -175,7 +175,7 @@ Pyetro — contato.eupyetro022@gmail.com
 * [Minecraft Wiki](https://pt.minecraft.wiki/w/Livro_Encantado): Gif do Livro Encantado
 * [Stardew Valley Wiki](https://pt.stardewvalleywiki.com/Controles_m%C3%B3veis): Ícone de configurações
 * [Potion Permit Wiki](https://potion-permit.fandom.com/pt-br/wiki/Di%C3%A1rio_M%C3%A9dico): Botão do menu de upgrades
-* Bloons Wiki: [Coração do mini evento](https://bloons.fandom.com/wiki/List_of_Bloons)
+* [Bloons Wiki](https://bloons.fandom.com/wiki/List_of_Bloons): Coração do mini evento
 * [Modpack Crash Landing](https://www.curseforge.com/minecraft/modpacks/crash-landing): Som de conquista concluída
 * [Kindergarten Wiki](https://kindergarten.fandom.com/wiki/Nugget): Trabalhador
 
