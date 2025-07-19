@@ -75,7 +75,7 @@ git clone https://github.com/eupyetro0224234/Generic-Clicker-Game.git
 Entre na pasta
 
 ```bash
-cd just-another-generic-clicker-game-but-with-references
+cd Generic-Clicker-Game
 ```
 
 Instale as dependências
