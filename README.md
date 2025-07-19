@@ -131,8 +131,8 @@ Sua participação é muito importante para o crescimento e melhoria contínua d
 ## Licença Customizada
 
 Você tem permissão para usar e modificar este projeto livremente.
-No entanto, a publicação de quaisquer versões modificadas ou derivadas do projeto só pode ser feita mediante minha autorização prévia e expressa.
-Ou seja, alterações são permitidas para uso pessoal ou interno, mas para distribuir ou publicar essas modificações, você deve obter minha permissão.
+No entanto, a publicação de quaisquer versões modificadas ou derivadas do projeto só pode ser feita com fork do projeto ou mediante minha autorização prévia e expressa.
+Ou seja, alterações são permitidas para uso pessoal ou interno, mas para distribuir ou publicar essas modificações, você pode fazer um fork ou deve obter minha permissão.
 
 ## Mods e Texturas
 
