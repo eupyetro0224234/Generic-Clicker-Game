@@ -25,7 +25,7 @@
 
 ## Sobre a mudança de nome
 
-Eu acho Just Another Generic Clicker Game, But With References um nome gigante. Eu tentei criar diversas contas em vários aplicativos pra poder usar esse nome, por exemplo na página do twitter. Não consegui até agora pensar em nenhuma abreviação decente. JAGCMBWR? Isso não soa bem muito menos prático como apenas GMC ou se preferir, Generic Clicker Game. Como usei acima o exemplo do twitter, eu posso usar como se fosse um clã (viajei longe agora), por exemplo, GMC - eupyetro022. Por isso, eu decidi mudar o nome. Mas, o nome Just Another Generic Clicker Game, But With References pode ser utilizado pra algo no futuro...
+Eu acho Just Another Generic Clicker Game, But With References um nome gigante. Eu tentei criar diversas contas em vários aplicativos pra poder usar esse nome, por exemplo na página do twitter. Não consegui até agora pensar em nenhuma abreviação decente. JAGCMBWR? Isso não soa bem muito menos prático como apenas GCG ou se preferir, Generic Clicker Game. Como usei acima o exemplo do twitter, eu posso usar como se fosse um clã (viajei longe agora), por exemplo, GCG - eupyetro022. Por isso, eu decidi mudar o nome. Mas, o nome Just Another Generic Clicker Game, But With References pode ser utilizado pra algo no futuro...
 
 ## Sobre
 
