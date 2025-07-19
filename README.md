@@ -69,7 +69,7 @@ Siga os passos abaixo para rodar o projeto localmente (caso prefira, vá em [rel
 
 Clone o repositório
 ```bash
-git clone https://github.com/eupyetro0224234/just-another-generic-clicker-game-but-with-references.git
+git clone https://github.com/eupyetro0224234/Generic-Clicker-Game.git
 ```
 
 Entre na pasta
