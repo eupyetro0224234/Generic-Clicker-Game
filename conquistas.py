@@ -21,7 +21,6 @@ class AchievementTracker:
             Achievement("ten_clicks", "10 Cliques", "Alcance 10 cliques", 10),
             Achievement("hundred_points", "100 Pontos", "Chegue a 100 pontos", 100),
             Achievement("triple_crown", "Tríplice Coroa", "Desbloqueie 3 conquistas ao mesmo tempo"),
-            Achievement("triplice", "Tríplice Aliança", "Desbloqueie 3 conquistas rapidamente"),
             Achievement("console", "Ativar Console", "Você descobriu o console secreto!"),
             Achievement("mini_event_1", "Mini Evento: Primeiro Clique", "Clique pela primeira vez no mini evento", 1),
             Achievement("mini_event_10", "Mini Evento: 10 Cliques", "Clique 10 vezes no mini evento", 10),
@@ -377,18 +376,16 @@ class AchievementsMenu:
     def handle_event(self, event):
         if not self.visible:
             return False
-        
-        if event.type in [pygame.KEYDOWN, pygame.KEYUP, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP]:
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            self.visible = False
+            return True
+
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            mouse_pos = event.pos
+            if self.close_button_rect and self.close_button_rect.collidepoint(mouse_pos):
                 self.visible = False
                 return True
 
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                mouse_pos = event.pos
-                if self.close_button_rect and self.close_button_rect.collidepoint(mouse_pos):
-                    self.visible = False
-                    return True
-
-            return True
-
-        return False
+        # Mesmo que não clique em nada, retorna True para bloquear interações atrás
+        return True

@@ -181,6 +181,9 @@ Pyetro — contato.eupyetro022@gmail.com
 
 ## Changelogs
 
+
+</details>
+
 <details>
   <summary>0.0.04 - 18/07/25</summary>
 
