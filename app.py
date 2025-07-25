@@ -2,23 +2,22 @@ import os
 import pygame
 import sys
 from game import Game
-from background import WIDTH, HEIGHT  # Movido para o topo do arquivo
+from background import WIDTH, HEIGHT
 
 def carregar_icone():
     """Carrega o ícone do jogo com fallbacks para diferentes métodos"""
     icon_path = os.path.join(os.getenv("LOCALAPPDATA") or ".", ".assets", "icone.ico")
     if not os.path.exists(icon_path):
-        return None  # Retorna None se o ícone não existir
+        return None
 
     try:
-        # Tenta carregar usando PIL para melhor qualidade
+
         try:
             from PIL import Image
             img = Image.open(icon_path)
             icon = pygame.image.fromstring(img.tobytes(), img.size, img.mode)
             return icon
         except ImportError:
-            # Fallback para pygame se PIL não estiver disponível
             icon = pygame.image.load(icon_path)
             return icon
     except Exception as e:
@@ -28,9 +27,8 @@ def carregar_icone():
 def configurar_pygame():
     """Configurações iniciais do pygame"""
     pygame.init()
-    pygame.mixer.init()  # Inicializa o mixer de áudio
+    pygame.mixer.init()
     
-    # Configuração para Windows para evitar duplicação na barra de tarefas
     if sys.platform == 'win32':
         try:
             import ctypes
@@ -42,10 +40,8 @@ def main():
     try:
         configurar_pygame()
         
-        # Carrega o ícone antes de criar a janela
         icon = carregar_icone()
         
-        # Configuração da tela - IMPORTANTE: definir o ícone ANTES de criar a janela
         if icon:
             pygame.display.set_icon(icon)
         pygame.display.set_caption("Generic Clicker Game")

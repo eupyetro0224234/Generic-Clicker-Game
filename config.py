@@ -50,6 +50,8 @@ class FullSettingsMenu:
         self.button_rects = []
         
         self.console_ativo = False
+        self.close_button_rect = None
+        self.close_button_hover = False
 
     def is_click_allowed(self, button):
         if button == 1:
@@ -152,6 +154,45 @@ class FullSettingsMenu:
         total_rows = (len(keys) + self.options_per_row - 1) // self.options_per_row
         return y + total_rows * (self.option_height + self.spacing_y)
 
+    def draw_close_button(self):
+        """Desenha o botão de fechar estilizado no canto superior direito"""
+        button_size = 36
+        margin = 20
+        self.close_button_rect = pygame.Rect(
+            self.width - button_size - margin, 
+            margin, 
+            button_size, 
+            button_size
+        )
+        
+        mouse_pos = pygame.mouse.get_pos()
+        self.close_button_hover = self.close_button_rect.collidepoint(mouse_pos)
+        
+        button_color = (255, 80, 80) if self.close_button_hover else (255, 120, 120)
+        pygame.draw.rect(self.screen, button_color, self.close_button_rect, border_radius=button_size//2)
+        
+        border_color = (200, 40, 40) if self.close_button_hover else (180, 60, 60)
+        pygame.draw.rect(self.screen, border_color, self.close_button_rect, width=2, border_radius=button_size//2)
+        
+        if self.close_button_hover:
+            shadow = pygame.Surface((button_size, button_size), pygame.SRCALPHA)
+            pygame.draw.rect(shadow, (0, 0, 0, 30), (0, 0, button_size, button_size), border_radius=button_size//2)
+            self.screen.blit(shadow, (self.close_button_rect.x, self.close_button_rect.y))
+        
+        x_size = 20
+        line_width = 3
+        center_x = self.close_button_rect.centerx
+        center_y = self.close_button_rect.centery
+        
+        pygame.draw.line(self.screen, (255, 255, 255), 
+                        (center_x - x_size//2, center_y - x_size//2),
+                        (center_x + x_size//2, center_y + x_size//2), 
+                        line_width)
+        pygame.draw.line(self.screen, (255, 255, 255), 
+                        (center_x + x_size//2, center_y - x_size//2),
+                        (center_x - x_size//2, center_y + x_size//2), 
+                        line_width)
+
     def draw(self):
         if not self.visible:
             return
@@ -162,8 +203,10 @@ class FullSettingsMenu:
         pygame.draw.rect(overlay, self.bg_color, (0, 0, self.width, self.height), border_radius=self.option_radius)
         self.screen.blit(overlay, (0, 0))
 
+        self.draw_close_button()
+
         x = self.padding_x
-        y = self.padding_y
+        y = self.padding_y + 50
 
         title_surf = self.title_font.render("Configurações", True, self.text_color)
         title_rect = title_surf.get_rect(center=(self.width // 2, y + title_surf.get_height() // 2))
@@ -193,8 +236,6 @@ class FullSettingsMenu:
         ]
 
         if self.console_ativo and "Manter console aberto" in self.options:
-            if "Manter console aberto" in outros_keys:
-                outros_keys.remove("Manter console aberto")
             outros_keys.append("Manter console aberto")
 
         self.draw_options(outros_keys, x, y)
@@ -209,6 +250,10 @@ class FullSettingsMenu:
 
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             mouse_pos = event.pos
+
+            if self.close_button_rect and self.close_button_rect.collidepoint(mouse_pos):
+                self.visible = False
+                return True
 
             for rect, key in self.button_rects:
                 if rect.collidepoint(mouse_pos):

@@ -152,12 +152,10 @@ class Game:
         self.texto_update = ""
 
     def resetar_trabalhadores(self):
-        """Reseta todos os trabalhadores sem afetar o score"""
         self.trabalhadores = []
         self.upgrade_menu.set_trabalhadores_ativos(0)
 
     def adicionar_trabalhador(self):
-        """Adiciona um novo trabalhador à lista"""
         novo_trabalhador = Trabalhador(
             screen=self.screen,
             width=WIDTH,
@@ -323,6 +321,12 @@ class Game:
             if self.config_menu.handle_event(event):
                 continue
 
+            if (event.type == pygame.MOUSEBUTTONDOWN and 
+                self.config_menu.achievements_menu.visible and
+                self.config_menu.achievements_menu.close_button_rect and
+                self.config_menu.achievements_menu.close_button_rect.collidepoint(event.pos)):
+                self.config_menu.achievements_menu.visible = False
+
     def handle_keydown(self, event):
         if event.key == pygame.K_r and not self.console.visible:
             confirmed = self.show_confirmation_dialog(
@@ -390,64 +394,23 @@ class Game:
                 return
 
     def handle_mousebuttondown(self, event):
-        # Verifica primeiro se o clique foi no botão principal
-        button_clicked = self.button.is_clicked(event.pos)
-        
-        # Só conta o clique para a conquista se foi no botão principal
-        if button_clicked and not (self.console.visible or self.exit_handler.active):
-            self.tracker.add_normal_click()
-        
-        if self.mini_event and self.mini_event.visible:
-            prev_score = self.score
-            self.score, upgrade = self.mini_event.handle_click(event.pos, self.score, self.upgrade_menu)
-            if upgrade or self.score != prev_score:
-                self.tracker.add_mini_event_click()
-                if upgrade:
-                    self.click_effects.append(
-                        ClickEffect(event.pos[0], event.pos[1], "Upgrade Obtido!"))
-                else:
-                    self.click_effects.append(
-                        ClickEffect(event.pos[0], event.pos[1], "+Pontos!"))
-                
-                trabalhadores_data = [trab.get_state() for trab in self.trabalhadores]
-                self.score_manager.save_data(
-                    self.score,
-                    self.config_menu.controls_menu.visible,
-                    list(self.tracker.unlocked),
-                    self.upgrade_menu.purchased,
-                    self.tracker.mini_event_clicks,
-                    trabalhadores_data
-                )
-                return
-
-        prev_vis = self.upgrade_menu.visible
-        new_score, trabalhador_comprado = self.upgrade_menu.handle_event(event, self.score)
-        
-        if new_score != self.score and "auto_click" in self.upgrade_menu.purchased:
-            self.tracker.unlock_secret("automatico")
-        
-        self.tracker.check_all_achievements_completed()
-        
-        if trabalhador_comprado:
-            self.adicionar_trabalhador()
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button in (1, 2, 3, 4, 5):
+            button_clicked = self.button.is_clicked(event.pos)
             
-        if new_score != self.score or self.upgrade_menu.visible != prev_vis:
-            self.score = new_score
-            return
-
-        self.button._update_rect()
-
-        if not (self.config_menu.settings_menu.visible or
-                self.config_menu.achievements_menu.visible or
-                self.console.visible or
-                self.exit_handler.active):
-            if self.config_menu.settings_menu.is_click_allowed(event.button):
-                if button_clicked:  # Usa a variável que já verificou o clique
-                    self.button.click()
-                    self.score += self.upgrade_menu.get_bonus()
-                    self.tracker.check_unlock(self.score)
-                    self.click_effects.append(
-                        ClickEffect(event.pos[0], event.pos[1], f"+{self.upgrade_menu.get_bonus()}"))
+            if button_clicked and not (self.console.visible or self.exit_handler.active):
+                self.tracker.add_normal_click()
+            
+            if self.mini_event and self.mini_event.visible:
+                prev_score = self.score
+                self.score, upgrade = self.mini_event.handle_click(event.pos, self.score, self.upgrade_menu)
+                if upgrade or self.score != prev_score:
+                    self.tracker.add_mini_event_click()
+                    if upgrade:
+                        self.click_effects.append(
+                            ClickEffect(event.pos[0], event.pos[1], "Upgrade Obtido!"))
+                    else:
+                        self.click_effects.append(
+                            ClickEffect(event.pos[0], event.pos[1], "+Pontos!"))
                     
                     trabalhadores_data = [trab.get_state() for trab in self.trabalhadores]
                     self.score_manager.save_data(
@@ -459,6 +422,46 @@ class Game:
                         trabalhadores_data
                     )
                     return
+
+            prev_vis = self.upgrade_menu.visible
+            new_score, trabalhador_comprado = self.upgrade_menu.handle_event(event, self.score)
+            
+            if new_score != self.score and "auto_click" in self.upgrade_menu.purchased:
+                self.tracker.unlock_secret("automatico")
+            
+            self.tracker.check_all_achievements_completed()
+            
+            if trabalhador_comprado:
+                self.adicionar_trabalhador()
+                
+            if new_score != self.score or self.upgrade_menu.visible != prev_vis:
+                self.score = new_score
+                return
+
+            self.button._update_rect()
+
+            if not (self.config_menu.settings_menu.visible or
+                    self.config_menu.achievements_menu.visible or
+                    self.console.visible or
+                    self.exit_handler.active):
+                if self.config_menu.settings_menu.is_click_allowed(event.button):
+                    if button_clicked:
+                        self.button.click()
+                        self.score += self.upgrade_menu.get_bonus()
+                        self.tracker.check_unlock(self.score)
+                        self.click_effects.append(
+                            ClickEffect(event.pos[0], event.pos[1], f"+{self.upgrade_menu.get_bonus()}"))
+                        
+                        trabalhadores_data = [trab.get_state() for trab in self.trabalhadores]
+                        self.score_manager.save_data(
+                            self.score,
+                            self.config_menu.controls_menu.visible,
+                            list(self.tracker.unlocked),
+                            self.upgrade_menu.purchased,
+                            self.tracker.mini_event_clicks,
+                            trabalhadores_data
+                        )
+                        return
 
         if self.console.visible:
             self.console.handle_event(event)
@@ -481,7 +484,7 @@ class Game:
 
         mouse_buttons = pygame.mouse.get_pressed()
 
-        if mouse_buttons[0]:  # Botão esquerdo do mouse
+        if mouse_buttons[0]:
             hold_click_qtd = self.upgrade_menu.purchased.get("hold_click", 0)
             if hold_click_qtd > 0:
                 if self.hold_click_start_time is None:
@@ -498,8 +501,7 @@ class Game:
                             self.tracker.check_unlock(self.score)
                             self.click_effects.append(
                                 ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{hold_click_qtd} (Hold)"))
-        
-        # Atualização dos trabalhadores
+
         pontos_acumulados = 0
         trabalhadores_remover = []
         
@@ -512,7 +514,6 @@ class Game:
             elif isinstance(resultado, int):
                 pontos_acumulados += resultado
         
-        # Aplica os pontos acumulados
         if pontos_acumulados > 0:
             self.score += pontos_acumulados
             self.tracker.check_unlock(self.score)
@@ -531,7 +532,6 @@ class Game:
                     )
                 )
         
-        # Remove os trabalhadores que expiraram
         for trab in trabalhadores_remover:
             if trab in self.trabalhadores:
                 self.trabalhadores.remove(trab)
@@ -616,7 +616,7 @@ class Game:
             trabalhador.draw()
 
         self.exit_handler.draw()
-        self.tracker.draw_popup()
+        self.tracker.update_and_draw()  # Changed from draw_popup() to update_and_draw()
 
         for eff in self.click_effects:
             eff.draw(self.screen)
@@ -642,6 +642,6 @@ class Game:
 if __name__ == "__main__":
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Clicker Game")
+    pygame.display.set_caption("Generic Clicker Game")
     game = Game(screen)
     game.run()
