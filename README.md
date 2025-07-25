@@ -180,11 +180,6 @@ Pyetro — contato.eupyetro022@gmail.com
 * [Kindergarten Wiki](https://kindergarten.fandom.com/wiki/Nugget): Trabalhador
 
 ## Changelogs
-<details>
-  <summary>0.0.05 - 15/08/25</summary>
-
-
-
 </details>
 
 <details>
