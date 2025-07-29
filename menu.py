@@ -1,11 +1,13 @@
 import os
 import pygame
+import json
+from datetime import datetime
 from controles import ControlsMenu
 from config import FullSettingsMenu
 from exit_handler import ExitHandler
 from conquistas import AchievementsMenu
 from console import Console
-import json
+from eventos import EventManager
 
 class ConfigMenu:
     def __init__(self, screen, window_width, window_height, loading_callback=None, score_manager=None):
@@ -45,13 +47,14 @@ class ConfigMenu:
         self.icon_rect = self.icon_image.get_rect() if self.icon_image else pygame.Rect(0, 0, 48, 48)
         self.icon_rect.topright = (window_width - 6, 6)
 
-        self.base_options = ["Configurações", "Controles", "Conquistas", "Sair"]
+        self.base_options = ["Configurações", "Controles", "Conquistas", "Eventos", "Sair"]
         self.options = list(self.base_options)
 
         self.controls_menu = ControlsMenu(screen, window_width, window_height)
         self.settings_menu = FullSettingsMenu(screen, window_width, window_height)
         self.achievements_menu = AchievementsMenu(screen, window_width, window_height, self)
         self.exit_handler = ExitHandler(screen, window_width, window_height)
+        self.event_manager = EventManager(screen, window_width, window_height)
 
         self.console_instance = Console(
             screen,
@@ -120,7 +123,8 @@ class ConfigMenu:
         menu_items = [
             ("Configurações", False),
             ("Controles", False),
-            (f"Conquistas ({unlocked_count})", False)
+            (f"Conquistas ({unlocked_count})", False),
+            ("Eventos", False)
         ]
 
         if self.console_enabled:
@@ -261,6 +265,8 @@ class ConfigMenu:
             self.settings_menu.draw()
         if self.achievements_menu.visible:
             self.achievements_menu.draw()
+        if self.event_manager.events_menu.visible:
+            self.event_manager.draw()
         if self.console_instance and self.console_instance.visible:
             self.console_instance.draw()
         self.exit_handler.draw()
@@ -283,6 +289,9 @@ class ConfigMenu:
         if self.settings_menu.visible:
             return self.settings_menu.handle_event(event)
 
+        if self.event_manager.events_menu.visible:
+            return self.event_manager.handle_event(event)
+
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.icon_rect.collidepoint(event.pos):
                 self.is_open = not self.is_open
@@ -297,6 +306,8 @@ class ConfigMenu:
                             self.controls_menu.visible = True
                         elif text.startswith("Conquistas"):
                             self.achievements_menu.visible = True
+                        elif text == "Eventos":
+                            self.event_manager.show_events_menu()
                         elif text == "Sair":
                             self.exit_handler.start()
                         elif text == "Console":
@@ -328,6 +339,9 @@ class ConfigMenu:
                     return True
                 if self.achievements_menu.visible:
                     self.achievements_menu.visible = False
+                    return True
+                if self.event_manager.events_menu.visible:
+                    self.event_manager.events_menu.visible = False
                     return True
                 if self.is_open:
                     self.is_open = False

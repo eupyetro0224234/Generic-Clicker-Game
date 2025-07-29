@@ -1,12 +1,13 @@
 [
     {
-        "name": "Evento Especial de Aniversário",
+        "name": "Evento Especial",
         "start_date": "2025-07-29",
         "end_date": "2025-07-30",
         "start_time": "00:01",
         "end_time": "23:59",
         "bonus": 2,
         "active": true,
-        "color": [255, 100, 100]
+        "color": [255, 100, 100],
+        "notification_shown": false
     }
 ]
