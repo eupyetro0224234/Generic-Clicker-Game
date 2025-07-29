@@ -1,16 +1,10 @@
 [
   {
-    "nome": "Festa Misteriosa",
-    "descricao": "Uma festa aconteceu do nada e você ganhou pontos extras!",
-    "tipo": "bonus",
-    "valor": 100,
-    "chance": 0.1
-  },
-  {
-    "nome": "Bug do Sistema",
-    "descricao": "Algo deu errado e você perdeu alguns pontos...",
-    "tipo": "malus",
-    "valor": -50,
-    "chance": 0.05
+    "name": "Evento de Pontos em Dobro",
+    "date": "29/07/2025 00:10",
+    "active": true,
+    "effect": {
+      "type": "double_points"
+    }
   }
 ]
