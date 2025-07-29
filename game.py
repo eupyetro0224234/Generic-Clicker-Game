@@ -37,7 +37,7 @@ class Game:
         self.setup_console()
         self.setup_event_handling()
         
-        # Event system additions
+        # Event system
         self.active_event = None
         self.event_bonus = 1
         self.event_check_time = 0
@@ -65,12 +65,31 @@ class Game:
 
     def check_events(self):
         now = datetime.now()
-        current_time_str = now.strftime("%Y-%m-%d %H:%M")
+        current_date_str = now.strftime("%Y-%m-%d")
+        current_time_str = now.strftime("%H:%M")
+        
+        previous_event = self.active_event
         self.active_event = None
         self.event_bonus = 1
 
         for event in self.events:
-            if event.get("active") and event.get("date") == current_time_str:
+            if not event.get("active", False):
+                continue
+                
+            start_date = event.get("start_date")
+            end_date = event.get("end_date")
+            start_time = event.get("start_time", "00:00")
+            end_time = event.get("end_time", "23:59")
+            
+            # Verifica se está dentro do período de datas
+            if start_date <= current_date_str <= end_date:
+                # Se for o primeiro dia, verifica o horário de início
+                if current_date_str == start_date and current_time_str < start_time:
+                    continue
+                # Se for o último dia, verifica o horário de término
+                if current_date_str == end_date and current_time_str > end_time:
+                    continue
+                    
                 self.active_event = event
                 self.event_bonus = event.get("bonus", 1)
                 break
@@ -140,7 +159,8 @@ class Game:
         self.TEXT_COLOR_SCORE = (40, 40, 60)
         self.fonte_update = pygame.font.SysFont(None, 48)
         self.fonte_aviso = pygame.font.SysFont(None, 28)
-        self.event_font = pygame.font.SysFont(None, 36)  # Added for event display
+        self.event_font_large = pygame.font.SysFont(None, 36)
+        self.event_font_small = pygame.font.SysFont(None, 24)
 
     def setup_game_components(self):
         self.button = AnimatedButton(
@@ -450,7 +470,6 @@ class Game:
             
             if button_clicked and not (self.console.visible or self.exit_handler.active):
                 self.tracker.add_normal_click()
-                # Apply event bonus to clicks
                 total_bonus = self.upgrade_menu.get_bonus() * self.event_bonus
                 self.score += total_bonus
                 self.tracker.check_unlock(self.score)
@@ -470,7 +489,6 @@ class Game:
             
             if self.mini_event and self.mini_event.visible:
                 prev_score = self.score
-                # Apply event bonus to mini-event clicks
                 mini_event_score, upgrade = self.mini_event.handle_click(event.pos, self.score, self.upgrade_menu)
                 if upgrade or mini_event_score != prev_score:
                     if mini_event_score != prev_score:
@@ -513,7 +531,6 @@ class Game:
             self.button._update_rect()
 
     def update(self):
-        # Check for active events periodically
         now = time.time()
         if now - self.event_check_time > self.event_check_interval:
             self.check_events()
@@ -555,7 +572,6 @@ class Game:
                             self.click_effects.append(
                                 ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{hold_bonus} (Hold)"))
 
-        # Auto click in mini events with event bonus
         if (self.mini_event and self.mini_event.visible and 
             self.upgrade_menu.purchased.get("auto_mini_event", 0) > 0):
             prev_score = self.score
@@ -699,13 +715,38 @@ class Game:
 
         # Draw active event notification
         if self.active_event:
-            event_text = self.event_font.render(
-                f"Evento: {self.active_event['name']} (x{self.event_bonus})", 
+            # Caixa de fundo
+            box_width = WIDTH - 40
+            box_height = 80
+            box_x = 20
+            box_y = 20
+            
+            # Cor do evento
+            event_color = tuple(self.active_event.get("color", [255, 255, 0]))
+            
+            # Desenha o fundo
+            pygame.draw.rect(self.screen, (30, 30, 50), 
+                            (box_x, box_y, box_width, box_height), 
+                            border_radius=10)
+            pygame.draw.rect(self.screen, event_color, 
+                            (box_x, box_y, box_width, box_height), 
+                            2, border_radius=10)
+            
+            # Texto do título
+            title_text = self.event_font_large.render(
+                f"EVENTO ATIVO: {self.active_event['name']} (x{self.event_bonus} PONTOS)", 
                 True, 
-                (255, 255, 0)
+                event_color
             )
-            event_rect = event_text.get_rect(topright=(WIDTH - 20, 20))
-            self.screen.blit(event_text, event_rect)
+            self.screen.blit(title_text, (box_x + 20, box_y + 15))
+            
+            # Texto do período
+            time_text = self.event_font_small.render(
+                f"Período: {self.active_event['start_date']} {self.active_event['start_time']} até {self.active_event['end_date']} {self.active_event['end_time']}", 
+                True, 
+                (200, 200, 200)
+            )
+            self.screen.blit(time_text, (box_x + 20, box_y + 50))
 
         self.upgrade_menu.draw(self.score)
 

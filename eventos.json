@@ -1,22 +1,12 @@
 [
     {
-        "name": "Dia dos Namorados",
-        "start_date": "2025-06-12",
-        "end_date": "2025-06-14",
-        "start_time": "00:00",
+        "name": "Evento Especial de Aniversário",
+        "start_date": "2025-07-29",
+        "end_date": "2025-07-30",
+        "start_time": "00:01",
         "end_time": "23:59",
         "bonus": 2,
         "active": true,
         "color": [255, 100, 100]
-    },
-    {
-        "name": "Evento de Teste",
-        "start_date": "2025-07-30",
-        "end_date": "2025-07-30",
-        "start_time": "10:00",
-        "end_time": "15:00",
-        "bonus": 2,
-        "active": true,
-        "color": [100, 255, 100]
     }
 ]
