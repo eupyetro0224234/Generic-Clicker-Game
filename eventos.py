@@ -14,14 +14,14 @@ class EventoManager:
         self.bg_color = (255, 255, 255)
         self.border_color = (0, 120, 255)
         self.text_color = (20, 20, 20)
-        self.link_json = "https://raw.githubusercontent.com/SEU_USUARIO/SEU_REPOSITORIO/main/eventos.json"
+        self.link_json = "https://raw.githubusercontent.com/eupyetro0224234/Generic-Clicker-Game/refs/heads/main/eventos.json"
         self.verificado = False
 
     def verificar_eventos(self):
         if self.verificado:
             return
         try:
-            response = urllib.request.urlopen(self.link_json)
+            response = urllib.request.urlopen(self.link_json, timeout=5)
             data = json.loads(response.read().decode())
 
             hoje = datetime.now().date()

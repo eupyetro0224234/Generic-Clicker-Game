@@ -1,8 +1,16 @@
 [
   {
-    "titulo": "Novo Evento!",
-    "mensagem": "Ganhe +2x pontos hoje!",
-    "data_inicio": "2025-07-28",
-    "data_fim": "2025-07-30"
+    "nome": "Festa Misteriosa",
+    "descricao": "Uma festa aconteceu do nada e você ganhou pontos extras!",
+    "tipo": "bonus",
+    "valor": 100,
+    "chance": 0.1
+  },
+  {
+    "nome": "Bug do Sistema",
+    "descricao": "Algo deu errado e você perdeu alguns pontos...",
+    "tipo": "malus",
+    "valor": -50,
+    "chance": 0.05
   }
 ]

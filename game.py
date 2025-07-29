@@ -5,6 +5,8 @@ import sys
 import time
 import math
 import webbrowser
+import json
+from datetime import datetime
 from background import draw_background, WIDTH, HEIGHT
 from button import AnimatedButton
 from score_manager import ScoreManager
@@ -35,6 +37,13 @@ class Game:
         self.setup_console()
         self.setup_event_handling()
         
+        # Event system additions
+        self.active_event = None
+        self.event_bonus = 1
+        self.event_check_time = 0
+        self.event_check_interval = 5  # seconds
+        self.load_events()
+        
         self.fonte_update_notification = pygame.font.SysFont(None, 28)
         self.mensagem_update = None
         self.rect_update = None
@@ -43,6 +52,29 @@ class Game:
         self.last_save_time = pygame.time.get_ticks()
         self.last_backup_save_time = pygame.time.get_ticks()
         
+    def load_events(self):
+        try:
+            with open("eventos.json", "r", encoding="utf-8") as f:
+                self.events = json.load(f)
+        except FileNotFoundError:
+            print("[ERRO] eventos.json não encontrado.")
+            self.events = []
+        except json.JSONDecodeError:
+            print("[ERRO] JSON inválido em eventos.json.")
+            self.events = []
+
+    def check_events(self):
+        now = datetime.now()
+        current_time_str = now.strftime("%Y-%m-%d %H:%M")
+        self.active_event = None
+        self.event_bonus = 1
+
+        for event in self.events:
+            if event["active"] and event["date"] == current_time_str:
+                self.active_event = event
+                self.event_bonus = event.get("bonus", 1)
+                break
+
     def load_game_data(self):
         try:
             (self.score, self.controls_visible, saved_achievements, 
@@ -108,6 +140,7 @@ class Game:
         self.TEXT_COLOR_SCORE = (40, 40, 60)
         self.fonte_update = pygame.font.SysFont(None, 48)
         self.fonte_aviso = pygame.font.SysFont(None, 28)
+        self.event_font = pygame.font.SysFont(None, 36)  # Added for event display
 
     def setup_game_components(self):
         self.button = AnimatedButton(
@@ -417,11 +450,32 @@ class Game:
             
             if button_clicked and not (self.console.visible or self.exit_handler.active):
                 self.tracker.add_normal_click()
+                # Apply event bonus to clicks
+                total_bonus = self.upgrade_menu.get_bonus() * self.event_bonus
+                self.score += total_bonus
+                self.tracker.check_unlock(self.score)
+                self.click_effects.append(
+                    ClickEffect(event.pos[0], event.pos[1], f"+{total_bonus}"))
+                
+                trabalhadores_data = [trab.get_state() for trab in self.trabalhadores]
+                self.score_manager.save_data(
+                    self.score,
+                    self.config_menu.controls_menu.visible,
+                    list(self.tracker.unlocked),
+                    self.upgrade_menu.purchased,
+                    self.tracker.mini_event_clicks,
+                    trabalhadores_data
+                )
+                return
             
             if self.mini_event and self.mini_event.visible:
                 prev_score = self.score
-                self.score, upgrade = self.mini_event.handle_click(event.pos, self.score, self.upgrade_menu)
-                if upgrade or self.score != prev_score:
+                # Apply event bonus to mini-event clicks
+                mini_event_score, upgrade = self.mini_event.handle_click(event.pos, self.score, self.upgrade_menu)
+                if upgrade or mini_event_score != prev_score:
+                    if mini_event_score != prev_score:
+                        mini_event_score = prev_score + (mini_event_score - prev_score) * self.event_bonus
+                    self.score = mini_event_score
                     self.tracker.add_mini_event_click()
                     if upgrade:
                         self.click_effects.append(
@@ -458,33 +512,13 @@ class Game:
 
             self.button._update_rect()
 
-            if not (self.config_menu.settings_menu.visible or
-                    self.config_menu.achievements_menu.visible or
-                    self.console.visible or
-                    self.exit_handler.active):
-                if self.config_menu.settings_menu.is_click_allowed(event.button):
-                    if button_clicked:
-                        self.button.click()
-                        self.score += self.upgrade_menu.get_bonus()
-                        self.tracker.check_unlock(self.score)
-                        self.click_effects.append(
-                            ClickEffect(event.pos[0], event.pos[1], f"+{self.upgrade_menu.get_bonus()}"))
-                        
-                        trabalhadores_data = [trab.get_state() for trab in self.trabalhadores]
-                        self.score_manager.save_data(
-                            self.score,
-                            self.config_menu.controls_menu.visible,
-                            list(self.tracker.unlocked),
-                            self.upgrade_menu.purchased,
-                            self.tracker.mini_event_clicks,
-                            trabalhadores_data
-                        )
-                        return
-
-        if self.console.visible:
-            self.console.handle_event(event)
-
     def update(self):
+        # Check for active events periodically
+        now = time.time()
+        if now - self.event_check_time > self.event_check_interval:
+            self.check_events()
+            self.event_check_time = now
+
         self.config_menu.achievements_menu.achievements = self.tracker.achievements
         self.config_menu.achievements_menu.unlocked = self.tracker.unlocked
 
@@ -494,7 +528,7 @@ class Game:
             self.auto_click_counter += 1
             if self.auto_click_counter >= 40:
                 self.auto_click_counter = 0
-                bonus_auto = self.upgrade_menu.get_auto_click_bonus()
+                bonus_auto = self.upgrade_menu.get_auto_click_bonus() * self.event_bonus
                 self.score += bonus_auto
                 self.tracker.check_unlock(self.score)
                 self.click_effects.append(
@@ -515,21 +549,25 @@ class Game:
                         self.hold_click_accumulator += self.clock.get_time()
                         if self.hold_click_accumulator >= 500:
                             self.hold_click_accumulator = 0
-                            self.score += hold_click_qtd
+                            hold_bonus = hold_click_qtd * self.event_bonus
+                            self.score += hold_bonus
                             self.tracker.check_unlock(self.score)
                             self.click_effects.append(
-                                ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{hold_click_qtd} (Hold)"))
+                                ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{hold_bonus} (Hold)"))
 
-        # Novo: Auto clique em mini eventos
+        # Auto click in mini events with event bonus
         if (self.mini_event and self.mini_event.visible and 
             self.upgrade_menu.purchased.get("auto_mini_event", 0) > 0):
             prev_score = self.score
-            self.score, upgrade = self.mini_event.handle_click(
-                (self.mini_event.x + 25, self.mini_event.y + 25),  # Clica no centro
+            mini_event_score, upgrade = self.mini_event.handle_click(
+                (self.mini_event.x + 25, self.mini_event.y + 25),
                 self.score,
                 self.upgrade_menu
             )
-            if upgrade or self.score != prev_score:
+            if upgrade or mini_event_score != prev_score:
+                if mini_event_score != prev_score:
+                    mini_event_score = prev_score + (mini_event_score - prev_score) * self.event_bonus
+                self.score = mini_event_score
                 self.tracker.add_mini_event_click()
                 if upgrade:
                     self.click_effects.append(
@@ -565,10 +603,10 @@ class Game:
             resultado = trabalhador.update(current_time)
 
             if isinstance(resultado, tuple) and resultado[0] == "expired":
-                pontos_acumulados += resultado[1]
+                pontos_acumulados += resultado[1] * self.event_bonus
                 trabalhadores_remover.append(trabalhador)
             elif isinstance(resultado, int):
-                pontos_acumulados += resultado
+                pontos_acumulados += resultado * self.event_bonus
         
         if pontos_acumulados > 0:
             self.score += pontos_acumulados
@@ -658,6 +696,16 @@ class Game:
         score_surf = self.FONT.render(str(self.score), True, self.TEXT_COLOR_SCORE)
         score_rect = score_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 140))
         self.screen.blit(score_surf, score_rect)
+
+        # Draw active event notification
+        if self.active_event:
+            event_text = self.event_font.render(
+                f"Evento: {self.active_event['name']} (x{self.event_bonus})", 
+                True, 
+                (255, 255, 0)
+            )
+            event_rect = event_text.get_rect(topright=(WIDTH - 20, 20))
+            self.screen.blit(event_text, event_rect)
 
         self.upgrade_menu.draw(self.score)
 
