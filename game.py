@@ -70,7 +70,7 @@ class Game:
         self.event_bonus = 1
 
         for event in self.events:
-            if event["active"] and event["date"] == current_time_str:
+            if event.get("active") and event.get("date") == current_time_str:
                 self.active_event = event
                 self.event_bonus = event.get("bonus", 1)
                 break
