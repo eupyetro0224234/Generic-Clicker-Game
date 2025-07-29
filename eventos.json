@@ -1,7 +1,7 @@
 [
   {
     "name": "Evento de Pontos em Dobro",
-    "date": "28/07/2025 00:47",
+    "date": "29/07/2025 00:47",
     "active": true,
     "effect": {
       "type": "double_points"
