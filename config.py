@@ -228,7 +228,6 @@ class FullSettingsMenu:
         y = self.draw_section_title("Outros", x, y)
         outros_keys = [
             "Ativar Mods",
-            "Ativar Texturas",
             "Verificar atualizações",
             "Mostrar conquistas ocultas",
             "Pular o loading",

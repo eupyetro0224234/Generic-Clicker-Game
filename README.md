@@ -180,7 +180,7 @@ Pyetro — contato.eupyetro022@gmail.com
 * [Kindergarten Wiki](https://kindergarten.fandom.com/wiki/Nugget): Trabalhador
 
 ## Changelogs
-<details>
+
   <summary>0.0.04 - 18/07/25</summary>
 
 Essa é uma grande atualização (provavelmente não a maior em adições pro jogo, mas a maior em mecanicas e personalização)

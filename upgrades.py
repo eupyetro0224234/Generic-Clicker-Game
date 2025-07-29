@@ -41,6 +41,7 @@ class UpgradeMenu:
         self.upgrades = [
             Upgrade("hold_click", "Clique ao Segurar", 2500, 1),
             Upgrade("auto_click", "Auto Clique", 5000, 1),
+            Upgrade("auto_mini_event", "Auto Mini Evento", 15000, 0),  # Novo upgrade
             Upgrade("double", "Pontos em Dobro", 20000, 1),
             Upgrade("mega", "Mega Clique", 75000, 4),
             Upgrade("trabalhador", "Contratar Trabalhador", 1000, 0),
@@ -105,6 +106,7 @@ class UpgradeMenu:
         upgrades_to_show = [
             upg for upg in self.upgrades
             if not (upg.id == "hold_click" and self.purchased.get("hold_click", 0) >= 1)
+            and not (upg.id == "auto_mini_event" and self.purchased.get("auto_mini_event", 0) >= 1)  # Novo filtro
         ]
 
         full_h = len(upgrades_to_show) * (self.option_height + self.spacing) - self.spacing + 12
@@ -155,6 +157,7 @@ class UpgradeMenu:
                 upgrades_to_show = [
                     upg for upg in self.upgrades
                     if not (upg.id == "hold_click" and self.purchased.get("hold_click", 0) >= 1)
+                    and not (upg.id == "auto_mini_event" and self.purchased.get("auto_mini_event", 0) >= 1)  # Novo filtro
                 ]
                 menu_height = len(upgrades_to_show) * (self.option_height + self.spacing) + 12
                 menu_rect = pygame.Rect(self.x, self.y + 60, self.width, menu_height)
@@ -185,6 +188,8 @@ class UpgradeMenu:
                             else:
                                 self.purchased[upg.id] = self.purchased.get(upg.id, 0) + 1
                                 score -= upg.cost
+                                if upg.id == "auto_mini_event":
+                                    self.achievement_tracker.unlock_secret("auto_event")  # Nova conquista
                                 return score, False
                         break
 
@@ -198,7 +203,7 @@ class UpgradeMenu:
         bonus = 1
         for upg in self.upgrades:
             qtd = self.purchased.get(upg.id, 0)
-            if upg.id in ["auto_click", "trabalhador"]:
+            if upg.id in ["auto_click", "trabalhador", "auto_mini_event"]:  # Adicionado auto_mini_event
                 continue
             bonus += upg.bonus * qtd
         return bonus
@@ -208,6 +213,9 @@ class UpgradeMenu:
 
     def get_auto_click_bonus(self):
         return self.purchased.get("auto_click", 0)
+
+    def auto_mini_event_enabled(self):
+        return self.purchased.get("auto_mini_event", 0) > 0
 
     def get_trabalhador_pontos(self):
         return 1
@@ -223,6 +231,7 @@ class UpgradeMenu:
         available_upgrades = [
             upg for upg in self.upgrades
             if upg.id not in self.purchased or (isinstance(self.purchased.get(upg.id, 0), int) and self.purchased[upg.id] < 5)
+            and upg.id != "auto_mini_event"  # Não compra automaticamente o auto_mini_event
         ]
         if available_upgrades:
             upgrade = random.choice(available_upgrades)

@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import math
+import webbrowser
 from background import draw_background, WIDTH, HEIGHT
 from button import AnimatedButton
 from score_manager import ScoreManager
@@ -34,7 +35,11 @@ class Game:
         self.setup_console()
         self.setup_event_handling()
         
+        self.fonte_update_notification = pygame.font.SysFont(None, 28)
+        self.mensagem_update = None
+        self.rect_update = None
         self.verificar_update()
+        
         self.last_save_time = pygame.time.get_ticks()
         self.last_backup_save_time = pygame.time.get_ticks()
         
@@ -151,6 +156,26 @@ class Game:
         self.aviso_update = False
         self.texto_update = ""
 
+    def verificar_update(self):
+        if self.config_menu.settings_menu.get_option("Verificar atualizações"):
+            tem_update, versao_nova = updates.checar_atualizacao()
+            if tem_update and versao_nova:
+                self.mensagem_update = f"Atualização disponível: v{versao_nova}"
+                texto_renderizado = self.fonte_update_notification.render(self.mensagem_update, True, (255, 0, 0))
+                self.rect_update = texto_renderizado.get_rect(bottomleft=(20, HEIGHT - 30))
+                self.aviso_update = True
+                self.texto_update = f"Nova versão disponível: {versao_nova}!"
+            else:
+                self.mensagem_update = None
+                self.rect_update = None
+                self.aviso_update = False
+                self.texto_update = ""
+        else:
+            self.mensagem_update = None
+            self.rect_update = None
+            self.aviso_update = False
+            self.texto_update = ""
+
     def resetar_trabalhadores(self):
         self.trabalhadores = []
         self.upgrade_menu.set_trabalhadores_ativos(0)
@@ -201,19 +226,6 @@ class Game:
 
     def setup_event_handling(self):
         self.running = True
-
-    def verificar_update(self):
-        if self.config_menu.settings_menu.get_option("Verificar atualizações"):
-            atualizou, versao_online = updates.checar_atualizacao()
-            if atualizou:
-                self.aviso_update = True
-                self.texto_update = f"Nova versão disponível: {versao_online}!"
-            else:
-                self.aviso_update = False
-                self.texto_update = ""
-        else:
-            self.aviso_update = False
-            self.texto_update = ""
 
     def show_confirmation_dialog(self, message):
         class ConfirmationDialog:
@@ -326,6 +338,12 @@ class Game:
                 self.config_menu.achievements_menu.close_button_rect and
                 self.config_menu.achievements_menu.close_button_rect.collidepoint(event.pos)):
                 self.config_menu.achievements_menu.visible = False
+
+            if (event.type == pygame.MOUSEBUTTONDOWN and 
+                event.button == 1 and
+                self.rect_update and 
+                self.rect_update.collidepoint(event.pos)):
+                webbrowser.open("https://github.com/eupyetro0224234/Generic-Clicker-Game/releases")
 
     def handle_keydown(self, event):
         if event.key == pygame.K_r and not self.console.visible:
@@ -502,6 +520,44 @@ class Game:
                             self.click_effects.append(
                                 ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{hold_click_qtd} (Hold)"))
 
+        # Novo: Auto clique em mini eventos
+        if (self.mini_event and self.mini_event.visible and 
+            self.upgrade_menu.purchased.get("auto_mini_event", 0) > 0):
+            prev_score = self.score
+            self.score, upgrade = self.mini_event.handle_click(
+                (self.mini_event.x + 25, self.mini_event.y + 25),  # Clica no centro
+                self.score,
+                self.upgrade_menu
+            )
+            if upgrade or self.score != prev_score:
+                self.tracker.add_mini_event_click()
+                if upgrade:
+                    self.click_effects.append(
+                        ClickEffect(
+                            self.mini_event.x + 25, 
+                            self.mini_event.y + 25, 
+                            "Upgrade Obtido! (Auto)"
+                        )
+                    )
+                else:
+                    self.click_effects.append(
+                        ClickEffect(
+                            self.mini_event.x + 25, 
+                            self.mini_event.y + 25, 
+                            "+Pontos! (Auto)"
+                        )
+                    )
+                
+                trabalhadores_data = [trab.get_state() for trab in self.trabalhadores]
+                self.score_manager.save_data(
+                    self.score,
+                    self.config_menu.controls_menu.visible,
+                    list(self.tracker.unlocked),
+                    self.upgrade_menu.purchased,
+                    self.tracker.mini_event_clicks,
+                    trabalhadores_data
+                )
+
         pontos_acumulados = 0
         trabalhadores_remover = []
         
@@ -587,7 +643,14 @@ class Game:
 
     def draw(self):
         draw_background(self.screen)
+        
+        for trabalhador in self.trabalhadores:
+            trabalhador.draw()
+
         self.button.draw(self.screen)
+
+        for eff in self.click_effects:
+            eff.draw(self.screen)
 
         if self.mini_event and self.mini_event.visible:
             self.mini_event.draw()
@@ -596,30 +659,38 @@ class Game:
         score_rect = score_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 140))
         self.screen.blit(score_surf, score_rect)
 
-        if self.aviso_update:
-            text_surf = self.fonte_update.render(self.texto_update, True, (255, 50, 50))
-            text_rect = text_surf.get_rect(center=(WIDTH // 2, 100))
-            self.screen.blit(text_surf, text_rect)
+        self.upgrade_menu.draw(self.score)
+
+        self.config_menu.draw_icon()
+
+        self.config_menu.draw()
+
+        if self.console.visible:
+            self.console.draw()
+
+        self.exit_handler.draw()
+
+        self.tracker.update_and_draw()
+
+        if self.mensagem_update and self.rect_update:
+            self.screen.blit(self.fonte_update_notification.render(self.mensagem_update, True, (255, 0, 0)), self.rect_update)
 
         if hasattr(self.config_menu.settings_menu, "precisa_reiniciar") and self.config_menu.settings_menu.precisa_reiniciar:
             aviso = self.fonte_aviso.render("Reinicie o jogo para aplicar mudanças", True, (200, 0, 0))
             aviso_rect = aviso.get_rect(center=(WIDTH // 2, HEIGHT - 30))
             self.screen.blit(aviso, aviso_rect)
 
-        self.upgrade_menu.draw(self.score)
-        self.config_menu.draw_icon()
-        self.config_menu.draw()
-        if self.console.visible:
-            self.console.draw()
+            self.upgrade_menu.draw(self.score)
+            self.config_menu.draw_icon()
+            self.config_menu.draw()
+            if self.console.visible:
+                self.console.draw()
 
-        for trabalhador in self.trabalhadores:
-            trabalhador.draw()
+            self.exit_handler.draw()
+            self.tracker.update_and_draw()
 
-        self.exit_handler.draw()
-        self.tracker.update_and_draw()  # Changed from draw_popup() to update_and_draw()
-
-        for eff in self.click_effects:
-            eff.draw(self.screen)
+            for eff in self.click_effects:
+                eff.draw(self.screen)
 
     def run(self):
         while self.running:
