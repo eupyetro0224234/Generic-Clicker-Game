@@ -94,6 +94,22 @@ class Game:
                 self.event_bonus = event.get("bonus", 1)
                 break
 
+    def draw_brief_event_notice(self):
+        if self.active_event:
+            message = f"Evento Ativo: {self.active_event['name']}"
+            font = pygame.font.SysFont(None, 26)
+            text = font.render(message, True, (255, 255, 255))
+            bg_rect = text.get_rect(topleft=(10, 10))
+            bg_rect.inflate_ip(20, 10)
+            
+            # Fundo semi-transparente
+            s = pygame.Surface((bg_rect.width, bg_rect.height), pygame.SRCALPHA)
+            s.fill((0, 0, 0, 150))  # preto translúcido
+            self.screen.blit(s, bg_rect.topleft)
+            
+            # Texto sobre o fundo
+            self.screen.blit(text, (bg_rect.x + 10, bg_rect.y + 5))
+
     def load_game_data(self):
         try:
             (self.score, self.controls_visible, saved_achievements, 
@@ -715,7 +731,10 @@ class Game:
 
         # Draw active event notification
         if self.active_event:
-            # Caixa de fundo
+            # Draw the brief notice first
+            self.draw_brief_event_notice()
+            
+            # Then draw the detailed box
             box_width = WIDTH - 40
             box_height = 80
             box_x = 20

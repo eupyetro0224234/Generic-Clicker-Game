@@ -119,6 +119,7 @@ class ConfigMenu:
 
         unlocked_count = len(self.achievements_menu.tracker.unlocked) if hasattr(self.achievements_menu, "tracker") else 0
 
+        # Botões principais
         menu_items = [
             ("Configurações", False),
             ("Controles", False),
@@ -126,10 +127,13 @@ class ConfigMenu:
             ("Eventos", False)
         ]
 
+        # Se console estiver ativo, adiciona console e sair lado a lado
         if self.console_enabled:
             menu_items.append(("Console", False))
-
-        menu_items.append(("Sair", self.console_enabled))
+            menu_items.append(("Sair", False))
+        else:
+            # Adiciona "Sair" como botão largo na linha de baixo
+            menu_items.append(("Sair", True))
 
         vertical_menu = False
         if hasattr(self.settings_menu, "get_option"):
