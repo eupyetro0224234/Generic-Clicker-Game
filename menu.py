@@ -119,7 +119,6 @@ class ConfigMenu:
 
         unlocked_count = len(self.achievements_menu.tracker.unlocked) if hasattr(self.achievements_menu, "tracker") else 0
 
-        # Preparar itens do menu
         menu_items = [
             ("Configurações", False),
             ("Controles", False),
@@ -130,25 +129,22 @@ class ConfigMenu:
         if self.console_enabled:
             menu_items.append(("Console", False))
 
-        # "Sair" só ocupa largura total se o console estiver ativado
         menu_items.append(("Sair", self.console_enabled))
 
         vertical_menu = False
         if hasattr(self.settings_menu, "get_option"):
             vertical_menu = self.settings_menu.get_option("Menu vertical")
 
-        # Configurações comuns
         button_height = self.option_height
         vertical_padding = 14
         horizontal_padding = self.padding_x
         button_spacing = self.spacing_y
-        button_width = 200  # Largura padrão dos botões
+        button_width = 200
         
         mouse_pos = pygame.mouse.get_pos()
         self.menu_rects = []
 
         if vertical_menu:
-            # Modo vertical - todas as opções em uma coluna
             menu_width = button_width + 2 * horizontal_padding
             total_height = len(menu_items) * (button_height + button_spacing) - button_spacing + 2 * vertical_padding
             height = int(total_height * self.animation_progress)
@@ -161,7 +157,7 @@ class ConfigMenu:
             
             for i, (text, full_width) in enumerate(menu_items):
                 current_width = menu_width - 2 * horizontal_padding if full_width else button_width
-                button_x = (menu_width - current_width) // 2  # Centraliza o botão
+                button_x = (menu_width - current_width) // 2
                 button_y = vertical_padding + i * (button_height + button_spacing)
                 
                 abs_rect = pygame.Rect(
@@ -180,15 +176,12 @@ class ConfigMenu:
                 txt_rect = txt.get_rect(center=(button_x + current_width // 2, button_y + button_height // 2))
                 surf.blit(txt, txt_rect)
         else:
-            # Modo horizontal - 2 colunas
             menu_width = 2 * button_width + self.spacing_x + 2 * horizontal_padding
             
-            # Calcular número de linhas
-            num_regular_items = len(menu_items) - 1  # Todos exceto Sair
-            num_rows = (num_regular_items + 1) // 2  # Arredonda para cima
+            num_regular_items = len(menu_items) - 1
+            num_rows = (num_regular_items + 1) // 2
             
-            # Se Sair ocupa largura total, adiciona mais uma linha
-            if menu_items[-1][1]:  # Se último item tem full_width=True
+            if menu_items[-1][1]:
                 num_rows += 1
             
             total_height = num_rows * (button_height + button_spacing) - button_spacing + 2 * vertical_padding
@@ -200,8 +193,7 @@ class ConfigMenu:
             surf = pygame.Surface((menu_width, height), pygame.SRCALPHA)
             pygame.draw.rect(surf, self.bg_color, (0, 0, menu_width, height), border_radius=18)
             
-            # Desenhar itens regulares (todos exceto Sair)
-            for i, (text, full_width) in enumerate(menu_items[:-1]):  # Todos exceto o último (Sair)
+            for i, (text, full_width) in enumerate(menu_items[:-1]):
                 col = i % 2
                 row = i // 2
                 
@@ -224,16 +216,13 @@ class ConfigMenu:
                 txt_rect = txt.get_rect(center=(button_x + button_width // 2, button_y + button_height // 2))
                 surf.blit(txt, txt_rect)
             
-            # Desenhar Sair (último item)
             sair_text, sair_full_width = menu_items[-1]
             row = num_rows - 1
             
             if sair_full_width:
-                # Sair ocupa linha completa
                 button_x = horizontal_padding
                 button_width_sair = menu_width - 2 * horizontal_padding
             else:
-                # Sair ocupa espaço normal (metade)
                 button_x = horizontal_padding + ((num_regular_items % 2) * (button_width + self.spacing_x))
                 button_width_sair = button_width
             
@@ -265,7 +254,7 @@ class ConfigMenu:
             self.settings_menu.draw()
         if self.achievements_menu.visible:
             self.achievements_menu.draw()
-        if self.event_manager.events_menu.visible:
+        if self.event_manager.visible:  # Changed from event_manager.events_menu.visible
             self.event_manager.draw()
         if self.console_instance and self.console_instance.visible:
             self.console_instance.draw()
@@ -289,7 +278,7 @@ class ConfigMenu:
         if self.settings_menu.visible:
             return self.settings_menu.handle_event(event)
 
-        if self.event_manager.events_menu.visible:
+        if self.event_manager.visible:  # Changed from event_manager.events_menu.visible
             return self.event_manager.handle_event(event)
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -307,7 +296,7 @@ class ConfigMenu:
                         elif text.startswith("Conquistas"):
                             self.achievements_menu.visible = True
                         elif text == "Eventos":
-                            self.event_manager.show_events_menu()
+                            self.event_manager.show_events_menu()  # Updated method call
                         elif text == "Sair":
                             self.exit_handler.start()
                         elif text == "Console":
@@ -340,8 +329,8 @@ class ConfigMenu:
                 if self.achievements_menu.visible:
                     self.achievements_menu.visible = False
                     return True
-                if self.event_manager.events_menu.visible:
-                    self.event_manager.events_menu.visible = False
+                if self.event_manager.visible:  # Changed from event_manager.events_menu.visible
+                    self.event_manager.visible = False
                     return True
                 if self.is_open:
                     self.is_open = False
