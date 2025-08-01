@@ -181,6 +181,21 @@ Pyetro — contato.eupyetro022@gmail.com
 
 ## Changelogs
 <details>
+  <summary>0.0.05 - 01/08/25</summary>
+
+1 mês de lançamento da primeira versão. Mais uma atualização minúscula pra coleção.
+
+- Nova conquista: Tríplice Coroa,
+- Botões para sair dos menus que usam a tela toda sem precisar apertar o esc,
+- Ao clicar encima do aviso de atualização disponível, o link das releases é aberto no seu navegador,
+- Opção de ativar texturas removida,
+- Agora o trabalhador fica embaixo dos elementos, evitando não poder clicar na posição que ele está,
+- Novo upgrade: Agora os mini eventos são clicados automaticamente,
+- Eventos adicionados,
+- Imagens poderão ser exibidas no código agora.
+</details>
+
+<details>
   <summary>0.0.04 - 18/07/25</summary>
 
 Essa é uma grande atualização (provavelmente não a maior em adições pro jogo, mas a maior em mecanicas e personalização)
