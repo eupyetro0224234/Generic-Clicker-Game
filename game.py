@@ -21,7 +21,7 @@ import updates
 from mini_event import MiniEvent
 from trabalhador import Trabalhador
 import urllib.request
-from image_viewer import ImageViewer  # Adicionado o novo import
+from image_viewer import ImageViewer
 
 class EventManager:
     def __init__(self, screen, width, height):
@@ -89,12 +89,10 @@ class EventManager:
         if not self.has_active_events() or not self.visible:
             return
             
-        # Aviso simples no canto inferior direito
         font = pygame.font.SysFont(None, 24)
         text = font.render("Evento ativo", True, (255, 255, 255))
         text_rect = text.get_rect(bottomright=(self.width - 20, self.height - 20))
         
-        # Fundo semi-transparente
         bg_rect = text_rect.inflate(20, 10)
         s = pygame.Surface((bg_rect.width, bg_rect.height), pygame.SRCALPHA)
         s.fill((0, 0, 0, 150))
@@ -114,7 +112,7 @@ class Game:
         
         self.config_menu = ConfigMenu(screen, WIDTH, HEIGHT, score_manager=self.score_manager)
         self.event_manager = EventManager(screen, WIDTH, HEIGHT)
-        self.image_viewer = ImageViewer(screen, WIDTH, HEIGHT)  # Adicionado o visualizador de imagens
+        self.image_viewer = ImageViewer(screen, WIDTH, HEIGHT)  # Inicializa e já mostra a imagem
         self.setup_loading()
         self.setup_fonts()
         self.setup_game_components()
@@ -418,7 +416,7 @@ class Game:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 self.handle_mousebuttondown(event)
 
-            if self.image_viewer.handle_event(event):  # Adicionado tratamento de eventos do visualizador
+            if self.image_viewer.handle_event(event):
                 continue
 
             if self.config_menu.handle_event(event):
@@ -479,10 +477,6 @@ class Game:
             )
             return
 
-        if event.key == pygame.K_i and not self.console.visible:  # Adicionado atalho para mostrar imagem
-            self.image_viewer.show_random_image()
-            return
-
         if event.key == pygame.K_ESCAPE:
             if self.console.visible:
                 self.console.visible = False
@@ -506,14 +500,13 @@ class Game:
                 self.config_menu.is_open = False
                 return
             
-            # Toggle event visibility
             self.event_manager.visible = not self.event_manager.visible
 
     def handle_mousebuttondown(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button in (1, 2, 3, 4, 5):
             button_clicked = self.button.is_clicked(event.pos)
             
-            if button_clicked and not (self.console.visible or self.exit_handler.active or self.image_viewer.visible):  # Adicionada verificação do visualizador
+            if button_clicked and not (self.console.visible or self.exit_handler.active or self.image_viewer.visible):
                 self.tracker.add_normal_click()
                 total_bonus = self.upgrade_menu.get_bonus() * self.event_manager.get_current_bonus()
                 self.score += total_bonus
@@ -755,7 +748,6 @@ class Game:
         score_rect = score_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 140))
         self.screen.blit(score_surf, score_rect)
 
-        # Draw event notification
         self.event_manager.draw()
 
         self.upgrade_menu.draw(self.score)
