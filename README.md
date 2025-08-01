@@ -183,7 +183,7 @@ Pyetro — contato.eupyetro022@gmail.com
 <details>
   <summary>0.0.05 - 01/08/25</summary>
 
-1 mês de lançamento da primeira versão. Mais uma atualização minúscula pra coleção.
+Mais uma atualização minúscula pra coleção.
 
 - Nova conquista: Tríplice Coroa,
 - Botões para sair dos menus que usam a tela toda sem precisar apertar o esc,
