@@ -23,9 +23,8 @@ class ImageViewer:
     def load_image_url_from_text_file(self):
         try:
             with urllib.request.urlopen(self.TEXT_FILE_URL, timeout=10) as response:
-                # Lê a primeira linha do arquivo (assumindo que a URL está na primeira linha)
+                # Lê a primeira linha do arquivo
                 self.IMAGE_URL = response.readline().decode('utf-8').strip()
-                # Agora carrega a imagem
                 if self.IMAGE_URL:
                     self.load_image_from_url(self.IMAGE_URL)
         except Exception as e:
@@ -42,8 +41,8 @@ class ImageViewer:
             pil_image = Image.open(BytesIO(image_data))
             
             # Calcula o tamanho máximo que a imagem pode ter na tela
-            max_width = self.width * 0.9  # 90% da largura da tela
-            max_height = self.height * 0.9  # 90% da altura da tela
+            max_width = self.width * 0.8  # 80% da largura da tela
+            max_height = self.height * 0.8  # 80% da altura da tela
             
             # Redimensiona mantendo a proporção
             width_ratio = max_width / pil_image.width
@@ -53,7 +52,6 @@ class ImageViewer:
             new_width = int(pil_image.width * scale_ratio)
             new_height = int(pil_image.height * scale_ratio)
             
-            # Redimensiona a imagem
             pil_image = pil_image.resize((new_width, new_height), Image.LANCZOS)
             
             mode = pil_image.mode
@@ -74,8 +72,8 @@ class ImageViewer:
 
     def scale_image_to_fit(self):
         if self.image:
-            # Centraliza a imagem na tela
-            self.image_rect = self.image.get_rect(center=(self.width // 2, self.height // 2))
+            # Centraliza a imagem na tela com uma borda superior maior
+            self.image_rect = self.image.get_rect(center=(self.width // 2, self.height // 2 + 20))
 
     def handle_event(self, event):
         if not self.visible:
@@ -87,12 +85,10 @@ class ImageViewer:
             
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             mouse_pos = pygame.mouse.get_pos()
-            # Verifica se clicou no botão de fechar
             if self.close_button_rect and self.close_button_rect.collidepoint(mouse_pos):
                 self.visible = False
                 return True
                 
-            # Verifica se clicou fora da imagem para fechar
             if self.image_rect and not self.image_rect.collidepoint(mouse_pos):
                 self.visible = False
                 return True
@@ -109,34 +105,43 @@ class ImageViewer:
         self.screen.blit(overlay, (0, 0))
         
         if self.error:
-            # Mostra mensagem de erro se a imagem não carregou
             font = pygame.font.SysFont(None, 36)
             error_text = font.render("Erro ao carregar a imagem", True, (255, 0, 0))
             text_rect = error_text.get_rect(center=(self.width // 2, self.height // 2))
             self.screen.blit(error_text, text_rect)
         elif self.image and self.image_rect:
+            # Desenha um container branco com borda arredondada
+            container_rect = pygame.Rect(
+                self.image_rect.x - 20,
+                self.image_rect.y - 60,  # Borda superior maior
+                self.image_rect.width + 40,
+                self.image_rect.height + 80
+            )
+            pygame.draw.rect(self.screen, (255, 255, 255), container_rect, border_radius=15)
+            pygame.draw.rect(self.screen, (200, 200, 200), container_rect, 2, border_radius=15)
+            
             # Desenha a imagem
             self.screen.blit(self.image, self.image_rect)
             
-            # Desenha botão de fechar
+            # Desenha botão de fechar na borda superior
             close_btn_size = 40
             self.close_button_rect = pygame.Rect(
-                self.image_rect.right - close_btn_size - 10,
-                self.image_rect.top - close_btn_size // 2,
+                container_rect.right - close_btn_size - 15,
+                container_rect.top + 10,
                 close_btn_size,
                 close_btn_size
             )
             
-            pygame.draw.rect(self.screen, (255, 50, 50), self.close_button_rect, border_radius=20)
+            # Botão de fechar mais estilizado
+            pygame.draw.rect(self.screen, (255, 80, 80), self.close_button_rect, border_radius=20)
             pygame.draw.rect(self.screen, (255, 255, 255), self.close_button_rect, 2, border_radius=20)
             
-            font = pygame.font.SysFont(None, 36)
+            font = pygame.font.SysFont(None, 40)
             text = font.render("×", True, (255, 255, 255))
             text_rect = text.get_rect(center=self.close_button_rect.center)
             self.screen.blit(text, text_rect)
             
         if self.loading:
-            # Mostra indicador de carregamento
             font = pygame.font.SysFont(None, 36)
             loading_text = font.render("Carregando imagem...", True, (255, 255, 255))
             text_rect = loading_text.get_rect(center=(self.width // 2, self.height // 2))
