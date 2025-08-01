@@ -3,7 +3,7 @@
         "name": "Evento de lançamento - Pontos duplicados",
         "start_date": "2025-08-01",
         "end_date": "2025-08-07",
-        "start_time": "00:00",
+        "start_time": "00:01",
         "end_time": "23:59",
         "bonus": 2,
         "active": true,
