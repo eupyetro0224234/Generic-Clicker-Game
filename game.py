@@ -20,6 +20,87 @@ from exit_handler import ExitHandler
 import updates
 from mini_event import MiniEvent
 from trabalhador import Trabalhador
+import urllib.request
+
+class EventManager:
+    def __init__(self, screen, width, height):
+        self.screen = screen
+        self.width = width
+        self.height = height
+        self.events = []
+        self.active_events = []
+        self.event_bonus = 1
+        self.visible = True
+        self.EVENTS_JSON_URL = "https://raw.githubusercontent.com/eupyetro0224234/Generic-Clicker-Game/main/eventos.json"
+        self.last_check = 0
+        self.check_interval = 300  # 5 minutes
+        self.load_events()
+
+    def load_events(self):
+        try:
+            with urllib.request.urlopen(self.EVENTS_JSON_URL, timeout=5) as response:
+                data = response.read().decode('utf-8')
+                self.events = json.loads(data)
+        except (urllib.error.URLError, json.JSONDecodeError) as e:
+            print(f"Error loading events from GitHub: {e}")
+            self.events = []
+
+    def check_events(self):
+        now = time.time()
+        if now - self.last_check < self.check_interval:
+            return
+            
+        self.last_check = now
+        self.load_events()
+        
+        now = datetime.now()
+        current_date_str = now.strftime("%Y-%m-%d")
+        current_time_str = now.strftime("%H:%M")
+        
+        self.active_events = []
+        self.event_bonus = 1
+        
+        for event in self.events:
+            if not event.get("active", False):
+                continue
+                
+            start_date = event.get("start_date")
+            end_date = event.get("end_date")
+            start_time = event.get("start_time", "00:00")
+            end_time = event.get("end_time", "23:59")
+            
+            if start_date <= current_date_str <= end_date:
+                if current_date_str == start_date and current_time_str < start_time:
+                    continue
+                if current_date_str == end_date and current_time_str > end_time:
+                    continue
+                    
+                self.active_events.append(event)
+                self.event_bonus *= event.get("bonus", 1)
+
+    def get_current_bonus(self):
+        return self.event_bonus
+
+    def has_active_events(self):
+        return len(self.active_events) > 0
+
+    def draw(self):
+        if not self.has_active_events() or not self.visible:
+            return
+            
+        # Aviso simples no canto inferior direito
+        font = pygame.font.SysFont(None, 24)
+        text = font.render("Evento ativo", True, (255, 255, 255))
+        text_rect = text.get_rect(bottomright=(self.width - 20, self.height - 20))
+        
+        # Fundo semi-transparente
+        bg_rect = text_rect.inflate(20, 10)
+        s = pygame.Surface((bg_rect.width, bg_rect.height), pygame.SRCALPHA)
+        s.fill((0, 0, 0, 150))
+        pygame.draw.rect(s, (0, 0, 0, 200), (0, 0, bg_rect.width, bg_rect.height), border_radius=4)
+        
+        self.screen.blit(s, bg_rect)
+        self.screen.blit(text, text_rect)
 
 class Game:
     def __init__(self, screen):
@@ -31,18 +112,12 @@ class Game:
         self.load_game_data()
         
         self.config_menu = ConfigMenu(screen, WIDTH, HEIGHT, score_manager=self.score_manager)
+        self.event_manager = EventManager(screen, WIDTH, HEIGHT)
         self.setup_loading()
         self.setup_fonts()
         self.setup_game_components()
         self.setup_console()
         self.setup_event_handling()
-        
-        # Event system
-        self.active_event = None
-        self.event_bonus = 1
-        self.event_check_time = 0
-        self.event_check_interval = 5  # seconds
-        self.load_events()
         
         self.fonte_update_notification = pygame.font.SysFont(None, 28)
         self.mensagem_update = None
@@ -51,64 +126,6 @@ class Game:
         
         self.last_save_time = pygame.time.get_ticks()
         self.last_backup_save_time = pygame.time.get_ticks()
-        
-    def load_events(self):
-        try:
-            with open("eventos.json", "r", encoding="utf-8") as f:
-                self.events = json.load(f)
-        except FileNotFoundError:
-            print("[ERRO] eventos.json não encontrado.")
-            self.events = []
-        except json.JSONDecodeError:
-            print("[ERRO] JSON inválido em eventos.json.")
-            self.events = []
-
-    def check_events(self):
-        now = datetime.now()
-        current_date_str = now.strftime("%Y-%m-%d")
-        current_time_str = now.strftime("%H:%M")
-        
-        previous_event = self.active_event
-        self.active_event = None
-        self.event_bonus = 1
-
-        for event in self.events:
-            if not event.get("active", False):
-                continue
-                
-            start_date = event.get("start_date")
-            end_date = event.get("end_date")
-            start_time = event.get("start_time", "00:00")
-            end_time = event.get("end_time", "23:59")
-            
-            # Verifica se está dentro do período de datas
-            if start_date <= current_date_str <= end_date:
-                # Se for o primeiro dia, verifica o horário de início
-                if current_date_str == start_date and current_time_str < start_time:
-                    continue
-                # Se for o último dia, verifica o horário de término
-                if current_date_str == end_date and current_time_str > end_time:
-                    continue
-                    
-                self.active_event = event
-                self.event_bonus = event.get("bonus", 1)
-                break
-
-    def draw_brief_event_notice(self):
-        if self.active_event:
-            message = f"Evento Ativo: {self.active_event['name']}"
-            font = pygame.font.SysFont(None, 26)
-            text = font.render(message, True, (255, 255, 255))
-            bg_rect = text.get_rect(topleft=(10, 10))
-            bg_rect.inflate_ip(20, 10)
-            
-            # Fundo semi-transparente
-            s = pygame.Surface((bg_rect.width, bg_rect.height), pygame.SRCALPHA)
-            s.fill((0, 0, 0, 150))  # preto translúcido
-            self.screen.blit(s, bg_rect.topleft)
-            
-            # Texto sobre o fundo
-            self.screen.blit(text, (bg_rect.x + 10, bg_rect.y + 5))
 
     def load_game_data(self):
         try:
@@ -479,6 +496,9 @@ class Game:
             if self.config_menu.is_open:
                 self.config_menu.is_open = False
                 return
+            
+            # Toggle event visibility
+            self.event_manager.visible = not self.event_manager.visible
 
     def handle_mousebuttondown(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button in (1, 2, 3, 4, 5):
@@ -486,7 +506,7 @@ class Game:
             
             if button_clicked and not (self.console.visible or self.exit_handler.active):
                 self.tracker.add_normal_click()
-                total_bonus = self.upgrade_menu.get_bonus() * self.event_bonus
+                total_bonus = self.upgrade_menu.get_bonus() * self.event_manager.get_current_bonus()
                 self.score += total_bonus
                 self.tracker.check_unlock(self.score)
                 self.click_effects.append(
@@ -508,7 +528,7 @@ class Game:
                 mini_event_score, upgrade = self.mini_event.handle_click(event.pos, self.score, self.upgrade_menu)
                 if upgrade or mini_event_score != prev_score:
                     if mini_event_score != prev_score:
-                        mini_event_score = prev_score + (mini_event_score - prev_score) * self.event_bonus
+                        mini_event_score = prev_score + (mini_event_score - prev_score) * self.event_manager.get_current_bonus()
                     self.score = mini_event_score
                     self.tracker.add_mini_event_click()
                     if upgrade:
@@ -547,11 +567,8 @@ class Game:
             self.button._update_rect()
 
     def update(self):
-        now = time.time()
-        if now - self.event_check_time > self.event_check_interval:
-            self.check_events()
-            self.event_check_time = now
-
+        self.event_manager.check_events()
+        
         self.config_menu.achievements_menu.achievements = self.tracker.achievements
         self.config_menu.achievements_menu.unlocked = self.tracker.unlocked
 
@@ -561,7 +578,7 @@ class Game:
             self.auto_click_counter += 1
             if self.auto_click_counter >= 40:
                 self.auto_click_counter = 0
-                bonus_auto = self.upgrade_menu.get_auto_click_bonus() * self.event_bonus
+                bonus_auto = self.upgrade_menu.get_auto_click_bonus() * self.event_manager.get_current_bonus()
                 self.score += bonus_auto
                 self.tracker.check_unlock(self.score)
                 self.click_effects.append(
@@ -582,7 +599,7 @@ class Game:
                         self.hold_click_accumulator += self.clock.get_time()
                         if self.hold_click_accumulator >= 500:
                             self.hold_click_accumulator = 0
-                            hold_bonus = hold_click_qtd * self.event_bonus
+                            hold_bonus = hold_click_qtd * self.event_manager.get_current_bonus()
                             self.score += hold_bonus
                             self.tracker.check_unlock(self.score)
                             self.click_effects.append(
@@ -598,7 +615,7 @@ class Game:
             )
             if upgrade or mini_event_score != prev_score:
                 if mini_event_score != prev_score:
-                    mini_event_score = prev_score + (mini_event_score - prev_score) * self.event_bonus
+                    mini_event_score = prev_score + (mini_event_score - prev_score) * self.event_manager.get_current_bonus()
                 self.score = mini_event_score
                 self.tracker.add_mini_event_click()
                 if upgrade:
@@ -635,10 +652,10 @@ class Game:
             resultado = trabalhador.update(current_time)
 
             if isinstance(resultado, tuple) and resultado[0] == "expired":
-                pontos_acumulados += resultado[1] * self.event_bonus
+                pontos_acumulados += resultado[1] * self.event_manager.get_current_bonus()
                 trabalhadores_remover.append(trabalhador)
             elif isinstance(resultado, int):
-                pontos_acumulados += resultado * self.event_bonus
+                pontos_acumulados += resultado * self.event_manager.get_current_bonus()
         
         if pontos_acumulados > 0:
             self.score += pontos_acumulados
@@ -729,43 +746,8 @@ class Game:
         score_rect = score_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 140))
         self.screen.blit(score_surf, score_rect)
 
-        # Draw active event notification
-        if self.active_event:
-            # Draw the brief notice first
-            self.draw_brief_event_notice()
-            
-            # Then draw the detailed box
-            box_width = WIDTH - 40
-            box_height = 80
-            box_x = 20
-            box_y = 20
-            
-            # Cor do evento
-            event_color = tuple(self.active_event.get("color", [255, 255, 0]))
-            
-            # Desenha o fundo
-            pygame.draw.rect(self.screen, (30, 30, 50), 
-                            (box_x, box_y, box_width, box_height), 
-                            border_radius=10)
-            pygame.draw.rect(self.screen, event_color, 
-                            (box_x, box_y, box_width, box_height), 
-                            2, border_radius=10)
-            
-            # Texto do título
-            title_text = self.event_font_large.render(
-                f"EVENTO ATIVO: {self.active_event['name']} (x{self.event_bonus} PONTOS)", 
-                True, 
-                event_color
-            )
-            self.screen.blit(title_text, (box_x + 20, box_y + 15))
-            
-            # Texto do período
-            time_text = self.event_font_small.render(
-                f"Período: {self.active_event['start_date']} {self.active_event['start_time']} até {self.active_event['end_date']} {self.active_event['end_time']}", 
-                True, 
-                (200, 200, 200)
-            )
-            self.screen.blit(time_text, (box_x + 20, box_y + 50))
+        # Draw event notification
+        self.event_manager.draw()
 
         self.upgrade_menu.draw(self.score)
 
@@ -787,18 +769,6 @@ class Game:
             aviso = self.fonte_aviso.render("Reinicie o jogo para aplicar mudanças", True, (200, 0, 0))
             aviso_rect = aviso.get_rect(center=(WIDTH // 2, HEIGHT - 30))
             self.screen.blit(aviso, aviso_rect)
-
-            self.upgrade_menu.draw(self.score)
-            self.config_menu.draw_icon()
-            self.config_menu.draw()
-            if self.console.visible:
-                self.console.draw()
-
-            self.exit_handler.draw()
-            self.tracker.update_and_draw()
-
-            for eff in self.click_effects:
-                eff.draw(self.screen)
 
     def run(self):
         while self.running:
