@@ -1,0 +1,26 @@
+{
+  "name": "genericclickergame",
+  "version": "1.0.0",
+  "description": "Jogo clicker feito com Electron",
+  "main": "main.js",
+  "author": "Seu Nome",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^26.0.12",
+    "electron-packager": "^17.1.2"
+  },
+  "build": {
+    "appId": "com.genericclickergame",
+    "productName": "GenericClickerGame",
+    "forceCodeSigning": false,
+    "win": {
+      "target": "nsis",
+      "signAndEditExecutable": false,
+      "verifyUpdateCodeSignature": false
+    }
+  }
+}

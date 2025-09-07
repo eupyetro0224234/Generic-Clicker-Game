@@ -1,0 +1,79 @@
+/* Fonte Comic Sans aplicada em todo o body */
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    background-color: #222;
+    color: #fff;
+    overflow: hidden; /* remove a barra de rolagem */
+    margin: 0;
+}
+
+#clickButton {
+    font-size: 2em;
+    padding: 20px 40px;
+    margin: 20px;
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+    background-color: #555;
+    color: #fff;
+    transition: background-color 0.2s;
+}
+
+#clickButton:hover {
+    background-color: #777;
+}
+
+#scoreDisplay {
+    font-size: 1.5em;
+}
+
+/* Modal de saída */
+#exitModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+#exitModal.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#exitBox {
+    background-color: #b4d2ff;
+    padding: 30px 20px;
+    border-radius: 16px;
+    width: 600px;
+    max-width: 90%;
+    text-align: center;
+}
+
+#exitPrompt {
+    color: #28283c;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+#exitInput {
+    width: 80%;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 2px solid #ccc;
+    outline: none;
+}

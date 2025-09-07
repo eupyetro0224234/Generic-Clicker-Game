@@ -1,4 +1,2 @@
-__pycache__/
-auto_commit.bat
-comando_pyinstaller.txt
-.gitmodules
+dist
+node_modules

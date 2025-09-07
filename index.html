@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Generic Clicker Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Generic Clicker Game</h1>
+    <button id="clickButton">Clique!</button>
+    <div id="scoreDisplay">Pontos: 0</div>
+
+    <!-- Modal de saída -->
+    <div id="exitModal" class="hidden">
+        <div id="exitBox">
+            <p id="exitPrompt">Tem certeza que deseja sair? Digite 'sim' para confirmar, 'esc' para cancelar:</p>
+            <input type="text" id="exitInput" maxlength="20" autofocus>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
