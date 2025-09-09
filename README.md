@@ -181,6 +181,16 @@ Pyetro — contato.eupyetro022@gmail.com
 
 ## Changelogs
 <details>
+  <summary>0.0.06 - 01/08/25</summary>
+
+Essa aqui demorou, mas foi por um bom motivo. Estudando um pouco de html e js, consegui portar o jogo pra html com NodeJs. Sim, isso era necessário, pois python não é uma linguagem que eu domino, então diversos bugs agora foram corrigidos.
+
+- Port completo para Html/Js,
+- 
+
+</details>
+
+<details>
   <summary>0.0.05 - 01/08/25</summary>
 
 Mais uma atualização minúscula pra coleção.

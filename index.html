@@ -4,11 +4,25 @@
     <meta charset="UTF-8">
     <title>Generic Clicker Game</title>
     <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 </head>
 <body>
-    <h1>Generic Clicker Game</h1>
-    <button id="clickButton">Clique!</button>
-    <div id="scoreDisplay">Pontos: 0</div>
+    <!-- Canvas de fundo animado -->
+    <canvas id="backgroundCanvas"></canvas>
+
+    <!-- Menu flutuante -->
+    <div id="menuContainer">
+        <img id="menuIcon" src="" alt="Menu">
+        <div id="menuOptions" class="hidden"></div>
+    </div>
+
+    <!-- Display de pontos -->
+    <div id="scoreDisplay">0</div>
+    
+    <!-- Botão de click principal -->
+    <div id="clickButtonContainer">
+        <img id="clickButton" src="" alt="Clique Aqui!">
+    </div>
 
     <!-- Modal de saída -->
     <div id="exitModal" class="hidden">

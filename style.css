@@ -1,38 +1,151 @@
-/* Fonte Comic Sans aplicada em todo o body */
+/* ==============================================
+   Fonte grossa para toda a página
+   ============================================== */
+body, button, input, select, textarea, h1, h2, h3, h4, h5, h6, div, span {
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    font-weight: 900;
+}
+
+/* ==============================================
+   Corpo e canvas
+   ============================================== */
 body {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100vh;
-    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    margin: 0;
+    overflow: hidden;
     background-color: #222;
     color: #fff;
-    overflow: hidden; /* remove a barra de rolagem */
-    margin: 0;
+    position: relative;
+}
+
+#backgroundCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+
+/* ==============================================
+   Menu flutuante - aumentado
+   ============================================== */
+#menuContainer {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+}
+
+#menuIcon {
+    width: 48px;
+    height: 48px;
+    cursor: pointer;
+}
+
+#menuOptions {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background-color: rgba(180, 210, 255, 0.95);
+    border-radius: 24px;
+    padding: 16px 20px;
+    width: 500px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 6px 12px;
+    opacity: 0;
+    transform: scaleY(0);
+    transform-origin: top right;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    box-sizing: border-box;
+}
+
+#menuOptions.visible {
+    opacity: 1;
+    transform: scaleY(1);
+}
+
+/* Botões do menu */
+.menuButton {
+    padding: 8px 0;
+    width: calc(50% - 6px);
+    border-radius: 18px;
+    background-color: #fff;
+    border: 2px solid #96b4e6;
+    color: #28283c;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 900;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+.menuButton:hover {
+    background-color: #cde0ff;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+}
+
+/* Animação de clique para os botões */
+.menuButton:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+}
+
+/* Botão "Sair" ocupa a linha inteira */
+.menuButton.fullWidth {
+    width: 100%;
+    margin-top: 6px; 
+}
+
+/* Segunda linha alinhada à direita */
+.menuButton:nth-child(n+3):not(.fullWidth) {
+    margin-left: auto;
+}
+
+/* ==============================================
+   Score - Agora com cor preta
+   ============================================== */
+#scoreDisplay { 
+    font-size: 1.5em;
+    font-weight: 900;
+    color: #000; /* Cor preta adicionada */
+}
+
+/* ==============================================
+   Botão de click principal - Aumentado permanentemente
+   ============================================== */
+#clickButtonContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
 }
 
 #clickButton {
-    font-size: 2em;
-    padding: 20px 40px;
-    margin: 20px;
+    width: 195px; /* Aumentado permanentemente */
+    height: 195px; /* Aumentado permanentemente */
     cursor: pointer;
-    border: none;
-    border-radius: 10px;
-    background-color: #555;
-    color: #fff;
-    transition: background-color 0.2s;
+    transition: transform 0.1s ease; /* Transição suave para a animação */
+    user-select: none;
 }
 
-#clickButton:hover {
-    background-color: #777;
+/* Animação de clique - botão diminui quando pressionado */
+#clickButton:active {
+    transform: scale(0.95); /* Reduz o tamanho para 95% */
 }
 
-#scoreDisplay {
-    font-size: 1.5em;
-}
-
-/* Modal de saída */
+/* ==============================================
+   Modal de saída
+   ============================================== */
 #exitModal {
     position: fixed;
     top: 0;
@@ -63,16 +176,19 @@ body {
     text-align: center;
 }
 
+/* Texto e input do modal */
 #exitPrompt {
     color: #28283c;
     margin-bottom: 15px;
     font-size: 18px;
+    font-weight: 900;
 }
 
 #exitInput {
     width: 80%;
     padding: 10px;
     font-size: 16px;
+    font-weight: 900;
     border-radius: 8px;
     border: 2px solid #ccc;
     outline: none;
