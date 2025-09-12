@@ -23,12 +23,12 @@ const defaultConfig = {
     "Ativar Mods": false,
     "Verificar atualizações": true,
     "Mostrar conquistas ocultas": false,
-    "Pular o loading": false,
     "Menu vertical": false
 };
 
 let loadingWindow = null;
 let mainWindow = null;
+let settingsOpen = false;
 
 function ensureDirectories() {
     if (!fs.existsSync(gameDir)) fs.mkdirSync(gameDir, { recursive: true });
@@ -158,6 +158,12 @@ function createMainWindow() {
         });
 
         mainWindow.on('close', (e) => {
+            if (settingsOpen) {
+                // Bloqueia X e Alt+F4 enquanto as configs estão abertas
+                e.preventDefault();
+                return;
+            }
+
             e.preventDefault();
             mainWindow.webContents.send('trigger-exit');
         });
@@ -169,6 +175,17 @@ function closeLoadingWindow() {
         loadingWindow.destroy();
         loadingWindow = null;
         console.log('Janela de loading fechada');
+    }
+}
+
+function applyConfig() {
+    console.log('Aplicando configurações:', config);
+
+    // Menu vertical
+    if (config["Menu vertical"]) {
+        menuOptions.classList.add("vertical");
+    } else {
+        menuOptions.classList.remove("vertical");
     }
 }
 
@@ -269,6 +286,10 @@ ipcMain.on('confirmed-exit', (event) => {
 // Handler para fechar a janela de loading
 ipcMain.on('close-loading-window', () => {
     closeLoadingWindow();
+});
+
+ipcMain.on('settings-open', (event, isOpen) => {
+    settingsOpen = isOpen;
 });
 
 app.on('window-all-closed', () => {

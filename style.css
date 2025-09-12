@@ -1,3 +1,10 @@
+body {
+    -webkit-user-select: none; /* Chrome, Safari, Opera */
+    -moz-user-select: none;    /* Firefox */
+    -ms-user-select: none;     /* IE/Edge antigo */
+    user-select: none;         /* Padrão */
+}
+
 /* ==============================================
    Fonte grossa para toda a página
    ============================================== */
@@ -69,6 +76,25 @@ body {
     transform: scaleY(1);
 }
 
+/* ============================
+   Menu vertical (uma coluna)
+   ============================ */
+#menuOptions.vertical {
+    flex-direction: column;
+    align-items: stretch;   /* estica os botões para preencher toda a largura */
+    gap: 8px;
+    width: auto;            /* ocupa só o espaço necessário */
+    min-width: 220px;       /* largura mínima para não ficar estreito demais */
+}
+
+/* Botões no modo vertical */
+#menuOptions.vertical .menuButton {
+    width: 100%;            /* cada botão ocupa toda a largura */
+    margin-left: 0;
+    margin-top: 0;
+    
+}
+
 /* Botões do menu */
 .menuButton {
     padding: 8px 0;
@@ -117,7 +143,7 @@ body {
 #scoreDisplay { 
     font-size: 1.5em;
     font-weight: 900;
-    color: #000; /* Cor preta adicionada */
+    color: #000;
 }
 
 /* ==============================================
@@ -131,20 +157,20 @@ body {
 }
 
 #clickButton {
-    width: 195px; /* Aumentado permanentemente */
-    height: 195px; /* Aumentado permanentemente */
+    width: 195px;
+    height: 195px;
     cursor: pointer;
-    transition: transform 0.1s ease; /* Transição suave para a animação */
+    transition: transform 0.1s ease;
     user-select: none;
 }
 
 /* Animação de clique - botão diminui quando pressionado */
 #clickButton:active {
-    transform: scale(0.95); /* Reduz o tamanho para 95% */
+    transform: scale(0.95);
 }
 
 /* ==============================================
-   Modal de saída
+   Modal de saída - ATUALIZADO
    ============================================== */
 #exitModal {
     position: fixed;
@@ -156,7 +182,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 100;
+    z-index: 2000;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s;
@@ -192,4 +218,10 @@ body {
     border-radius: 8px;
     border: 2px solid #ccc;
     outline: none;
+}
+
+/* Impede seleção de texto no modal de saída */
+#exitBox, 
+#exitBox *:not(input) {
+    user-select: none;
 }
