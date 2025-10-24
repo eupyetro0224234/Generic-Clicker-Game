@@ -1,6 +1,6 @@
 # Generic Clicker Game
 
-[![Projeto no Itch.io](https://i.postimg.cc/hPsCTZ9m/image.png)](https://eupyetro022.itch.io/generic-clicker-game) ![Badge de versão](https://img.shields.io/badge/version-0.0.05-yellow) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
+[![Projeto no Itch.io](https://i.postimg.cc/hPsCTZ9m/image.png)](https://eupyetro022.itch.io/generic-clicker-game) ![Badge de versão](https://img.shields.io/badge/version-0.0.05.1-yellow) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
 
 **Desative o tradutor do seu navegador ao ler**
 
@@ -14,7 +14,7 @@
 - [Funcionalidades](#funcionalidades)
 - [Instalação](#instalação)
 - [Contribuições](#contribuições)
-- [Mods e Texturas](#mods-e-texturas)
+- [Mods](#mods)
 - [Questões Comuns](#questões-comuns)
 - [Envie suas sugestões e contribuições](#envie-suas-sugestões-e-contribuições)
 - [Licença Customizada](#licença-customizada)
@@ -62,9 +62,9 @@ Este projeto é um jogo clicker desenvolvido em Python utilizando a biblioteca P
 
 ## Instalação
 
-Siga os passos abaixo para rodar o projeto localmente (caso prefira, vá em [releases](https://github.com/eupyetro0224234/just-another-generic-clicker-game-but-with-references/releases) e baixe o executável mais recente):
+Siga os passos abaixo para rodar o projeto localmente (caso prefira, vá em [releases](https://github.com/eupyetro0224234/Generic-CLicker-Game/releases) e baixe o executável mais recente):
 
-<span style="font-size:22px; color:red;"><b><i>Certifique-se de ter pelo menos o Python 3.11 instalado (recomendo o 3.11.9), a versão mais recente do Git e algum editor de códigos (recomendo o Visual Studio Code).</i></b></span>
+<span style="font-size:22px; color:red;"><b><i>Certifique-se de ter pelo menos o Python 3.11 instalado (recomendo o 3.11.9, mas até a versão 3.13.7 está tudo funcionando perfeitamente), a versão mais recente do Git e algum editor de códigos (recomendo o Visual Studio Code).</i></b></span>
 
 
 Clone o repositório
@@ -134,7 +134,7 @@ Você tem permissão para usar e modificar este projeto livremente.
 No entanto, a publicação de quaisquer versões modificadas ou derivadas do projeto só pode ser feita com fork do projeto ou mediante minha autorização prévia e expressa.
 Ou seja, alterações são permitidas para uso pessoal ou interno, mas para distribuir ou publicar essas modificações, você pode fazer um fork ou deve obter minha permissão.
 
-## Mods e Texturas
+## Mods
 
 Atualmente, esse projeto suporta apenas modificações diretas no código e modificação via código simplificado no background. Eu sei que isso não é nada prático, mas estou trabalhando junto com as atualizações em um jeito menos complexo de criar mods.
 
@@ -175,18 +175,31 @@ Pyetro — contato.eupyetro022@gmail.com
 * [Minecraft Wiki](https://pt.minecraft.wiki/w/Livro_Encantado): Gif do Livro Encantado
 * [Stardew Valley Wiki](https://pt.stardewvalleywiki.com/Controles_m%C3%B3veis): Ícone de configurações
 * [Potion Permit Wiki](https://potion-permit.fandom.com/pt-br/wiki/Di%C3%A1rio_M%C3%A9dico): Botão do menu de upgrades
-* [Bloons Wiki](https://bloons.fandom.com/wiki/List_of_Bloons): Coração do mini evento
+* [Bloons Wiki](https://bloons.fandom.com/wiki/List_of_Bloons): Corações do mini evento
 * [Modpack Crash Landing](https://www.curseforge.com/minecraft/modpacks/crash-landing): Som de conquista concluída
 * [Kindergarten Wiki](https://kindergarten.fandom.com/wiki/Nugget): Trabalhador
+* [Doors OST](https://www.youtube.com/watch?v=GUPtSENNsdg): Áudio do Mini Evento
 
-## Changelogs
+## <details> Changelogs
 <details>
-  <summary>0.0.06 - 01/08/25</summary>
+  <summary>0.0.05.1 - 01/09/25</summary>
 
-Essa aqui demorou, mas foi por um bom motivo. Estudando um pouco de html e js, consegui portar o jogo pra html com NodeJs. Sim, isso era necessário, pois python não é uma linguagem que eu domino, então diversos bugs agora foram corrigidos.
+Essa aqui demorou, mas foi por um bom motivo. DEZENAS de bugs que eu só consegui ajustar lendo calmamente cada parte do código estão resolvidos e com algumas mudanças. Além disso, eu só manti como 0.0.05.1 pois agora, para mim, uma atualizzação de verdade tem que ter pelo menos 5 adições. Não conta remover 1 texto, por exemplo, tem que ser coisas decentes de verdade. Decidi também fazer uma atualização que geralmente serve pra correção de bugs ser uma grande atualoização.
 
-- Port completo para Html/Js,
-- 
+- A partir de agora, os assets utilizados pelo jogo não precisam mais ser baixados via internet, eles já vem junto com o executável;
+- Jogo agora em tela cheia;
+- Ajuste nas posições e tamanhos dos elementos em geral;
+- Alguns opções inúteis removidas do menu de configurações;
+- Novo design pro menu de conquistas;
+- Dezenas de micro adições/mudanças que se eu mencionasse aqui, essa lista estaria maior do que está;
+- Agora há um limite de 10 trabalhadores, além de um nerf, pois estavam muito roubados;
+- Novos comandos e ajustes pro console;
+- Alguns atalhos como U para listar os upgrades e M para abrir as opções do menu;
+- Novo upgrade: Trabalhador - Mini Eventos. Ele apenas faz com que se o trabalhador passar pelo mini evento, ele é clicado;
+- Áudio para o mini evento: Da ost de Doors;
+- Mais um tipo de mini evento.
+
+Foi isso, espero que tenham gostado. Tchau!
 
 </details>
 
@@ -195,12 +208,11 @@ Essa aqui demorou, mas foi por um bom motivo. Estudando um pouco de html e js, c
 
 Mais uma atualização minúscula pra coleção.
 
-- Nova conquista: Tríplice Coroa,
-- Botões para sair dos menus que usam a tela toda sem precisar apertar o esc,
+- Nova conquista: Tríplice Coroa, ok
+- Botões para sair dos menus que usam a tela toda sem precisar apertar o esc, ok
 - Ao clicar encima do aviso de atualização disponível, o link das releases é aberto no seu navegador,
-- Opção de ativar texturas removida,
-- Agora o trabalhador fica embaixo dos elementos, evitando não poder clicar na posição que ele está,
-- Novo upgrade: Agora os mini eventos são clicados automaticamente,
+- Opção de ativar texturas removida,  ok
+- Agora o trabalhador fica embaixo dos elementos, evitando não poder clicar na posição que ele está, ok
 - Eventos adicionados,
 - Imagens poderão ser exibidas no código agora.
 </details>
