@@ -2,6 +2,15 @@
   "eventos": [
     {
       "id": "release",
+      "nome": "Evento especial de lançamento - Pontos duplicados",
+      "data_inicio": "01/08/2025",
+      "hora_inicio": "00:00",
+      "data_final": "01/08/2025",
+      "hora_final": "23:59",
+      "tipo": "pontos_duplos"
+    },
+    {
+      "id": "release",
       "nome": "Lançamento dos Eventos",
       "data_inicio": "24/10/2025",
       "hora_inicio": "00:00",

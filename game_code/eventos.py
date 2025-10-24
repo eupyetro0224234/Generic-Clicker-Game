@@ -68,21 +68,13 @@ class Evento:
             return "Erro no cálculo"
     
     def get_icone(self):
-        icones = {
-            "pontos_duplos": "⚡",
-            "bonus_click": "🎯",
-            "velocidade_trabalhador": "🏃",
-            "preco_reduzido": "💸",
-            "evento_raro": "🌟",
-            "normal": "🎉"
-        }
-        return icones.get(self.tipo, "🎉")
-    
+        return ""
+
     def get_descricao(self):
         descricoes = {
             "pontos_duplos": "Ganhe o DOBRO de pontos por clique!",
-            "bonus_click": "Bônus extra em cada clique!",
-            "velocidade_trabalhador": "Trabalhadores mais rápidos!",
+            "bonus_click": "Bonus extra em cada clique!",
+            "velocidade_trabalhador": "Trabalhadores mais rapidos!",
             "preco_reduzido": "Upgrades com desconto!",
             "evento_raro": "Evento especial raro ativo!",
             "normal": "Evento especial ativo!"
@@ -343,8 +335,7 @@ class EventosMenu:
         pygame.draw.rect(self.screen, color, card_rect, border_radius=self.option_radius)
         pygame.draw.rect(self.screen, self.border_color, card_rect, width=2, border_radius=self.option_radius)
         
-        icone_nome = f"{evento.get_icone()} {evento.nome}"
-        nome_surf = self.normal_font.render(icone_nome, True, self.text_color)
+        nome_surf = self.normal_font.render(evento.nome, True, self.text_color)
         self.screen.blit(nome_surf, (x + 15, y + 12))
         
         desc_surf = self.small_font.render(evento.get_descricao(), True, self.text_color)
@@ -416,7 +407,7 @@ class EventosMenu:
                 eventos_passados.append(evento)
         
         if eventos_ativos:
-            y_position = self.draw_section_title("🎉 Eventos Ativos", 
+            y_position = self.draw_section_title("Eventos Ativos", 
                                                self.padding_x, y_position, content_width)
             
             for evento in eventos_ativos:
@@ -425,7 +416,7 @@ class EventosMenu:
                 y_position += card_height
         
         if eventos_futuros:
-            y_position = self.draw_section_title("📅 Próximos Eventos", 
+            y_position = self.draw_section_title("Proximos Eventos", 
                                                self.padding_x, y_position, content_width)
             
             for evento in eventos_futuros:
@@ -434,7 +425,7 @@ class EventosMenu:
                 y_position += card_height
         
         if eventos_passados:
-            y_position = self.draw_section_title("📚 Eventos Passados", 
+            y_position = self.draw_section_title("Eventos Passados", 
                                                self.padding_x, y_position, content_width)
             
             for evento in eventos_passados:

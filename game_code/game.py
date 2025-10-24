@@ -685,6 +685,25 @@ class Game:
                 evento_ativo_rect = evento_ativo_surf.get_rect(center=(WIDTH // 2 - nome_evento_surf.get_width() // 2, 30))
                 nome_evento_rect = nome_evento_surf.get_rect(center=(WIDTH // 2 + evento_ativo_rect.width // 2, 30))
                 
+                # Criar fundo cinza transparente
+                bg_width = evento_ativo_rect.width + nome_evento_rect.width + 20
+                bg_height = max(evento_ativo_rect.height, nome_evento_rect.height) + 10
+                bg_rect = pygame.Rect(
+                    WIDTH // 2 - bg_width // 2,
+                    30 - bg_height // 2,
+                    bg_width,
+                    bg_height
+                )
+                
+                # Desenhar fundo semi-transparente
+                bg_surface = pygame.Surface((bg_width, bg_height), pygame.SRCALPHA)
+                bg_surface.fill((100, 100, 100, 180))  # Cinza com transparência
+                self.screen.blit(bg_surface, bg_rect)
+                
+                # Desenhar as bordas do fundo
+                pygame.draw.rect(self.screen, (150, 150, 150), bg_rect, 2, border_radius=5)
+                
+                # Desenhar o texto por cima do fundo
                 self.screen.blit(evento_ativo_surf, evento_ativo_rect)
                 self.screen.blit(nome_evento_surf, nome_evento_rect)
 
