@@ -180,9 +180,8 @@ Pyetro — contato.eupyetro022@gmail.com
 * [Kindergarten Wiki](https://kindergarten.fandom.com/wiki/Nugget): Trabalhador
 * [Doors OST](https://www.youtube.com/watch?v=GUPtSENNsdg): Áudio do Mini Evento
 
-## <details> Changelogs
-<details>
-  <summary>0.0.05.1 - 01/09/25</summary>
+## Changelogs
+  <summary>0.0.05.1 - 24/10/25</summary>
 
 Essa aqui demorou, mas foi por um bom motivo. DEZENAS de bugs que eu só consegui ajustar lendo calmamente cada parte do código estão resolvidos e com algumas mudanças. Além disso, eu só manti como 0.0.05.1 pois agora, para mim, uma atualizzação de verdade tem que ter pelo menos 5 adições. Não conta remover 1 texto, por exemplo, tem que ser coisas decentes de verdade. Decidi também fazer uma atualização que geralmente serve pra correção de bugs ser uma grande atualoização.
 

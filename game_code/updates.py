@@ -1,8 +1,8 @@
 import requests
 
-VERSAO_ATUAL = "0.0.05.1"
+VERSAO_ATUAL = "0.0.05"
 
-URL_VERSAO = "https://raw.githubusercontent.com/eupyetro0224234/just-another-generic-clicker-game-but-with-references/refs/heads/main/version.txt"
+URL_VERSAO = "https://raw.githubusercontent.com/eupyetro0224234/Generic-Clicker-Game/refs/heads/main/github_assets/version.txt"
 
 def checar_atualizacao():
     try:
@@ -14,5 +14,5 @@ def checar_atualizacao():
             return True, versao_online
         else:
             return False, versao_online
-    except Exception as e:
+    except Exception:
         return False, None
