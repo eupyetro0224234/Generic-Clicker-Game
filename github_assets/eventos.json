@@ -1,7 +1,7 @@
 {
   "eventos": [
     {
-      "id": "release",
+      "id": "release_10",
       "nome": "Evento especial de lançamento - Pontos duplicados",
       "data_inicio": "01/08/2025",
       "hora_inicio": "00:00",
