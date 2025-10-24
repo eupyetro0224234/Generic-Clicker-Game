@@ -1,47 +1,47 @@
 {
   "eventos": [
     {
-      "id": "natal_2024",
-      "nome": "Evento de Natal",
-      "data_inicio": "20/12/2024",
+      "id": "release",
+      "nome": "Lançamento dos Eventos",
+      "data_inicio": "24/10/2025",
       "hora_inicio": "00:00",
-      "data_final": "26/12/2025",
+      "data_final": "24/11/2025",
       "hora_final": "23:59",
       "tipo": "pontos_duplos"
     },
     {
-      "id": "ano_novo_2025",
-      "nome": "Evento de Ano Novo",
-      "data_inicio": "30/12/2024",
+      "id": "evento_natal",
+      "nome": "Natal",
+      "data_inicio": "23/12/2025",
       "hora_inicio": "00:00",
-      "data_final": "05/01/2025",
+      "data_final": "2712/2025",
       "hora_final": "23:59",
       "tipo": "bonus_click"
     },
     {
-      "id": "halloween_2024",
-      "nome": "Halloween Especial",
-      "data_inicio": "28/10/2024",
+      "id": "evento_halloween",
+      "nome": "Halloween",
+      "data_inicio": "28/10/2025",
       "hora_inicio": "00:00",
-      "data_final": "01/11/2024",
+      "data_final": "01/11/2025",
       "hora_final": "23:59",
       "tipo": "velocidade_trabalhador"
     },
     {
-      "id": "promocao_verao",
-      "nome": "Promoção de Verão",
-      "data_inicio": "15/01/2024",
+      "id": "evento_ano_novo",
+      "nome": "Ano Novo",
+      "data_inicio": "28/12/2025",
       "hora_inicio": "00:00",
-      "data_final": "22/01/2024",
+      "data_final": "02/01/2026",
       "hora_final": "23:59",
       "tipo": "preco_reduzido"
     },
     {
       "id": "evento_raro_1",
-      "nome": "Evento Raro Especial",
-      "data_inicio": "01/02/2024",
+      "nome": "Começo de Dezembro",
+      "data_inicio": "01/12/2025",
       "hora_inicio": "12:00",
-      "data_final": "03/02/2024",
+      "data_final": "20/12/2025",
       "hora_final": "12:00",
       "tipo": "evento_raro"
     }

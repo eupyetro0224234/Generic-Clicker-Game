@@ -132,7 +132,7 @@ class Evento:
 class GerenciadorEventos:
     def __init__(self):
         self.eventos = []
-        self.url_json = "https://raw.githubusercontent.com/eupyetro0224234/Generic-Clicker-Game/refs/heads/main/github_assets/eventos.json"
+        self.url_json = "https://raw.githack.com/eupyetro0224234/Generic-Clicker-Game/main/github_assets/eventos.json"
         self.ultima_verificacao = None
         self.intervalo_verificacao = 300000  # 5 minutos em milissegundos
         
