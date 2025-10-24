@@ -2,7 +2,7 @@ import requests
 
 VERSAO_ATUAL = "0.0.05"
 
-URL_VERSAO = "https://raw.githubusercontent.com/eupyetro0224234/Generic-Clicker-Game/refs/heads/main/github_assets/version.txt"
+URL_VERSAO = "https://raw.githack.com/eupyetro0224234/Generic-Clicker-Game/main/github_assets/version.txt"
 
 def checar_atualizacao():
     try:
