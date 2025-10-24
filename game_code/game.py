@@ -17,7 +17,7 @@ from game_code.exit_handler import ExitHandler
 from game_code import updates
 from game_code.mini_event import MiniEvent
 from game_code.trabalhador import Trabalhador
-from game_code.eventos import GerenciadorEventos
+from game_code.eventos import GerenciadorEventos, EventosMenu
 
 def resource_path(relative_path):
     try:
@@ -89,7 +89,7 @@ class Game:
     def setup_fonts(self):
         self.FONT = pygame.font.SysFont(None, 64)
         self.TEXT_COLOR_SCORE = (40, 40, 60)
-        self.fonte_update = pygame.font.SysFont(None, 24)  # Fonte menor para o aviso de update
+        self.fonte_update = pygame.font.SysFont(None, 24)
         self.fonte_aviso = pygame.font.SysFont(None, 28)
         self.fonte_evento = pygame.font.SysFont(None, 26)
         self.fonte_evento_pequena = pygame.font.SysFont(None, 20)
@@ -127,20 +127,19 @@ class Game:
         self.config_menu.achievements_menu.achievements = self.tracker.achievements
         self.config_menu.achievements_menu.unlocked = self.tracker.unlocked
 
-        # Sistema de eventos
         self.gerenciador_eventos = GerenciadorEventos()
         self.gerenciador_eventos.carregar_eventos()
 
-        # Eventos unificados
+        self.config_menu.eventos_menu.set_gerenciador(self.gerenciador_eventos)
+
         self.mini_event = None
         self.last_mini_event_time = pygame.time.get_ticks()
-        self.mini_event_cooldown = 30000  # 30 segundos
+        self.mini_event_cooldown = 30000
 
         self.mini_event2 = None
         self.last_mini_event2_time = pygame.time.get_ticks()
-        self.mini_event2_cooldown = 120000  # 2 minutos
+        self.mini_event2_cooldown = 120000
 
-        # Spawn inicial para teste
         if random.random() < 0.3:
             self.mini_event = MiniEvent(self.screen, WIDTH, HEIGHT, "normal")
             self.last_mini_event_time = pygame.time.get_ticks()
@@ -153,7 +152,7 @@ class Game:
 
         self.aviso_update = False
         self.texto_update = ""
-        self.update_rect = None  # Para detectar clique no aviso de update
+        self.update_rect = None
 
     def resetar_trabalhadores(self):
         self.upgrade_menu.trabalhadores = []
@@ -316,6 +315,10 @@ class Game:
                 if self.config_menu.settings_menu.handle_event(event):
                     continue
 
+            if self.config_menu.eventos_menu.visible:
+                if self.config_menu.eventos_menu.handle_event(event):
+                    continue
+
             if event.type == pygame.QUIT:
                 if not self.exit_handler.active:
                     self.exit_handler.start()
@@ -386,7 +389,6 @@ class Game:
                 return
             self.last_scroll_time = current_time
         
-        # Verifica clique no aviso de update
         if self.aviso_update and self.update_rect and self.update_rect.collidepoint(event.pos):
             webbrowser.open("https://github.com/eupyetro0224234/Generic-Clicker-Game/releases")
             return
@@ -396,11 +398,11 @@ class Game:
             self.exit_handler.active or
             self.config_menu.settings_menu.visible or
             self.config_menu.achievements_menu.visible or
+            self.config_menu.eventos_menu.visible or
             self.config_menu.is_open or
             self.upgrade_menu.visible
         )
         
-        # Clique no MiniEvent normal
         if self.mini_event and self.mini_event.visible and not menus_ativos:
             prev_score = self.score
             new_score, upgrade, pontos_ganhos = self.mini_event.handle_click(event.pos, self.score, self.upgrade_menu)
@@ -409,7 +411,6 @@ class Game:
                 self.tracker.add_mini_event_click()
                 self.tracker.check_unlock(new_score)
                 
-                # Aplica efeitos de eventos ativos nos pontos
                 pontos_com_evento = self.gerenciador_eventos.aplicar_efeitos_pontos(pontos_ganhos)
                 self.score = prev_score + pontos_com_evento
 
@@ -430,7 +431,6 @@ class Game:
                 )
                 return
 
-        # Clique no MiniEvent raro (MiniEvent2)
         if self.mini_event2 and self.mini_event2.visible and not menus_ativos:
             prev_score = self.score
             new_score, upgrade, pontos_ganhos = self.mini_event2.handle_click(event.pos, self.score, self.upgrade_menu)
@@ -439,7 +439,6 @@ class Game:
                 self.tracker.add_mini_event_click()
                 self.tracker.check_unlock(new_score)
                 
-                # Aplica efeitos de eventos ativos nos pontos
                 pontos_com_evento = self.gerenciador_eventos.aplicar_efeitos_pontos(pontos_ganhos)
                 self.score = prev_score + pontos_com_evento
 
@@ -484,7 +483,6 @@ class Game:
                 if button_clicked:
                     self.button.click()
                     
-                    # Aplica efeitos de eventos ativos no bônus do clique
                     bonus_base = self.upgrade_menu.get_bonus()
                     bonus_com_evento = self.gerenciador_eventos.aplicar_efeitos_pontos(bonus_base)
                     
@@ -512,7 +510,6 @@ class Game:
 
         current_time = pygame.time.get_ticks()
 
-        # Atualiza eventos
         eventos_ativos = self.gerenciador_eventos.atualizar_eventos()
 
         if self.upgrade_menu.auto_click_enabled():
@@ -520,7 +517,6 @@ class Game:
             if self.auto_click_counter >= 40:
                 self.auto_click_counter = 0
                 bonus_auto = self.upgrade_menu.get_auto_click_bonus()
-                # Aplica efeitos de eventos ativos no auto-click
                 bonus_com_evento = self.gerenciador_eventos.aplicar_efeitos_pontos(bonus_auto)
                 self.score += bonus_com_evento
                 self.tracker.check_unlock(self.score)
@@ -542,22 +538,18 @@ class Game:
                         self.hold_click_accumulator += self.clock.get_time()
                         if self.hold_click_accumulator >= 500:
                             self.hold_click_accumulator = 0
-                            # Aplica efeitos de eventos ativos no hold click
                             hold_com_evento = self.gerenciador_eventos.aplicar_efeitos_pontos(hold_click_qtd)
                             self.score += hold_com_evento
                             self.tracker.check_unlock(self.score)
                             self.click_effects.append(
                                 ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{hold_com_evento} (Hold)"))
 
-        # Atualiza trabalhadores com efeitos de eventos
         pontos_trabalhadores = self.upgrade_menu.update_trabalhadores(current_time)
         if pontos_trabalhadores > 0:
-            # Aplica efeitos de eventos ativos nos pontos dos trabalhadores
             pontos_com_evento = self.gerenciador_eventos.aplicar_efeitos_pontos(pontos_trabalhadores)
             self.score += pontos_com_evento
             self.tracker.check_unlock(self.score)
 
-        # Trabalhadores interagem com MiniEvent normal
         if self.mini_event and self.mini_event.visible and self.upgrade_menu.mini_event_enabled():
             for trab in self.upgrade_menu.trabalhadores:
                 if trab.active and trab.visible:
@@ -573,7 +565,6 @@ class Game:
                         success = self.mini_event.handle_worker_click()
                         if success:
                             pontos_ganhos = random.randint(1, 1000)
-                            # Aplica efeitos de eventos ativos
                             pontos_com_evento = self.gerenciador_eventos.aplicar_efeitos_pontos(pontos_ganhos)
                             self.score += pontos_com_evento
                             self.tracker.check_unlock(self.score)
@@ -587,7 +578,6 @@ class Game:
                             self.mini_event.visible = False
                             break
 
-        # Trabalhadores interagem com MiniEvent raro
         if self.mini_event2 and self.mini_event2.visible and self.upgrade_menu.mini_event_enabled():
             for trab in self.upgrade_menu.trabalhadores:
                 if trab.active and trab.visible:
@@ -603,7 +593,6 @@ class Game:
                         success = self.mini_event2.handle_worker_click()
                         if success:
                             pontos_ganhos = random.randint(1, 1000) * 2
-                            # Aplica efeitos de eventos ativos
                             pontos_com_evento = self.gerenciador_eventos.aplicar_efeitos_pontos(pontos_ganhos)
                             self.score += pontos_com_evento
                             self.tracker.check_unlock(self.score)
@@ -617,21 +606,18 @@ class Game:
                             self.mini_event2.visible = False
                             break
 
-        # Spawn do MiniEvent normal
         if (current_time - self.last_mini_event_time > self.mini_event_cooldown and
                 not self.mini_event and
                 random.random() < 0.3):
             self.mini_event = MiniEvent(self.screen, WIDTH, HEIGHT, "normal")
             self.last_mini_event_time = current_time
 
-        # Spawn do MiniEvent raro
         if (current_time - self.last_mini_event2_time > self.mini_event2_cooldown and
                 not self.mini_event2 and
                 random.random() < 0.2):
             self.mini_event2 = MiniEvent(self.screen, WIDTH, HEIGHT, "rare")
             self.last_mini_event2_time = current_time
 
-        # Atualização dos eventos
         if self.mini_event:
             self.mini_event.update()
             if not self.mini_event.visible:
@@ -642,13 +628,11 @@ class Game:
             if not self.mini_event2.visible:
                 self.mini_event2 = None
 
-        # Atualização dos efeitos de clique
         for eff in self.click_effects[:]:
             eff.update()
             if eff.finished:
                 self.click_effects.remove(eff)
 
-        # Salvamento automático
         if current_time - self.last_save_time >= 1000:
             self.score_manager.save_data(
                 self.score,
@@ -682,59 +666,45 @@ class Game:
         for eff in self.click_effects:
             eff.draw(self.screen)
 
-        # Desenha eventos
         if self.mini_event and self.mini_event.visible:
             self.mini_event.draw()
 
         if self.mini_event2 and self.mini_event2.visible:
             self.mini_event2.draw()
 
-        # Score
         score_surf = self.FONT.render(str(self.score), True, self.TEXT_COLOR_SCORE)
         score_rect = score_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 180))
         self.screen.blit(score_surf, score_rect)
 
-        # Aviso de eventos ativos
         eventos_ativos = self.gerenciador_eventos.get_eventos_ativos()
         if eventos_ativos:
-            for evento in eventos_ativos:
-                # Texto do evento em uma linha só
-                texto_evento = f"EVENTO ATIVO: {evento.get_icone()} {evento.nome.upper()} - {evento.get_descricao()} - {evento.get_tempo_restante()}"
-                surf_evento = self.fonte_evento.render(texto_evento, True, (255, 215, 0))  # Amarelo para "EVENTO ATIVO"
+            for i, evento in enumerate(eventos_ativos):
+                evento_ativo_surf = self.fonte_evento.render("EVENTO ATIVO: ", True, (255, 215, 0))
+                nome_evento_surf = self.fonte_evento.render(f"{evento.nome.upper()}", True, (0, 0, 0))
                 
-                # Divide o texto para destacar "EVENTO ATIVO" em amarelo e o resto em preto
-                evento_ativo_surf = self.fonte_evento.render("EVENTO ATIVO: ", True, (255, 215, 0))  # Amarelo
-                resto_texto_surf = self.fonte_evento.render(
-                    f"{evento.get_icone()} {evento.nome.upper()} - {evento.get_descricao()} - {evento.get_tempo_restante()}", 
-                    True, (0, 0, 0)  # Preto
-                )
-                
-                # Posiciona no centro da tela
-                evento_ativo_rect = evento_ativo_surf.get_rect(center=(WIDTH // 2, 30))
-                resto_rect = resto_texto_surf.get_rect(center=(WIDTH // 2 + evento_ativo_rect.width // 2, 30))
+                evento_ativo_rect = evento_ativo_surf.get_rect(center=(WIDTH // 2 - nome_evento_surf.get_width() // 2, 30))
+                nome_evento_rect = nome_evento_surf.get_rect(center=(WIDTH // 2 + evento_ativo_rect.width // 2, 30))
                 
                 self.screen.blit(evento_ativo_surf, evento_ativo_rect)
-                self.screen.blit(resto_texto_surf, resto_rect)
+                self.screen.blit(nome_evento_surf, nome_evento_rect)
 
-        # Aviso de update (parte inferior esquerda, menor)
         if self.aviso_update:
             text_surf = self.fonte_update.render(self.texto_update, True, (255, 50, 50))
             text_rect = text_surf.get_rect(bottomleft=(10, HEIGHT - 10))
             self.screen.blit(text_surf, text_rect)
-            self.update_rect = text_rect  # Salva o rect para detectar clique
+            self.update_rect = text_rect
 
-        # Aviso de reinício
         if hasattr(self.config_menu.settings_menu, "precisa_reiniciar") and self.config_menu.settings_menu.precisa_reiniciar:
             aviso = self.fonte_aviso.render("Reinicie o jogo para aplicar mudanças", True, (200, 0, 0))
             aviso_rect = aviso.get_rect(center=(WIDTH // 2, HEIGHT - 30))
             self.screen.blit(aviso, aviso_rect)
 
-        # Menus
         self.upgrade_menu.draw(self.score)
         self.config_menu.draw_icon()
         self.config_menu.draw()
         
         self.config_menu.achievements_menu.draw()
+        self.config_menu.eventos_menu.draw()
         
         if self.console.visible:
             self.console.draw()

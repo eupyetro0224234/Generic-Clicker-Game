@@ -7,15 +7,12 @@ from game_code.config import FullSettingsMenu
 from game_code.exit_handler import ExitHandler
 from game_code.conquistas import AchievementsMenu
 from game_code.console import Console
+from game_code.eventos import EventosMenu
 
 
-# ---------------------------
-# Compatibilidade com PyInstaller
-# ---------------------------
 def resource_path(relative_path):
-    """Retorna o caminho absoluto de um arquivo, mesmo dentro de um .exe PyInstaller."""
     try:
-        base_path = sys._MEIPASS  # Caminho temporário do PyInstaller
+        base_path = sys._MEIPASS
     except AttributeError:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
@@ -45,7 +42,6 @@ class ConfigMenu:
         self.console_enabled = False
         self.console_instance = None
 
-        # ✅ caminho compatível com exe
         assets_folder = resource_path("game_assets")
         self.icon_path = os.path.join(assets_folder, "menu.png")
 
@@ -58,16 +54,18 @@ class ConfigMenu:
         self.icon_rect = self.icon_image.get_rect() if self.icon_image else pygame.Rect(0, 0, 70, 70)
         self.icon_rect.topleft = (window_width - 74, 15)
 
-        self.base_options = ["Configurações", "Controles", "Conquistas", "Sair"]
+        self.base_options = ["Configurações", "Controles", "Conquistas", "Eventos"]
         self.options = list(self.base_options)
 
-        # ✅ CORREÇÃO AQUI: Criar o settings_menu primeiro
         self.settings_menu = FullSettingsMenu(screen, window_width, window_height)
         
-        # ✅ CORREÇÃO AQUI: Passar o settings_menu para o ControlsMenu
         self.controls_menu = ControlsMenu(screen, window_width, window_height, self.settings_menu)
         
         self.achievements_menu = AchievementsMenu(screen, window_width, window_height, self)
+        
+        # CORREÇÃO: EventosMenu com apenas 3 argumentos
+        self.eventos_menu = EventosMenu(screen, window_width, window_height)
+        
         self.exit_handler = ExitHandler(screen, window_width, window_height)
 
         self.console_instance = Console(
@@ -98,7 +96,7 @@ class ConfigMenu:
         if not self.console_enabled:
             self.console_enabled = True
             if "Console" not in self.options:
-                self.options.insert(len(self.options)-1, "Console")
+                self.options.insert(len(self.options), "Console")
             if self.console_instance:
                 self.console_instance.open()
             if add_option and hasattr(self.settings_menu, 'add_console_option'):
@@ -140,13 +138,14 @@ class ConfigMenu:
         menu_items = [
             ("Configurações", False),
             ("Controles", False),
-            (f"Conquistas ({unlocked_count})", False)
+            (f"Conquistas ({unlocked_count})", False),
+            ("Eventos", False)
         ]
 
         if self.console_enabled:
             menu_items.append(("Console", False))
 
-        menu_items.append(("Sair", self.console_enabled))
+        menu_items.append(("Sair", not self.console_enabled))
 
         vertical_menu = False
         if hasattr(self.settings_menu, "get_option"):
@@ -195,13 +194,14 @@ class ConfigMenu:
         else:
             menu_width = 2 * button_width + self.spacing_x + 2 * horizontal_padding
             
-            num_regular_items = len(menu_items) - 1
-            num_rows = (num_regular_items + 1) // 2
+            regular_items = [item for item in menu_items if not item[1]]
+            full_width_items = [item for item in menu_items if item[1]]
             
-            if menu_items[-1][1]:
-                num_rows += 1
+            num_regular_rows = (len(regular_items) + 1) // 2
             
-            total_height = num_rows * (button_height + button_spacing) - button_spacing + 2 * vertical_padding
+            total_rows = num_regular_rows + len(full_width_items)
+            
+            total_height = total_rows * (button_height + button_spacing) - button_spacing + 2 * vertical_padding
             height = int(total_height * self.animation_progress)
             
             x_pos = self.window_width - menu_width - 14
@@ -210,7 +210,7 @@ class ConfigMenu:
             surf = pygame.Surface((menu_width, height), pygame.SRCALPHA)
             pygame.draw.rect(surf, self.bg_color, (0, 0, menu_width, height), border_radius=20)
             
-            for i, (text, full_width) in enumerate(menu_items[:-1]):
+            for i, (text, full_width) in enumerate(regular_items):
                 col = i % 2
                 row = i // 2
                 
@@ -233,33 +233,29 @@ class ConfigMenu:
                 txt_rect = txt.get_rect(center=(button_x + button_width // 2, button_y + button_height // 2))
                 surf.blit(txt, txt_rect)
             
-            sair_text, sair_full_width = menu_items[-1]
-            row = num_rows - 1
-            
-            if sair_full_width:
+            current_row = num_regular_rows
+            for text, full_width in full_width_items:
                 button_x = horizontal_padding
-                button_width_sair = menu_width - 2 * horizontal_padding
-            else:
-                button_x = horizontal_padding + ((num_regular_items % 2) * (button_width + self.spacing_x))
-                button_width_sair = button_width
-            
-            button_y = vertical_padding + row * (button_height + button_spacing)
-            
-            abs_rect = pygame.Rect(
-                x_pos + button_x,
-                y_pos + button_y,
-                button_width_sair,
-                button_height
-            )
-            self.menu_rects.append((abs_rect, sair_text))
+                button_width_full = menu_width - 2 * horizontal_padding
+                button_y = vertical_padding + current_row * (button_height + button_spacing)
+                
+                abs_rect = pygame.Rect(
+                    x_pos + button_x,
+                    y_pos + button_y,
+                    button_width_full,
+                    button_height
+                )
+                self.menu_rects.append((abs_rect, text))
 
-            color = self.option_hover_color if abs_rect.collidepoint(mouse_pos) else self.option_color
-            pygame.draw.rect(surf, color, (button_x, button_y, button_width_sair, button_height), border_radius=14)
-            pygame.draw.rect(surf, self.option_border, (button_x, button_y, button_width_sair, button_height), 2, border_radius=14)
+                color = self.option_hover_color if abs_rect.collidepoint(mouse_pos) else self.option_color
+                pygame.draw.rect(surf, color, (button_x, button_y, button_width_full, button_height), border_radius=14)
+                pygame.draw.rect(surf, self.option_border, (button_x, button_y, button_width_full, button_height), 2, border_radius=14)
 
-            txt = self.font.render(sair_text, True, self.text_color)
-            txt_rect = txt.get_rect(center=(button_x + button_width_sair // 2, button_y + button_height // 2))
-            surf.blit(txt, txt_rect)
+                txt = self.font.render(text, True, self.text_color)
+                txt_rect = txt.get_rect(center=(button_x + button_width_full // 2, button_y + button_height // 2))
+                surf.blit(txt, txt_rect)
+                
+                current_row += 1
 
         self.screen.blit(surf, (x_pos, y_pos))
 
@@ -272,6 +268,8 @@ class ConfigMenu:
             self.settings_menu.draw()
         if self.achievements_menu.visible:
             self.achievements_menu.draw()
+        if self.eventos_menu.visible:
+            self.eventos_menu.draw()
         if self.console_instance and self.console_instance.visible:
             self.console_instance.draw()
         self.exit_handler.draw()
@@ -294,6 +292,9 @@ class ConfigMenu:
         if self.settings_menu.visible:
             return self.settings_menu.handle_event(event)
 
+        if self.eventos_menu.visible:
+            return self.eventos_menu.handle_event(event)
+
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.icon_rect.collidepoint(event.pos):
                 self.is_open = not self.is_open
@@ -303,20 +304,28 @@ class ConfigMenu:
                 for rect, text in self.menu_rects:
                     if rect.collidepoint(event.pos):
                         if text == "Configurações":
-                            # Fecha o menu de controles se estiver aberto
-                            if self.controls_menu.visible:
-                                self.controls_menu.visible = False
+                            self.controls_menu.visible = False
+                            self.achievements_menu.visible = False
+                            self.eventos_menu.visible = False
                             self.settings_menu.visible = True
 
                         elif text == "Controles":
-                            # ✅ Agora o botão Controles alterna entre abrir e fechar
                             self.controls_menu.visible = not self.controls_menu.visible
+                            self.settings_menu.visible = False
+                            self.achievements_menu.visible = False
+                            self.eventos_menu.visible = False
 
                         elif text.startswith("Conquistas"):
-                            # Fecha o menu de controles se estiver aberto
-                            if self.controls_menu.visible:
-                                self.controls_menu.visible = False
+                            self.controls_menu.visible = False
+                            self.settings_menu.visible = False
+                            self.eventos_menu.visible = False
                             self.achievements_menu.visible = True
+
+                        elif text == "Eventos":
+                            self.controls_menu.visible = False
+                            self.settings_menu.visible = False
+                            self.achievements_menu.visible = False
+                            self.eventos_menu.visible = True
 
                         elif text == "Sair":
                             self.exit_handler.start()
@@ -329,7 +338,6 @@ class ConfigMenu:
                                 if self.console_instance:
                                     self.console_instance.open()
 
-                        # Fecha o menu principal após o clique
                         self.is_open = False
                         return True
 
@@ -337,7 +345,6 @@ class ConfigMenu:
                 return True
 
         if event.type == pygame.KEYDOWN:
-            # Adicionar ativação do menu com a tecla M
             if event.key == pygame.K_m:
                 self.is_open = not self.is_open
                 return True
@@ -357,6 +364,9 @@ class ConfigMenu:
                     return True
                 if self.achievements_menu.visible:
                     self.achievements_menu.visible = False
+                    return True
+                if self.eventos_menu.visible:
+                    self.eventos_menu.visible = False
                     return True
                 if self.is_open:
                     self.is_open = False

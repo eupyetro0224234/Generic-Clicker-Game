@@ -10,15 +10,6 @@
       "tipo": "pontos_duplos"
     },
     {
-      "id": "evento_natal",
-      "nome": "Natal",
-      "data_inicio": "23/12/2025",
-      "hora_inicio": "00:00",
-      "data_final": "2712/2025",
-      "hora_final": "23:59",
-      "tipo": "bonus_click"
-    },
-    {
       "id": "evento_halloween",
       "nome": "Halloween",
       "data_inicio": "28/10/2025",
@@ -28,15 +19,6 @@
       "tipo": "velocidade_trabalhador"
     },
     {
-      "id": "evento_ano_novo",
-      "nome": "Ano Novo",
-      "data_inicio": "28/12/2025",
-      "hora_inicio": "00:00",
-      "data_final": "02/01/2026",
-      "hora_final": "23:59",
-      "tipo": "preco_reduzido"
-    },
-    {
       "id": "evento_raro_1",
       "nome": "Começo de Dezembro",
       "data_inicio": "01/12/2025",
@@ -44,6 +26,24 @@
       "data_final": "20/12/2025",
       "hora_final": "12:00",
       "tipo": "evento_raro"
+    },
+        {
+      "id": "evento_natal",
+      "nome": "Natal",
+      "data_inicio": "23/12/2025",
+      "hora_inicio": "00:00",
+      "data_final": "2712/2025",
+      "hora_final": "23:59",
+      "tipo": "bonus_click"
+    },
+    {
+      "id": "evento_ano_novo",
+      "nome": "Ano Novo",
+      "data_inicio": "28/12/2025",
+      "hora_inicio": "00:00",
+      "data_final": "02/01/2026",
+      "hora_final": "23:59",
+      "tipo": "preco_reduzido"
     }
   ]
 }
