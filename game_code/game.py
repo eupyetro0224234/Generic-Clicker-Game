@@ -682,15 +682,16 @@ class Game:
                 evento_ativo_surf = self.fonte_evento.render("EVENTO ATIVO: ", True, (255, 215, 0))
                 nome_evento_surf = self.fonte_evento.render(f"{evento.nome.upper()}", True, (0, 0, 0))
                 
-                evento_ativo_rect = evento_ativo_surf.get_rect(center=(WIDTH // 2 - nome_evento_surf.get_width() // 2, 30))
-                nome_evento_rect = nome_evento_surf.get_rect(center=(WIDTH // 2 + evento_ativo_rect.width // 2, 30))
+                # Posicionar na parte de baixo da tela
+                evento_ativo_rect = evento_ativo_surf.get_rect(center=(WIDTH // 2 - nome_evento_surf.get_width() // 2, HEIGHT - 50))
+                nome_evento_rect = nome_evento_surf.get_rect(center=(WIDTH // 2 + evento_ativo_rect.width // 2, HEIGHT - 50))
                 
                 # Criar fundo cinza transparente
                 bg_width = evento_ativo_rect.width + nome_evento_rect.width + 20
                 bg_height = max(evento_ativo_rect.height, nome_evento_rect.height) + 10
                 bg_rect = pygame.Rect(
                     WIDTH // 2 - bg_width // 2,
-                    30 - bg_height // 2,
+                    HEIGHT - 50 - bg_height // 2,
                     bg_width,
                     bg_height
                 )
