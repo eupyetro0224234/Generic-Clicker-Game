@@ -40,7 +40,15 @@ class ScoreManager:
 
     def save_data(self, score: int, controls_visible: bool, achievements: list[str], 
                  upgrades: dict[str, int], mini_event_click_count: int, 
-                 trabalhador_limit_enabled: bool = True):
+                 trabalhador_limit_enabled: bool = True, eventos_participados: dict = None):
+        """
+        eventos_participados: dicionário onde:
+        - chave: ID do evento (ex: "pontos_duplos_2024_01")
+        - valor: quantidade de vezes que participou
+        """
+        if eventos_participados is None:
+            eventos_participados = {}
+            
         data_dict = {
             'score': score,
             'controls_visible': controls_visible,
@@ -49,6 +57,7 @@ class ScoreManager:
             'mini_event_click_count': mini_event_click_count,
             'trabalhadores': [],
             'trabalhador_limit_enabled': trabalhador_limit_enabled,
+            'eventos_participados': eventos_participados,  # Agora é um dicionário
             'timestamp': int(time.time())
         }
 
@@ -76,16 +85,16 @@ class ScoreManager:
         backup_data = self.load_backup()
         
         if backup_data:
-            score, controls_visible, achievements, upgrades, mini_event_clicks, trabalhadores, trabalhador_limit_enabled = backup_data
+            score, controls_visible, achievements, upgrades, mini_event_clicks, trabalhadores, trabalhador_limit_enabled, eventos_participados = backup_data
             
-            self.save_data(score, controls_visible, achievements, upgrades, mini_event_clicks, trabalhador_limit_enabled)
+            self.save_data(score, controls_visible, achievements, upgrades, mini_event_clicks, trabalhador_limit_enabled, eventos_participados)
 
             try:
                 os.remove(self.backup_path)
             except Exception:
                 pass
 
-            return score, controls_visible, achievements, upgrades, mini_event_clicks, [], trabalhador_limit_enabled
+            return score, controls_visible, achievements, upgrades, mini_event_clicks, [], trabalhador_limit_enabled, eventos_participados
 
         if os.path.isfile(self.file_path):
             try:
@@ -101,16 +110,20 @@ class ScoreManager:
                         data_dict.get("upgrades", {}),
                         data_dict.get("mini_event_click_count", 0),
                         [],
-                        data_dict.get("trabalhador_limit_enabled", True)
+                        data_dict.get("trabalhador_limit_enabled", True),
+                        data_dict.get("eventos_participados", {})  # Agora retorna dicionário
                     )
             except Exception:
                 pass
 
-        return 0, False, [], {}, 0, [], True
+        return 0, False, [], {}, 0, [], True, {}
 
     def save_backup(self, score: int, controls_visible: bool, achievements: list[str], 
                    upgrades: dict[str, int], mini_event_click_count: int, 
-                   trabalhador_limit_enabled: bool = True):
+                   trabalhador_limit_enabled: bool = True, eventos_participados: dict = None):
+        if eventos_participados is None:
+            eventos_participados = {}
+            
         data_dict = {
             'score': score,
             'controls_visible': controls_visible,
@@ -119,6 +132,7 @@ class ScoreManager:
             'mini_event_click_count': mini_event_click_count,
             'trabalhadores': [],
             'trabalhador_limit_enabled': trabalhador_limit_enabled,
+            'eventos_participados': eventos_participados,  # Agora é um dicionário
             'timestamp': int(time.time()),
             'backup_note': 'Arquivo de backup principal. O jogo prioriza esses dados na inicialização.'
         }
@@ -155,7 +169,8 @@ class ScoreManager:
                     data_dict.get('upgrades', {}),
                     data_dict.get('mini_event_click_count', 0),
                     [],
-                    data_dict.get('trabalhador_limit_enabled', True)
+                    data_dict.get('trabalhador_limit_enabled', True),
+                    data_dict.get('eventos_participados', {})  # Agora retorna dicionário
                 )
             except Exception:
                 pass

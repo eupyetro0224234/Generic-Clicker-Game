@@ -198,7 +198,7 @@ Essa aqui demorou, mas foi por um bom motivo. DEZENAS de bugs que eu só consegu
 - Áudio para o mini evento: Da ost de Doors;
 - Mais um tipo de mini evento.
 
-Foi isso, espero que tenham gostado. Tchau!
+Foi isso, espero que tenham gostado. Tchau! Eu estou sem saber o que adicionar, então, por mais um tempo, não terão atualizações a n~ão ser que sejam pra mellhorar o desempenho. Até breve.
 
 </details>
 
@@ -207,11 +207,11 @@ Foi isso, espero que tenham gostado. Tchau!
 
 Mais uma atualização minúscula pra coleção.
 
-- Nova conquista: Tríplice Coroa, ok
-- Botões para sair dos menus que usam a tela toda sem precisar apertar o esc, ok
+- Nova conquista: Tríplice Coroa,
+- Botões para sair dos menus que usam a tela toda sem precisar apertar o esc,
 - Ao clicar encima do aviso de atualização disponível, o link das releases é aberto no seu navegador,
-- Opção de ativar texturas removida,  ok
-- Agora o trabalhador fica embaixo dos elementos, evitando não poder clicar na posição que ele está, ok
+- Opção de ativar texturas removida,
+- Agora o trabalhador fica embaixo dos elementos, evitando não poder clicar na posição que ele está,
 - Eventos adicionados,
 - Imagens poderão ser exibidas no código agora.
 </details>

@@ -1,6 +1,6 @@
 import requests
 
-VERSAO_ATUAL = "0.0.05"
+VERSAO_ATUAL = "0.0.05.1"
 
 URL_VERSAO = "https://raw.githack.com/eupyetro0224234/Generic-Clicker-Game/main/github_assets/version.txt"
 

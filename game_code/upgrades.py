@@ -21,7 +21,7 @@ class UpgradeMenu:
 
         self.x = 15
         self.y = 15
-        self.width = 350  # Aumentado de 280 para 350
+        self.width = 400
         self.visible = False
         self.animation = 0.0
         self.speed = 0.12
@@ -52,10 +52,9 @@ class UpgradeMenu:
         self.purchased = {}
         self.trabalhadores = []
         self.max_trabalhadores = 10
-        self.trabalhador_limit_enabled = True  # NOVO: controle do limite
+        self.trabalhador_limit_enabled = True
 
     def _format_cost(self, cost):
-        """Formata o custo com pontos para milhares"""
         return f"{cost:,}".replace(",", ".")
 
     def _load_icon(self):
@@ -71,29 +70,23 @@ class UpgradeMenu:
             return None
 
     def set_trabalhador_limit(self, enabled):
-        """Ativa ou desativa o limite de trabalhadores"""
         self.trabalhador_limit_enabled = enabled
         
     def can_add_trabalhador(self):
-        """Verifica se pode adicionar mais trabalhadores"""
         if not self.trabalhador_limit_enabled:
             return True
         return len(self.trabalhadores) < self.max_trabalhadores
         
     def get_trabalhador_limit_status(self):
-        """Retorna o status atual do limite"""
         return self.trabalhador_limit_enabled
 
     def _get_trabalhador_text(self, upg):
-        """Gera o texto dinâmico para o upgrade 'Trabalhador'."""
         trabalhadores_ativos = len(self.trabalhadores)
         custo_formatado = self._format_cost(upg.cost)
 
         if not self.trabalhador_limit_enabled:
-            # Ilimitado: mostra só contador + preço
             return f"{upg.name} ({trabalhadores_ativos}) - {custo_formatado} pts"
         else:
-            # Limitado: mostra contador + limite + preço
             return f"{upg.name} ({trabalhadores_ativos}/{self.max_trabalhadores}) - {custo_formatado} pts"
 
     def toggle_visibility(self):
@@ -121,7 +114,6 @@ class UpgradeMenu:
         if self.animation <= 0: 
             return
 
-        # Filtra upgrades que não devem aparecer após comprados
         upgrades_to_show = [
             upg for upg in self.upgrades 
             if not (
@@ -147,13 +139,10 @@ class UpgradeMenu:
                 trabalhadores_ativos = len(self.trabalhadores)
 
                 if trabalhadores_ativos == 0:
-                    # Nenhum trabalhador → sempre branco
                     color = self.option_color
                 elif self.trabalhador_limit_enabled and trabalhadores_ativos >= self.max_trabalhadores:
-                    # Atingiu o limite → vermelho
                     color = (255, 150, 150)
                 else:
-                    # Possui trabalhadores ativos → verde
                     color = self.purchased_color
             else:
                 color = self.purchased_color if qtd > 0 else self.option_color
@@ -164,17 +153,13 @@ class UpgradeMenu:
             if upg.id == "trabalhador":
                 main_text = self._get_trabalhador_text(upg)
             elif upg.id == "hold_click":
-                # Clique ao Segurar sempre mostra o preço
                 main_text = f"{upg.name} - {self._format_cost(upg.cost)} pts"
             elif upg.id == "mini_event":
-                # Mini Evento sempre mostra o preço
                 main_text = f"{upg.name} - {self._format_cost(upg.cost)} pts"
             else:
-                # Outros upgrades mostram quantidade e preço formatado
                 main_text = f"{upg.name} x{qtd} - {self._format_cost(upg.cost)} pts"
                 
             txt = self.font.render(main_text, True, self.text_color)
-            # Alterado: texto alinhado à esquerda em vez de centralizado
             text_rect = txt.get_rect(midleft=(rect.left + 10, rect.centery))
             panel.blit(txt, text_rect)
 
@@ -204,7 +189,7 @@ class UpgradeMenu:
                     upg_rect = pygame.Rect(self.x + self.padding_x, self.y + 81 + i * (self.option_height + self.spacing),
                                            self.width - 2 * self.padding_x, self.option_height)
                     if upg_rect.collidepoint(event.pos) and score >= upg.cost:
-                        if upg.id == "trabalhador" and self.can_add_trabalhador():  # MODIFICADO AQUI
+                        if upg.id == "trabalhador" and self.can_add_trabalhador():
                             novo_trabalhador = Trabalhador(self.screen, self.window_width, self.window_height)
                             self.trabalhadores.append(novo_trabalhador)
                             score -= upg.cost
@@ -222,7 +207,6 @@ class UpgradeMenu:
                             score -= upg.cost
                             return score, False
         
-        # Adicionando suporte para tecla U
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_u:
                 self.toggle_visibility()
@@ -234,7 +218,6 @@ class UpgradeMenu:
         self.purchased = upgrades if upgrades else {}
     
     def load_trabalhadores(self, trabalhadores_data):
-        """Carrega trabalhadores salvos"""
         self.trabalhadores = []
         for trab_data in trabalhadores_data:
             from game_code.trabalhador import Trabalhador
@@ -275,7 +258,7 @@ class UpgradeMenu:
     def reset_upgrades(self):
         self.purchased.clear()
         self.trabalhadores = []
-        self.trabalhador_limit_enabled = True  # Reset para padrão
+        self.trabalhador_limit_enabled = True
 
     def purchase_random_upgrade(self):
         available_upgrades = [
@@ -301,7 +284,6 @@ class UpgradeMenu:
             if pontos:
                 pontos_gerados += pontos
             
-            # Remove trabalhadores que não estão mais ativos (expiraram)
             if not trabalhador.active:
                 self.trabalhadores.remove(trabalhador)
         

@@ -18,6 +18,7 @@ from game_code import updates
 from game_code.mini_event import MiniEvent
 from game_code.trabalhador import Trabalhador
 from game_code.eventos import GerenciadorEventos, EventosMenu
+from game_code.image_viewer import ImageViewer
 
 def resource_path(relative_path):
     try:
@@ -36,6 +37,7 @@ class Game:
         self.load_game_data()
         
         self.config_menu = ConfigMenu(screen, WIDTH, HEIGHT, score_manager=self.score_manager)
+        self.image_viewer = ImageViewer(screen, WIDTH, HEIGHT)
         self.setup_fonts()
         self.setup_game_components()
         self.setup_console()
@@ -49,7 +51,8 @@ class Game:
     def load_game_data(self):
         try:
             (self.score, self.controls_visible, saved_achievements, 
-             saved_upgrades, mini_event_click_count, trabalhadores_data, trabalhador_limit_enabled) = self.score_manager.load_data()
+             saved_upgrades, mini_event_click_count, trabalhadores_data, 
+             trabalhador_limit_enabled, self.eventos_participados) = self.score_manager.load_data()
             
             self.saved_trabalhadores_data = trabalhadores_data
             self.saved_trabalhador_limit_enabled = trabalhador_limit_enabled
@@ -63,10 +66,12 @@ class Game:
                 backup_data = self.score_manager.load_backup()
                 if backup_data:
                     (self.score, self.controls_visible, saved_achievements, 
-                     saved_upgrades, mini_event_click_count, trabalhadores_data, trabalhador_limit_enabled) = backup_data
+                     saved_upgrades, mini_event_click_count, trabalhadores_data, 
+                     trabalhador_limit_enabled, self.eventos_participados) = backup_data
                     self.score_manager.save_data(
                         self.score, self.controls_visible, saved_achievements, 
-                        saved_upgrades, mini_event_click_count, trabalhador_limit_enabled
+                        saved_upgrades, mini_event_click_count, trabalhador_limit_enabled,
+                        self.eventos_participados
                     )
                     
                     self.saved_trabalhadores_data = trabalhadores_data
@@ -76,11 +81,13 @@ class Game:
                      saved_upgrades, mini_event_click_count) = 0, False, [], {}, 0
                     self.saved_trabalhadores_data = []
                     self.saved_trabalhador_limit_enabled = True
+                    self.eventos_participados = {}
             else:
                 (self.score, self.controls_visible, saved_achievements, 
                  saved_upgrades, mini_event_click_count) = 0, False, [], {}, 0
                 self.saved_trabalhadores_data = []
                 self.saved_trabalhador_limit_enabled = True
+                self.eventos_participados = {}
 
         self.saved_achievements = saved_achievements
         self.saved_upgrades = saved_upgrades
@@ -217,6 +224,12 @@ class Game:
             self.aviso_update = False
             self.texto_update = ""
 
+    def registrar_participacao_evento(self, evento_id):
+        if evento_id in self.eventos_participados:
+            self.eventos_participados[evento_id] += 1
+        else:
+            self.eventos_participados[evento_id] = 1
+
     def show_confirmation_dialog(self, message):
         class ConfirmationDialog:
             def __init__(self, screen, width, height, message):
@@ -289,6 +302,9 @@ class Game:
 
     def handle_events(self):
         for event in pygame.event.get():
+            if self.image_viewer.handle_event(event):
+                continue
+
             if self.config_menu.achievements_menu.visible:
                 if self.config_menu.achievements_menu.handle_event(event):
                     continue
@@ -336,6 +352,9 @@ class Game:
 
     def handle_keydown(self, event):
         if event.key == pygame.K_ESCAPE:
+            if self.image_viewer.visible:
+                self.image_viewer.visible = False
+                return True
             if self.console.visible:
                 self.console.minimize()
                 return True
@@ -359,6 +378,7 @@ class Game:
                 self.tracker.unlocked.clear()
                 self.tracker.normal_clicks = 0
                 self.tracker.mini_event_clicks = 0
+                self.eventos_participados = {}
                 for ach in self.tracker.achievements:
                     ach.unlocked = False
                 self.upgrade_menu.reset_upgrades()
@@ -368,7 +388,8 @@ class Game:
                     list(self.tracker.unlocked),
                     self.upgrade_menu.purchased,
                     self.tracker.mini_event_clicks,
-                    self.upgrade_menu.get_trabalhador_limit_status()
+                    self.upgrade_menu.get_trabalhador_limit_status(),
+                    self.eventos_participados
                 )
             return True
 
@@ -378,6 +399,10 @@ class Game:
 
         if event.key == pygame.K_u and not self.console.visible:
             self.upgrade_menu.toggle_visibility()
+            return True
+
+        if event.key == pygame.K_i and pygame.key.get_mods() & pygame.KMOD_CTRL:
+            self.image_viewer.toggle_visibility()
             return True
 
         return False
@@ -394,6 +419,7 @@ class Game:
             return
         
         menus_ativos = (
+            self.image_viewer.visible or
             self.console.visible or 
             self.exit_handler.active or
             self.config_menu.settings_menu.visible or
@@ -427,7 +453,8 @@ class Game:
                     list(self.tracker.unlocked),
                     self.upgrade_menu.purchased,
                     self.tracker.mini_event_clicks,
-                    self.upgrade_menu.get_trabalhador_limit_status()
+                    self.upgrade_menu.get_trabalhador_limit_status(),
+                    self.eventos_participados
                 )
                 return
 
@@ -455,7 +482,8 @@ class Game:
                     list(self.tracker.unlocked),
                     self.upgrade_menu.purchased,
                     self.tracker.mini_event_clicks,
-                    self.upgrade_menu.get_trabalhador_limit_status()
+                    self.upgrade_menu.get_trabalhador_limit_status(),
+                    self.eventos_participados
                 )
                 return
 
@@ -497,7 +525,8 @@ class Game:
                         list(self.tracker.unlocked),
                         self.upgrade_menu.purchased,
                         self.tracker.mini_event_clicks,
-                        self.upgrade_menu.get_trabalhador_limit_status()
+                        self.upgrade_menu.get_trabalhador_limit_status(),
+                        self.eventos_participados
                     )
                     return
 
@@ -511,6 +540,9 @@ class Game:
         current_time = pygame.time.get_ticks()
 
         eventos_ativos = self.gerenciador_eventos.atualizar_eventos()
+        for evento in eventos_ativos:
+            if evento.ativo:
+                self.registrar_participacao_evento(evento.id)
 
         if self.upgrade_menu.auto_click_enabled():
             self.auto_click_counter += 1
@@ -640,7 +672,8 @@ class Game:
                 list(self.tracker.unlocked),
                 self.upgrade_menu.purchased,
                 self.tracker.mini_event_clicks,
-                self.upgrade_menu.get_trabalhador_limit_status()
+                self.upgrade_menu.get_trabalhador_limit_status(),
+                self.eventos_participados
             )
             self.last_save_time = current_time
 
@@ -651,7 +684,8 @@ class Game:
                 list(self.tracker.unlocked),
                 self.upgrade_menu.purchased,
                 self.tracker.mini_event_clicks,
-                self.upgrade_menu.get_trabalhador_limit_status()
+                self.upgrade_menu.get_trabalhador_limit_status(),
+                self.eventos_participados
             )
             self.last_backup_save_time = current_time
 
@@ -682,11 +716,9 @@ class Game:
                 evento_ativo_surf = self.fonte_evento.render("EVENTO ATIVO: ", True, (255, 215, 0))
                 nome_evento_surf = self.fonte_evento.render(f"{evento.nome.upper()}", True, (0, 0, 0))
                 
-                # Posicionar na parte de baixo da tela
                 evento_ativo_rect = evento_ativo_surf.get_rect(center=(WIDTH // 2 - nome_evento_surf.get_width() // 2, HEIGHT - 50))
                 nome_evento_rect = nome_evento_surf.get_rect(center=(WIDTH // 2 + evento_ativo_rect.width // 2, HEIGHT - 50))
                 
-                # Criar fundo cinza transparente
                 bg_width = evento_ativo_rect.width + nome_evento_rect.width + 20
                 bg_height = max(evento_ativo_rect.height, nome_evento_rect.height) + 10
                 bg_rect = pygame.Rect(
@@ -696,15 +728,12 @@ class Game:
                     bg_height
                 )
                 
-                # Desenhar fundo semi-transparente
                 bg_surface = pygame.Surface((bg_width, bg_height), pygame.SRCALPHA)
-                bg_surface.fill((100, 100, 100, 180))  # Cinza com transparência
+                bg_surface.fill((100, 100, 100, 180))
                 self.screen.blit(bg_surface, bg_rect)
                 
-                # Desenhar as bordas do fundo
                 pygame.draw.rect(self.screen, (150, 150, 150), bg_rect, 2, border_radius=5)
                 
-                # Desenhar o texto por cima do fundo
                 self.screen.blit(evento_ativo_surf, evento_ativo_rect)
                 self.screen.blit(nome_evento_surf, nome_evento_rect)
 
@@ -730,6 +759,8 @@ class Game:
             self.console.draw()
 
         self.exit_handler.draw()
+
+        self.image_viewer.draw()
 
     def run(self):
         while self.running:
