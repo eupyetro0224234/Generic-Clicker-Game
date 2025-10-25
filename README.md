@@ -162,11 +162,11 @@ Atualmente, esse projeto suporta apenas modificações diretas no código e modi
 
 - Preciso do Python instalado?
 
-**Baixando o .exe das releases, não. Mas caso você clome o repositório e queira o executar no seu pc, sim.**
+**Baixando o setup ou a pasta das releases, não. Mas caso você clome o repositório e queira o executar no seu pc, sim.**
 
 - Os dados salvos de uma versão funcionam em outra?
 
-**Atualmente, somente a partir da 0.0.04, pois foi colocado um método pra salvar os pontos. Versões anteriores só são compatíveis entre si com as mesma numerações (por exemplo, 0.0.03 e 0.0.03.1)**
+**Infelizmente não funcionam muito bem. Pois o arquivo de save é atualizado a cada segundo, seja por novas adições ou por organização. Em algum momento, não terá mais modificações no arquivo de save, assim, estabilizará.**
 
 ## Contato
 Pyetro — contato.eupyetro022@gmail.com
