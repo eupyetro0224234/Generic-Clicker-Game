@@ -336,7 +336,16 @@ class Game:
                     continue
 
             if event.type == pygame.QUIT:
-                if not self.exit_handler.active:
+                menus_abertos = (
+                    self.config_menu.achievements_menu.visible or
+                    self.config_menu.settings_menu.visible or
+                    self.config_menu.eventos_menu.visible or
+                    self.config_menu.is_open or
+                    self.upgrade_menu.visible or
+                    self.image_viewer.visible
+                )
+                
+                if not menus_abertos and not self.exit_handler.active:
                     self.exit_handler.start()
                 continue
 
@@ -363,6 +372,15 @@ class Game:
                 return True
             if self.upgrade_menu.visible:
                 self.upgrade_menu.visible = False
+                return True
+            if self.config_menu.achievements_menu.visible:
+                self.config_menu.achievements_menu.visible = False
+                return True
+            if self.config_menu.settings_menu.visible:
+                self.config_menu.settings_menu.visible = False
+                return True
+            if self.config_menu.eventos_menu.visible:
+                self.config_menu.eventos_menu.visible = False
                 return True
             if self.config_menu.is_open:
                 self.config_menu.is_open = False
@@ -408,16 +426,6 @@ class Game:
         return False
 
     def handle_mousebuttondown(self, event):
-        if event.button in (4, 5):
-            current_time = pygame.time.get_ticks()
-            if current_time - self.last_scroll_time < 60:
-                return
-            self.last_scroll_time = current_time
-        
-        if self.aviso_update and self.update_rect and self.update_rect.collidepoint(event.pos):
-            webbrowser.open("https://github.com/eupyetro0224234/Generic-Clicker-Game/releases")
-            return
-        
         menus_ativos = (
             self.image_viewer.visible or
             self.console.visible or 
@@ -428,6 +436,16 @@ class Game:
             self.config_menu.is_open or
             self.upgrade_menu.visible
         )
+        
+        if event.button in (4, 5):
+            current_time = pygame.time.get_ticks()
+            if current_time - self.last_scroll_time < 60:
+                return
+            self.last_scroll_time = current_time
+        
+        if self.aviso_update and self.update_rect and self.update_rect.collidepoint(event.pos):
+            webbrowser.open("https://github.com/eupyetro0224234/Generic-Clicker-Game/releases")
+            return
         
         if self.mini_event and self.mini_event.visible and not menus_ativos:
             prev_score = self.score
@@ -556,8 +574,11 @@ class Game:
                     ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{bonus_com_evento} (Auto)"))
 
         mouse_buttons = pygame.mouse.get_pressed()
+        mouse_pos = pygame.mouse.get_pos()
 
-        if mouse_buttons[0]:
+        mouse_over_button = self.button.rect.collidepoint(mouse_pos)
+
+        if mouse_buttons[0] and mouse_over_button:
             hold_click_qtd = self.upgrade_menu.purchased.get("hold_click", 0)
             if hold_click_qtd > 0:
                 if self.hold_click_start_time is None:
@@ -566,7 +587,7 @@ class Game:
                     self.tracker.unlock_secret("manual_phase")
                 else:
                     elapsed = current_time - self.hold_click_start_time
-                    if elapsed >= 3000:
+                    if elapsed >= 1000:
                         self.hold_click_accumulator += self.clock.get_time()
                         if self.hold_click_accumulator >= 500:
                             self.hold_click_accumulator = 0
@@ -574,7 +595,10 @@ class Game:
                             self.score += hold_com_evento
                             self.tracker.check_unlock(self.score)
                             self.click_effects.append(
-                                ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{hold_com_evento} (Hold)"))
+                                ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{hold_com_evento}"))
+        else:
+            self.hold_click_start_time = None
+            self.hold_click_accumulator = 0
 
         pontos_trabalhadores = self.upgrade_menu.update_trabalhadores(current_time)
         if pontos_trabalhadores > 0:
@@ -714,7 +738,7 @@ class Game:
         if eventos_ativos:
             for i, evento in enumerate(eventos_ativos):
                 evento_ativo_surf = self.fonte_evento.render("EVENTO ATIVO: ", True, (255, 215, 0))
-                nome_evento_surf = self.fonte_evento.render(f"{evento.nome.upper()}", True, (0, 0, 0))
+                nome_evento_surf = self.fonte_evento.render(f"{evento.nome}", True, (0, 0, 0))
                 
                 evento_ativo_rect = evento_ativo_surf.get_rect(center=(WIDTH // 2 - nome_evento_surf.get_width() // 2, HEIGHT - 50))
                 nome_evento_rect = nome_evento_surf.get_rect(center=(WIDTH // 2 + evento_ativo_rect.width // 2, HEIGHT - 50))
@@ -728,11 +752,18 @@ class Game:
                     bg_height
                 )
                 
+                # Criar uma superfície com alpha para o fundo
                 bg_surface = pygame.Surface((bg_width, bg_height), pygame.SRCALPHA)
-                bg_surface.fill((100, 100, 100, 180))
-                self.screen.blit(bg_surface, bg_rect)
                 
-                pygame.draw.rect(self.screen, (150, 150, 150), bg_rect, 2, border_radius=5)
+                # Desenhar um retângulo com bordas arredondadas
+                pygame.draw.rect(bg_surface, (100, 100, 100, 180), (0, 0, bg_width, bg_height), 
+                               border_radius=8)  # Ajuste o valor para mudar o arredondamento
+                
+                # Desenhar a borda com cantos arredondados
+                pygame.draw.rect(bg_surface, (150, 150, 150), (0, 0, bg_width, bg_height), 
+                               2, border_radius=8)  # Mesmo valor de border_radius
+                
+                self.screen.blit(bg_surface, bg_rect)
                 
                 self.screen.blit(evento_ativo_surf, evento_ativo_rect)
                 self.screen.blit(nome_evento_surf, nome_evento_rect)

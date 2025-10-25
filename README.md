@@ -1,6 +1,6 @@
 # Generic Clicker Game
 
-[![Projeto no Itch.io](https://i.postimg.cc/hPsCTZ9m/image.png)](https://eupyetro022.itch.io/generic-clicker-game) ![Badge de versão](https://img.shields.io/badge/version-0.0.05.1-yellow) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
+[![Projeto no Itch.io](https://i.postimg.cc/hPsCTZ9m/image.png)](https://eupyetro022.itch.io/generic-clicker-game) ![Badge de versão](https://img.shields.io/badge/version-0.0.05.2-yellow) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
 
 **Desative o tradutor do seu navegador ao ler**
 
@@ -81,12 +81,12 @@ cd Generic-Clicker-Game
 Instale as dependências
 
 ```bash
-pip install -r requirements.txt
+pip install -r github_assets/requirements.txt
 ```
 *ou, caso prefira instalar manualmente
 
 ```bash
-pip install certifi==2025.7.9 charset-normalizer==3.4.2 idna==3.10 Naked==0.1.32 pillow==11.3.0 pycryptodome==3.23.0 pygame==2.6.1 PyYAML==6.0.2 requests==2.32.4 shellescape==3.8.1 urllib3==2.5.0
+pip install pillow==12.0.0 pycryptodome==3.23.0 pygame==2.6.1 requests==2.32.5
 ```
 
 Rode o projeto
@@ -181,7 +181,17 @@ Pyetro — contato.eupyetro022@gmail.com
 * [Doors OST](https://www.youtube.com/watch?v=GUPtSENNsdg): Áudio do Mini Evento
 
 ## Changelogs
-  <summary>0.0.05.1 - 24/10/25</summary>
+<details>  <summary> 0.0.05.2 - 25/10/25 </summary>
+
+Quem diria eu que na minha cabeça ia sumir vindo aqui fazer patches pra coisas mínimas que passaram desapercebidas sksk
+
+- Mini eventos estavam muitos ops, pois eu tinha aumentado usado para testes,
+- O upgrade de segurar pra ganhar pontos agora funciona só no botão de subir pontos,
+- Nos menus de configurações e eventos, não aparece mais o menu de sair ao dar alt f4.
+
+</details>
+
+ <details> <summary>0.0.05.1 - 24/10/25</summary>
 
 Essa aqui demorou, mas foi por um bom motivo. DEZENAS de bugs que eu só consegui ajustar lendo calmamente cada parte do código estão resolvidos e com algumas mudanças. Além disso, eu só manti como 0.0.05.1 pois agora, para mim, uma atualizzação de verdade tem que ter pelo menos 5 adições. Não conta remover 1 texto, por exemplo, tem que ser coisas decentes de verdade. Decidi também fazer uma atualização que geralmente serve pra correção de bugs ser uma grande atualoização.
 
