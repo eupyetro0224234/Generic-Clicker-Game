@@ -1,5 +1,4 @@
-import pygame
-import urllib.request
+import pygame, urllib.request
 from io import BytesIO
 from PIL import Image
 
@@ -17,13 +16,11 @@ class ImageViewer:
         self.TEXT_FILE_URL = "https://raw.githack.com/eupyetro0224234/Generic-Clicker-Game/main/github_assets/imagem.txt"
         self.IMAGE_URL = None
         
-        # Carrega a URL da imagem do arquivo de texto
         self.load_image_url_from_text_file()
 
     def load_image_url_from_text_file(self):
         try:
             with urllib.request.urlopen(self.TEXT_FILE_URL, timeout=10) as response:
-                # Lê a primeira linha do arquivo
                 self.IMAGE_URL = response.readline().decode('utf-8').strip()
                 if self.IMAGE_URL:
                     self.load_image_from_url(self.IMAGE_URL)
@@ -40,11 +37,9 @@ class ImageViewer:
             
             pil_image = Image.open(BytesIO(image_data))
             
-            # Calcula o tamanho máximo que a imagem pode ter na tela
-            max_width = self.width * 0.8  # 80% da largura da tela
-            max_height = self.height * 0.8  # 80% da altura da tela
+            max_width = self.width * 0.8
+            max_height = self.height * 0.8
             
-            # Redimensiona mantendo a proporção
             width_ratio = max_width / pil_image.width
             height_ratio = max_height / pil_image.height
             scale_ratio = min(width_ratio, height_ratio)
@@ -72,7 +67,6 @@ class ImageViewer:
 
     def scale_image_to_fit(self):
         if self.image:
-            # Centraliza a imagem na tela com uma borda superior maior
             self.image_rect = self.image.get_rect(center=(self.width // 2, self.height // 2 + 20))
 
     def handle_event(self, event):
@@ -99,7 +93,6 @@ class ImageViewer:
         if not self.visible or self.loading:
             return
             
-        # Desenha fundo semi-transparente
         overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 180))
         self.screen.blit(overlay, (0, 0))
@@ -110,20 +103,17 @@ class ImageViewer:
             text_rect = error_text.get_rect(center=(self.width // 2, self.height // 2))
             self.screen.blit(error_text, text_rect)
         elif self.image and self.image_rect:
-            # Desenha um container branco com borda arredondada
             container_rect = pygame.Rect(
                 self.image_rect.x - 20,
-                self.image_rect.y - 60,  # Borda superior maior
+                self.image_rect.y - 60,
                 self.image_rect.width + 40,
                 self.image_rect.height + 80
             )
             pygame.draw.rect(self.screen, (255, 255, 255), container_rect, border_radius=15)
             pygame.draw.rect(self.screen, (200, 200, 200), container_rect, 2, border_radius=15)
             
-            # Desenha a imagem
             self.screen.blit(self.image, self.image_rect)
             
-            # Desenha botão de fechar na borda superior
             close_btn_size = 40
             self.close_button_rect = pygame.Rect(
                 container_rect.right - close_btn_size - 15,
@@ -132,7 +122,6 @@ class ImageViewer:
                 close_btn_size
             )
             
-            # Botão de fechar mais estilizado
             pygame.draw.rect(self.screen, (255, 80, 80), self.close_button_rect, border_radius=20)
             pygame.draw.rect(self.screen, (255, 255, 255), self.close_button_rect, 2, border_radius=20)
             

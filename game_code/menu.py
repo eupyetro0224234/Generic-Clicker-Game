@@ -1,7 +1,4 @@
-import os
-import pygame
-import sys
-import json
+import os, pygame, sys
 from game_code.controles import ControlsMenu
 from game_code.config import FullSettingsMenu
 from game_code.exit_handler import ExitHandler
@@ -24,11 +21,13 @@ class ConfigMenu:
         self.window_width = window_width
         self.window_height = window_height
         self.font = pygame.font.SysFont(None, 26)
-        self.bg_color = (180, 210, 255, 230)
-        self.option_color = (255, 255, 255)
-        self.option_hover_color = (200, 220, 255)
-        self.option_border = (150, 180, 230)
+        
+        self.bg_color = (180, 210, 255, 180)
+        self.option_color = (255, 255, 255, 220)
+        self.option_hover_color = (200, 220, 255, 240)
+        self.option_border = (150, 180, 230, 160)
         self.text_color = (40, 40, 60)
+        self.glass_highlight = (255, 255, 255, 60)
 
         self.option_height = 40
         self.option_radius = 16
@@ -58,14 +57,9 @@ class ConfigMenu:
         self.options = list(self.base_options)
 
         self.settings_menu = FullSettingsMenu(screen, window_width, window_height)
-        
         self.controls_menu = ControlsMenu(screen, window_width, window_height, self.settings_menu)
-        
         self.achievements_menu = AchievementsMenu(screen, window_width, window_height, self)
-        
-        # CORREÇÃO: EventosMenu com apenas 3 argumentos
         self.eventos_menu = EventosMenu(screen, window_width, window_height)
-        
         self.exit_handler = ExitHandler(screen, window_width, window_height)
 
         self.console_instance = Console(
@@ -87,6 +81,71 @@ class ConfigMenu:
 
         if hasattr(self.settings_menu, 'get_option') and self.settings_menu.get_option("Manter console aberto"):
             self.enable_console(add_option=True)
+
+    def _draw_rounded_rect_aa(self, surface, color, rect, radius):
+        temp_surface = pygame.Surface((rect[2] + 4, rect[3] + 4), pygame.SRCALPHA)
+        temp_surface.fill((0, 0, 0, 0))
+        
+        temp_rect = pygame.Rect(2, 2, rect[2], rect[3])
+        pygame.draw.rect(temp_surface, color, temp_rect, border_radius=radius)
+        
+        surface.blit(temp_surface, (rect[0] - 2, rect[1] - 2))
+
+    def _create_glass_effect(self, width, height):
+        glass_surface = pygame.Surface((width, height), pygame.SRCALPHA)
+        glass_surface.fill((0, 0, 0, 0))
+        
+        self._draw_rounded_rect_aa(glass_surface, self.bg_color, (0, 0, width, height), 20)
+        
+        highlight = pygame.Surface((width, height), pygame.SRCALPHA)
+        highlight.fill((0, 0, 0, 0))
+        for i in range(height):
+            alpha = int(50 * (1 - i / height * 0.6))
+            pygame.draw.line(highlight, (255, 255, 255, alpha), (0, i), (width, i))
+        
+        mask = pygame.Surface((width, height), pygame.SRCALPHA)
+        mask.fill((0, 0, 0, 0))
+        self._draw_rounded_rect_aa(mask, (255, 255, 255, 255), (0, 0, width, height), 20)
+        
+        highlight.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
+        glass_surface.blit(highlight, (0, 0))
+        
+        border_surface = pygame.Surface((width, height), pygame.SRCALPHA)
+        border_surface.fill((0, 0, 0, 0))
+        self._draw_rounded_rect_aa(border_surface, (0, 0, 0, 0), (0, 0, width, height), 20)
+        pygame.draw.rect(border_surface, self.option_border, (0, 0, width, height), 
+                        width=2, border_radius=20)
+        glass_surface.blit(border_surface, (0, 0))
+        
+        return glass_surface
+
+    def _create_glass_option(self, width, height, color):
+        option_surface = pygame.Surface((width, height), pygame.SRCALPHA)
+        option_surface.fill((0, 0, 0, 0))
+        
+        self._draw_rounded_rect_aa(option_surface, color, (0, 0, width, height), 14)
+        
+        highlight = pygame.Surface((width, height), pygame.SRCALPHA)
+        highlight.fill((0, 0, 0, 0))
+        for i in range(height):
+            alpha = int(40 * (1 - i / height * 0.7))
+            pygame.draw.line(highlight, (255, 255, 255, alpha), (0, i), (width, i))
+        
+        mask = pygame.Surface((width, height), pygame.SRCALPHA)
+        mask.fill((0, 0, 0, 0))
+        self._draw_rounded_rect_aa(mask, (255, 255, 255, 255), (0, 0, width, height), 14)
+        
+        highlight.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
+        option_surface.blit(highlight, (0, 0))
+        
+        border_surface = pygame.Surface((width, height), pygame.SRCALPHA)
+        border_surface.fill((0, 0, 0, 0))
+        self._draw_rounded_rect_aa(border_surface, (0, 0, 0, 0), (0, 0, width, height), 14)
+        pygame.draw.rect(border_surface, self.option_border, (0, 0, width, height), 
+                        width=1, border_radius=14)
+        option_surface.blit(border_surface, (0, 0))
+        
+        return option_surface
 
     def set_score_accessors(self, get_score_func, set_score_func):
         self.get_score_callback = get_score_func
@@ -168,8 +227,7 @@ class ConfigMenu:
             x_pos = self.window_width - menu_width - 14
             y_pos = self.icon_rect.bottom + 10
             
-            surf = pygame.Surface((menu_width, height), pygame.SRCALPHA)
-            pygame.draw.rect(surf, self.bg_color, (0, 0, menu_width, height), border_radius=20)
+            surf = self._create_glass_effect(menu_width, height)
             
             for i, (text, full_width) in enumerate(menu_items):
                 current_width = menu_width - 2 * horizontal_padding if full_width else button_width
@@ -185,8 +243,8 @@ class ConfigMenu:
                 self.menu_rects.append((abs_rect, text))
 
                 color = self.option_hover_color if abs_rect.collidepoint(mouse_pos) else self.option_color
-                pygame.draw.rect(surf, color, (button_x, button_y, current_width, button_height), border_radius=14)
-                pygame.draw.rect(surf, self.option_border, (button_x, button_y, current_width, button_height), 2, border_radius=14)
+                option_surface = self._create_glass_option(current_width, button_height, color)
+                surf.blit(option_surface, (button_x, button_y))
 
                 txt = self.font.render(text, True, self.text_color)
                 txt_rect = txt.get_rect(center=(button_x + current_width // 2, button_y + button_height // 2))
@@ -198,17 +256,14 @@ class ConfigMenu:
             full_width_items = [item for item in menu_items if item[1]]
             
             num_regular_rows = (len(regular_items) + 1) // 2
-            
             total_rows = num_regular_rows + len(full_width_items)
-            
             total_height = total_rows * (button_height + button_spacing) - button_spacing + 2 * vertical_padding
             height = int(total_height * self.animation_progress)
             
             x_pos = self.window_width - menu_width - 14
             y_pos = self.icon_rect.bottom + 10
             
-            surf = pygame.Surface((menu_width, height), pygame.SRCALPHA)
-            pygame.draw.rect(surf, self.bg_color, (0, 0, menu_width, height), border_radius=20)
+            surf = self._create_glass_effect(menu_width, height)
             
             for i, (text, full_width) in enumerate(regular_items):
                 col = i % 2
@@ -226,8 +281,8 @@ class ConfigMenu:
                 self.menu_rects.append((abs_rect, text))
 
                 color = self.option_hover_color if abs_rect.collidepoint(mouse_pos) else self.option_color
-                pygame.draw.rect(surf, color, (button_x, button_y, button_width, button_height), border_radius=14)
-                pygame.draw.rect(surf, self.option_border, (button_x, button_y, button_width, button_height), 2, border_radius=14)
+                option_surface = self._create_glass_option(button_width, button_height, color)
+                surf.blit(option_surface, (button_x, button_y))
 
                 txt = self.font.render(text, True, self.text_color)
                 txt_rect = txt.get_rect(center=(button_x + button_width // 2, button_y + button_height // 2))
@@ -248,8 +303,8 @@ class ConfigMenu:
                 self.menu_rects.append((abs_rect, text))
 
                 color = self.option_hover_color if abs_rect.collidepoint(mouse_pos) else self.option_color
-                pygame.draw.rect(surf, color, (button_x, button_y, button_width_full, button_height), border_radius=14)
-                pygame.draw.rect(surf, self.option_border, (button_x, button_y, button_width_full, button_height), 2, border_radius=14)
+                option_surface = self._create_glass_option(button_width_full, button_height, color)
+                surf.blit(option_surface, (button_x, button_y))
 
                 txt = self.font.render(text, True, self.text_color)
                 txt_rect = txt.get_rect(center=(button_x + button_width_full // 2, button_y + button_height // 2))
@@ -304,7 +359,6 @@ class ConfigMenu:
                 for rect, text in self.menu_rects:
                     if rect.collidepoint(event.pos):
                         if text == "Configurações":
-                            self.controls_menu.visible = False
                             self.achievements_menu.visible = False
                             self.eventos_menu.visible = False
                             self.settings_menu.visible = True

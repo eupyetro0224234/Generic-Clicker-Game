@@ -1,4 +1,5 @@
-pillow==12.0.0
-pycryptodome==3.23.0
-pygame==2.6.1
-requests==2.32.5
+pillow
+pycryptodome
+pygame
+requests
+pytz

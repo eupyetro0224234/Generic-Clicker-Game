@@ -1,7 +1,4 @@
-import pygame
-import random
-import os
-import sys
+import pygame, random, os, sys
 
 def resource_path(relative_path):
     try:
@@ -61,14 +58,15 @@ class MiniEvent:
             text_rect = text.get_rect(center=(self.size//2, self.size//2))
             self.image.blit(text, text_rect)
 
+        self.volume = 1.0
+        self.sound_playing = False
+        self.sound_channel = None
+        
         try:
             self.sound = pygame.mixer.Sound(self.sound_path)
-            self.sound_playing = False
-            self.sound_channel = None
+            self.sound.set_volume(self.volume)
         except Exception:
             self.sound = None
-            self.sound_playing = False
-            self.sound_channel = None
 
         self.x = random.randint(0, self.width - self.size)
         self.y = random.randint(0, self.height - self.size)
@@ -77,6 +75,16 @@ class MiniEvent:
         self.font = pygame.font.SysFont(None, 24)
         self.rect = pygame.Rect(self.x, self.y, self.size, self.size)
         self.pos = (self.x, self.y)
+
+    def set_volume(self, volume):
+        self.volume = max(0.0, min(1.0, volume))
+        if self.sound:
+            try:
+                self.sound.set_volume(self.volume)
+                if self.sound_playing and self.sound_channel:
+                    self.sound_channel.set_volume(self.volume)
+            except Exception:
+                pass
 
     def _get_weighted_clicks(self):
         num = int(random.triangular(1, 50, 45))
@@ -91,6 +99,9 @@ class MiniEvent:
             return random.randint(800, 1000)
         else:
             return random.randint(1000, 1500)
+    
+    def _get_rare_event_reward(self):
+        return random.randint(1, 10000)
 
     def update(self):
         if not self.visible:
@@ -102,6 +113,8 @@ class MiniEvent:
         if not self.sound_playing and self.sound:
             try:
                 self.sound_channel = self.sound.play(loops=-1)
+                if self.sound_channel:
+                    self.sound_channel.set_volume(self.volume)
                 self.sound_playing = True
             except Exception:
                 self.sound_playing = False
@@ -140,6 +153,12 @@ class MiniEvent:
         if not self.visible:
             return score, False, 0
 
+        mouse_buttons = pygame.mouse.get_pressed()
+        
+        if self.event_type == "normal":
+            if not mouse_buttons[0]:
+                return score, False, 0
+
         if self.rect.collidepoint(pos):
             if self.event_type == "rare":
                 self.clicks_done += 1
@@ -154,7 +173,7 @@ class MiniEvent:
                             upgrade_menu.purchase_random_upgrade()
                         return score, True, 0
 
-                    pontos_ganhos = random.randint(6, 10) * 1000 * self.reward_multiplier
+                    pontos_ganhos = self._get_rare_event_reward()
                     novo_score = score + pontos_ganhos
                     return novo_score, False, pontos_ganhos
                 else:

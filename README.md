@@ -1,6 +1,6 @@
 # Generic Clicker Game
 
-[![Projeto no Itch.io](https://i.postimg.cc/hPsCTZ9m/image.png)](https://eupyetro022.itch.io/generic-clicker-game) ![Badge de versão](https://img.shields.io/badge/version-0.0.05.2-yellow) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
+[![Projeto no Itch.io](https://i.postimg.cc/hPsCTZ9m/image.png)](https://eupyetro022.itch.io/generic-clicker-game) ![Badge de versão](https://img.shields.io/badge/version-0.0.06-yellow) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
 
 **Desative o tradutor do seu navegador ao ler**
 
@@ -29,34 +29,27 @@ Eu acho Just Another Generic Clicker Game, But With References um nome gigante. 
 
 ## Sobre
 
-Este projeto é um jogo clicker desenvolvido em Python utilizando a biblioteca Pygame. Inspirado por jogos gênero, como Cookie Clicker, ele oferece uma experiência divertida e simples de acumular pontos clicando em um botão. O jogo inclui funcionalidades como sistema de upgrades para melhorar o ganho de pontos, conquistas para motivar o jogador a alcançar metas, menus interativos para configurar controles, além de efeitos visuais que tornam a jogabilidade mais legal. Desenvolvido como um projeto pessoal, o objetivo é aprender e aplicar conceitos de programação de jogos.
+Este é um jogo clicker feito em Python com Pygame, inspirado em jogos como Cookie Clicker. A ideia é simples: clicar, ganhar pontos e desbloquear upgrades e conquistas.
+
+O projeto foi criado como um experimento pessoal para aprender desenvolvimento de jogos. Apesar do estilo descontraído e meio “meme”, ele foi feito com bastante cuidado (um meme levado a sério).
+
 ---
 
 ## Funcionalidades
 
-✅**Clique para ganhar pontos**
-- O jogador clica no botão para acumular pontos.
+✅ **Clique para ganhar pontos**
 
-✅**Sistema de upgrades**
-- Com os pontos acumulados, o jogador pode comprar upgrades que aumentam a quantidade de pontos por clique, como "Auto Clique", "Pontos em dobro" e "Mega clique".
+✅ **Sistema de upgrades**
 
-✅**Sistema de conquistas**
-- Conquistas são desbloqueadas automaticamente conforme o jogador atinge determinados marcos, e podem ser visualizadas em um menu específico.
+✅ **Sistema de conquistas**
 
-✅**Menus interativos**
-- Menus de Configurações, Controles, Conquistas, Console secreto e Upgrades, acessíveis por ícones no canto da tela, com animações de abertura e fechamento.
+✅ **Menus interativos**
 
-✅**Efeitos visuais de clique**
-- Pequenas animações aparecem ao clicar, mostrando "+1" para dar feedback visual ao jogador.
+✅ **Efeitos visuais de clique**
 
-✅**Sistema de salvamento automático**
-- Pontuação, conquistas desbloqueadas, upgrades adquiridos e configurações são salvos automaticamente para que o progresso seja mantido entre sessões.
+✅ **Salvamento automático de progresso** 
 
-✅**Tela de carregamento animada**
-- Apresenta mensagens e uma barra de progresso enquanto o jogo carrega, melhorando a experiência do usuário.
-
-✅**Interface responsiva e estilizada**
-- Usa imagens externas para ícones e botões, animações suaves, e disposição intuitiva dos elementos na tela.
+✅ **Interface responsiva e estilizada**
 
 ---
 
@@ -86,7 +79,7 @@ pip install -r github_assets/requirements.txt
 *ou, caso prefira instalar manualmente
 
 ```bash
-pip install pillow==12.0.0 pycryptodome==3.23.0 pygame==2.6.1 requests==2.32.5
+pip install pillow pycryptodome pygame requests pytz
 ```
 
 Rode o projeto
@@ -179,8 +172,38 @@ Pyetro — contato.eupyetro022@gmail.com
 * [Modpack Crash Landing](https://www.curseforge.com/minecraft/modpacks/crash-landing): Som de conquista concluída
 * [Kindergarten Wiki](https://kindergarten.fandom.com/wiki/Nugget): Trabalhador
 * [Doors OST](https://www.youtube.com/watch?v=GUPtSENNsdg): Áudio do Mini Evento
+* Minecraft 1.7.10 Forge: Botão de concluído para iniciar o jogo com mods
+* Dragon Mania: Botão de fechar os menus
 
 ## Changelogs
+<details> <summary> 0.0.06 - 04/01/26 </summary>
+
+Como prometido, um bom tempo sem atualizações. Essa atualização ficou pronta a tipo, uma ou duas semanas atrás. Só esperei mais um pouco e adicionei umas coisas que viriam na 0.0.06.1 (ou 07) pois hoje fazem 6 meses desde que começei o projeto e lancei a primeira release. Além disso, é a primeira release de 2026. Feliz ano novo!
+
+
+
+- Cronometro de tempo de jogo,
+- Reset via R removido, agora somente via console ou apagando o arquivo de save,
+- No console, agora pode se usar reset achievements points invés de usar um de cada vez,
+- Textos dos upgrades corrigidos,
+- Agora, no menu de configurações, é possível controlar o volume dos 2 áudios atuais do jogo, além disso, é possível diminuir o brilho de fundo pra até -35%,
+- Conquista nova: Tudo em um,
+- Agora não da mais que o app não responde ao carregar o jogo,
+- Estatísticas agora são visíveis,
+- Sequência,
+- Upgrades novos e ajuste nos preços e nomes,
+- Quando há algum problema com save, invés de mostrar uma mensagem que no fim ia começar o save do 0, já deixei pra começar direto (por isso, não mexa nos arquivos de save),
+- Data para desbloqueio das conquistas;
+- Os upgrades agora sobem de preço quando comprados,
+- Reformulação visual da tela de escolher os mods (isso foi adiantado pra próxima versão),
+- Textos no console resumidos/retirados,
+- Agora é possível ganhar pontos enquanto o jogo está fechado,
+- Botão de fechar menus do Dragon Mania,
+- Bug que ao abrir o menu de configurações com os controles sendo exibidos, ele o fechava corrigido,
+- Efeito "glassmorphism" para as opções do menu, pros upgrades, pros controles e para o aviso de conquista concluida.
+
+</details>
+
 <details>  <summary> 0.0.05.2 - 25/10/25 </summary>
 
 Quem diria eu que na minha cabeça ia sumir vindo aqui fazer patches pra coisas mínimas que passaram desapercebidas sksk
@@ -193,7 +216,7 @@ Quem diria eu que na minha cabeça ia sumir vindo aqui fazer patches pra coisas 
 
  <details> <summary>0.0.05.1 - 24/10/25</summary>
 
-Essa aqui demorou, mas foi por um bom motivo. DEZENAS de bugs que eu só consegui ajustar lendo calmamente cada parte do código estão resolvidos e com algumas mudanças. Além disso, eu só manti como 0.0.05.1 pois agora, para mim, uma atualizzação de verdade tem que ter pelo menos 5 adições. Não conta remover 1 texto, por exemplo, tem que ser coisas decentes de verdade. Decidi também fazer uma atualização que geralmente serve pra correção de bugs ser uma grande atualoização.
+Essa aqui demorou, mas foi por um bom motivo. DEZENAS de bugs que eu só consegui ajustar lendo calmamente cada parte do código estão resolvidos e com algumas mudanças. Além disso, eu só manti como 0.0.05.1 pois agora, para mim, uma atualização de verdade tem que ter pelo menos 5 adições. Não conta remover 1 texto, por exemplo, tem que ser coisas decentes de verdade. Decidi também fazer uma atualização que geralmente serve pra correção de bugs ser uma grande atualização.
 
 - A partir de agora, os assets utilizados pelo jogo não precisam mais ser baixados via internet, eles já vem junto com o executável;
 - Jogo agora em tela cheia;

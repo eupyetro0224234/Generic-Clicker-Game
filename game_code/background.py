@@ -1,176 +1,59 @@
-import pygame
-import math
-import time
-import os
-import importlib.util
-import json
+import pygame, math, time
 
 pygame.init()
 info = pygame.display.Info()
 WIDTH, HEIGHT = info.current_w, info.current_h
 pygame.quit()
 
-def load_mod_from_path(path):
-    spec = importlib.util.spec_from_file_location("mod_background_temp", path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-def choose_mod(mod_files):
-    pygame.init()
-    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-    screen_width, screen_height = screen.get_size()
-    pygame.display.set_caption("Selecionar Mod")
-
-    title_font = pygame.font.SysFont(None, 36)
-    font = pygame.font.SysFont(None, 28)
-
-    bg_color = (180, 210, 255, 220)
-    text_color = (40, 40, 60)
-    btn_color_normal = (255, 255, 255)
-    btn_color_hover = (220, 235, 255)
-    border_color = (150, 150, 150)
-    option_radius = 12
-
-    padding_x = 50
-    padding_y = 50
-    btn_height = 44
-    spacing_y = 14
-    btn_width = min(600, screen_width - 100)
-    btn_x = (screen_width - btn_width) // 2
-
-    buttons = []
-    for i, f in enumerate(mod_files):
-        btn_rect = pygame.Rect(btn_x, padding_y + 120 + i * (btn_height + spacing_y), btn_width, btn_height)
-        buttons.append((btn_rect, f))
-
-    clock = pygame.time.Clock()
-    running = True
-    while running:
-        screen.fill((30, 30, 40))
-
-        overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
-        pygame.draw.rect(overlay, bg_color, (0, 0, screen_width, screen_height))
-        screen.blit(overlay, (0, 0))
-
-        title_surf = title_font.render("Mods disponíveis:", True, text_color)
-        title_rect = title_surf.get_rect(center=(screen_width // 2, padding_y + 40))
-        screen.blit(title_surf, title_rect)
-
-        instr_text = "Clique em um mod para selecionar ou [ESC] para nenhum"
-        instr_surf = font.render(instr_text, True, (100, 100, 130))
-        instr_rect = instr_surf.get_rect(center=(screen_width // 2, padding_y + 85))
-        screen.blit(instr_surf, instr_rect)
-
-        mouse_pos = pygame.mouse.get_pos()
-
-        for i, (rect, f) in enumerate(buttons):
-            color = btn_color_hover if rect.collidepoint(mouse_pos) else btn_color_normal
-            pygame.draw.rect(screen, color, rect, border_radius=option_radius)
-            pygame.draw.rect(screen, border_color, rect, width=2, border_radius=option_radius)
-
-            text_surf = font.render(f"[{i+1}] {f}", True, text_color)
-            text_rect = text_surf.get_rect(midleft=(rect.x + 14, rect.y + btn_height // 2))
-            screen.blit(text_surf, text_rect)
-
-        pygame.display.flip()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-                pygame.quit()
-                return None
-
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    return None
-                if pygame.K_1 <= event.key <= pygame.K_9:
-                    num = event.key - pygame.K_1 + 1
-                    if num <= len(mod_files):
-                        pygame.quit()
-                        return mod_files[num - 1]
-
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                for i, (rect, f) in enumerate(buttons):
-                    if rect.collidepoint(event.pos):
-                        pygame.quit()
-                        return mod_files[i]
-
-def get_config_path():
-    appdata = os.getenv("APPDATA")
-    if not appdata:
-        return None
-    game_folder = os.path.join(appdata, "genericclickergame")
-    if not os.path.exists(game_folder):
-        os.makedirs(game_folder, exist_ok=True)
-    return os.path.join(game_folder, "config.json")
-
-def load_config():
-    config_path = get_config_path()
-    default_config = {
-        "Ativar Mods": False,
-    }
-    if not config_path or not os.path.isfile(config_path):
-        return default_config
-    try:
-        with open(config_path, "r", encoding="utf-8") as f:
-            cfg = json.load(f)
-            return {**default_config, **cfg}
-    except Exception:
-        return default_config
-
-def get_mods_folder():
-    appdata = os.getenv("APPDATA")
-    if not appdata:
-        base_path = os.path.abspath(".")
-    else:
-        base_path = os.path.join(appdata, "genericclickergame", "mods")
-    if not os.path.exists(base_path):
-        os.makedirs(base_path, exist_ok=True)
-    return base_path
-
-def load_selected_mod(mods_folder):
-    mod_files = [f for f in os.listdir(mods_folder) if f.endswith('_mod.py')]
-    if not mod_files:
-        return None
-    elif len(mod_files) == 1:
-        return os.path.join(mods_folder, mod_files[0])
-    else:
-        selected = choose_mod(mod_files)
-        if selected:
-            return os.path.join(mods_folder, selected)
-        else:
-            return None
-
-config = load_config()
-ativar_mods = config.get("Ativar Mods", False)
-
 mod = None
-if ativar_mods:
-    mods_folder = get_mods_folder()
-    selected_mod_file = load_selected_mod(mods_folder)
-    if selected_mod_file:
-        try:
-            mod = load_mod_from_path(selected_mod_file)
-        except Exception:
-            mod = None
 
-TILE_SIZE = getattr(mod, 'TILE_SIZE', 60)
-BASE_COLORS = getattr(mod, 'BASE_COLORS', [
+def set_mod(mod_instance):
+    global mod
+    mod = mod_instance
+    _apply_mod_settings()
+
+def _apply_mod_settings():
+    global TILE_SIZE, BASE_COLORS, FREQ, ENABLE_ANIMATION, BACKGROUND_STYLE
+    global adjust_brightness, draw_background_override
+    
+    if mod and hasattr(mod, 'CustomBackground'):
+        custom_bg = mod.CustomBackground()
+        TILE_SIZE = custom_bg.tile_size
+        BASE_COLORS = custom_bg.base_colors
+        FREQ = custom_bg.freq
+        ENABLE_ANIMATION = custom_bg.enable_animation
+        BACKGROUND_STYLE = custom_bg.background_style
+    else:
+        TILE_SIZE = 60
+        BASE_COLORS = [
+            (200, 230, 201),
+            (255, 224, 178),
+            (255, 205, 210),
+            (187, 222, 251),
+            (255, 249, 196),
+            (197, 225, 165),
+        ]
+        FREQ = 0.5
+        ENABLE_ANIMATION = True
+        BACKGROUND_STYLE = 'quadriculado'
+    
+    adjust_brightness = getattr(mod, 'adjust_brightness', None) if mod else None
+    draw_background_override = getattr(mod, 'draw_background_override', None) if mod else None
+
+TILE_SIZE = 60
+BASE_COLORS = [
     (200, 230, 201),
     (255, 224, 178),
     (255, 205, 210),
     (187, 222, 251),
     (255, 249, 196),
     (197, 225, 165),
-])
-FREQ = getattr(mod, 'FREQ', 0.5)
-ENABLE_ANIMATION = getattr(mod, 'ENABLE_ANIMATION', True)
-BACKGROUND_STYLE = getattr(mod, 'BACKGROUND_STYLE', 'quadriculado')
-
-adjust_brightness = getattr(mod, 'adjust_brightness', None)
-draw_background_override = getattr(mod, 'draw_background_override', None)
+]
+FREQ = 0.5
+ENABLE_ANIMATION = True
+BACKGROUND_STYLE = 'quadriculado'
+adjust_brightness = None
+draw_background_override = None
 
 def generate_grid_colors(screen_width, screen_height, tile_size):
     grid_width = screen_width // tile_size + 2
@@ -203,6 +86,12 @@ def adjust_brightness_func(color, factor):
     else:
         return default_adjust_brightness(color, factor)
 
+game_reference = None
+
+def set_game_reference(game):
+    global game_reference
+    game_reference = game
+
 def draw_background(screen):
     screen_width, screen_height = screen.get_size()
     
@@ -212,12 +101,34 @@ def draw_background(screen):
         return draw_background_override(screen, grid_colors, TILE_SIZE)
     
     t = time.time()
+    
+    brightness_factor = 1.0
+    if game_reference and hasattr(game_reference, 'config_menu'):
+        brightness_factor = game_reference.config_menu.settings_menu.get_brightness_settings()
+    
     for y in range(grid_height):
         for x in range(grid_width):
             base_color = grid_colors[y][x]
             brightness = 1
             if ENABLE_ANIMATION:
                 brightness = 1 + 0.15 * math.sin(2 * math.pi * FREQ * t + (x + y))
-            color = adjust_brightness_func(base_color, brightness)
+            
+            final_brightness = brightness * brightness_factor
+            color = adjust_brightness_func(base_color, final_brightness)
             rect = pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
             pygame.draw.rect(screen, color, rect)
+
+class Background:
+    def __init__(self, tile_size=60, base_colors=None, freq=0.5, enable_animation=True, background_style='quadriculado'):
+        self.tile_size = tile_size
+        self.base_colors = base_colors if base_colors else [
+            (200, 230, 201),
+            (255, 224, 178),
+            (255, 205, 210),
+            (187, 222, 251),
+            (255, 249, 196),
+            (197, 225, 165),
+        ]
+        self.freq = freq
+        self.enable_animation = enable_animation
+        self.background_style = background_style

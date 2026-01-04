@@ -1,6 +1,12 @@
-import pygame
-import time
-import os
+import pygame, time, os, sys, pytz
+from datetime import datetime
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 class Achievement:
     def __init__(self, id, name, description, threshold=-1):
@@ -9,13 +15,15 @@ class Achievement:
         self.description = description
         self.threshold = threshold
         self.unlocked = False
+        self.unlock_date = None
         self.show_time = 0
         self.animation_state = 0
         self.animation_progress = 0
 
 class AchievementTracker:
-    def __init__(self, screen):
+    def __init__(self, screen, game=None):
         self.screen = screen
+        self.game = game
         self.achievements = [
             Achievement("first_click", "Primeiro ponto", "Dê seu primeiro clique", 1),
             Achievement("hundred_points", "100 Pontos", "Chegue a cem pontos", 100),
@@ -26,8 +34,10 @@ class AchievementTracker:
             Achievement("mini_event_1", "Mini Evento: Primeiro Clique", "Clique pela primeira vez no mini evento", 1),
             Achievement("mini_event_10", "Mini Evento: 10 Cliques", "Clique 10 vezes no mini evento", 10),
             Achievement("mini_event_100", "Mini Evento: 100 Cliques", "Clique 100 vezes no mini evento", 100),
-            Achievement("manual_phase", "Antes de Automação, vem a fase manual", "Compre o upgrade de clique manual (segurar botão)"),
+            Achievement("manual_phase", "Antes de Automação, vem a fase manual", "Compre o upgrade Click ao Segurar"),
+            Achievement("automatico", "Finalmente a fase da automação", "Compre o upgrade de auto click"),
             Achievement("triple_unlock", "Desbloqueio Triplo", "Desbloqueie 3 conquistas em 5 segundos"),
+            Achievement("tudo_ativo", "Tudo Ativo", "Compre todos os upgrades disponíveis"),
             Achievement("perfeicao_15", "Perfeição 1.5", "Complete todas as conquistas")
         ]
         self.unlocked = set()
@@ -37,34 +47,41 @@ class AchievementTracker:
         self.desc_font = pygame.font.SysFont("None", 100)
         self.icon_font = pygame.font.SysFont("Segoe UI Emoji", 30)
         self.sound = None
+        self.achievement_sound = None
         self.animation_speed = 0.08
         self.popup_duration = 3.0
         self.normal_clicks = 0
         self.mini_event_clicks = 0
         
-        # Variáveis para controle do Desbloqueio Triplo
         self.last_unlock_time = None
         self.unlock_count = 0
         self.triple_unlock_triggered = False
         
+        self.volume = 1.0
         self.load_sound()
 
+    def set_volume(self, volume):
+        self.volume = max(0.0, min(1.0, volume))
+        if self.achievement_sound:
+            try:
+                self.achievement_sound.set_volume(self.volume)
+            except Exception:
+                pass
+
     def reset_achievements(self):
-        """Reseta completamente todas as conquistas e variáveis de controle"""
         self.unlocked.clear()
+        
         for ach in self.achievements:
             ach.unlocked = False
+            ach.unlock_date = None
+            ach.show_time = 0
+            ach.animation_state = 0
+            ach.animation_progress = 0
         
-        # RESETA AS VARIÁVEIS DE CONTROLE DO DESBLOQUEIO TRIPLO
         self.last_unlock_time = None
         self.unlock_count = 0
         self.triple_unlock_triggered = False
         
-        # Reseta contadores de cliques
-        self.normal_clicks = 0
-        self.mini_event_clicks = 0
-        
-        # Limpa a fila de animações
         self.achievement_queue = []
         self.current_achievement = None
 
@@ -75,22 +92,47 @@ class AchievementTracker:
             sound_path = os.path.join(parent_dir, "game_assets", "complete-quest.ogg")
 
             if os.path.exists(sound_path):
-                self.sound = pygame.mixer.Sound(sound_path)
+                self.achievement_sound = pygame.mixer.Sound(sound_path)
+                self.achievement_sound.set_volume(self.volume)
             else:
                 sound_path2 = os.path.join("..", "game_assets", "complete-quest.ogg")
                 if os.path.exists(sound_path2):
-                    self.sound = pygame.mixer.Sound(sound_path2)
+                    self.achievement_sound = pygame.mixer.Sound(sound_path2)
+                    self.achievement_sound.set_volume(self.volume)
         except Exception:
-            self.sound = None
+            self.achievement_sound = None
 
-    def load_unlocked(self, saved_ids):
+    def load_unlocked(self, saved_data):
         for ach in self.achievements:
-            if ach.id in saved_ids:
-                ach.unlocked = True
-                self.unlocked.add(ach.id)
+            ach.unlocked = False
+            ach.unlock_date = None
+        self.unlocked.clear()
+        
+        if not saved_data:
+            return
+            
+        if isinstance(saved_data, dict):
+            for ach_id, unlock_date in saved_data.items():
+                for ach in self.achievements:
+                    if ach.id == ach_id:
+                        ach.unlocked = True
+                        ach.unlock_date = unlock_date
+                        self.unlocked.add(ach.id)
+                        break
+        elif isinstance(saved_data, list):
+            for ach_id in saved_data:
+                for ach in self.achievements:
+                    if ach.id == ach_id:
+                        ach.unlocked = True
+                        ach.unlock_date = self._get_current_datetime()
+                        self.unlocked.add(ach.id)
+                        break
+
+    def _get_current_datetime(self):
+        tz_brasilia = pytz.timezone('America/Sao_Paulo')
+        return datetime.now(tz_brasilia).strftime("%d/%m/%Y - %H:%M")
 
     def _check_triple_unlock(self):
-        """Verifica se o jogador desbloqueou 3 conquistas em 5 segundos"""
         if self.triple_unlock_triggered:
             return
             
@@ -101,25 +143,22 @@ class AchievementTracker:
             self.unlock_count = 1
             return
         
-        # Se passaram mais de 5 segundos, reinicia a contagem
         if current_time - self.last_unlock_time > 5:
             self.last_unlock_time = current_time
             self.unlock_count = 1
             return
         
-        # Ainda dentro da janela de 5 segundos
         self.unlock_count += 1
         self.last_unlock_time = current_time
         
-        # Verifica se atingiu 3 conquistas
         if self.unlock_count >= 3:
             self._unlock_triple_achievement()
 
     def _unlock_triple_achievement(self):
-        """Desbloqueia a conquista de Desbloqueio Triplo"""
         triple_ach = next((ach for ach in self.achievements if ach.id == "triple_unlock"), None)
         if triple_ach and not triple_ach.unlocked:
             triple_ach.unlocked = True
+            triple_ach.unlock_date = self._get_current_datetime()
             self.unlocked.add("triple_unlock")
             self.achievement_queue.append(triple_ach)
             self._start_next_achievement()
@@ -141,13 +180,21 @@ class AchievementTracker:
             if click_type == "normal":
                 if ach.id == "first_click" and self.normal_clicks >= 1:
                     ach.unlocked = True
+                    ach.unlock_date = self._get_current_datetime()
             elif click_type == "mini_event":
-                if ach.id == "mini_event_1" and self.mini_event_clicks >= 1:
+                session_total = 0
+                if self.game:
+                    session_total = self.game.mini_event1_session + self.game.mini_event2_session
+                
+                if ach.id == "mini_event_1" and session_total >= 1:
                     ach.unlocked = True
-                elif ach.id == "mini_event_10" and self.mini_event_clicks >= 10:
+                    ach.unlock_date = self._get_current_datetime()
+                elif ach.id == "mini_event_10" and session_total >= 10:
                     ach.unlocked = True
-                elif ach.id == "mini_event_100" and self.mini_event_clicks >= 100:
+                    ach.unlock_date = self._get_current_datetime()
+                elif ach.id == "mini_event_100" and session_total >= 100:
                     ach.unlocked = True
+                    ach.unlock_date = self._get_current_datetime()
             if ach.unlocked:
                 self.unlocked.add(ach.id)
                 new_achievements.append(ach)
@@ -164,14 +211,19 @@ class AchievementTracker:
             if not ach.unlocked:
                 if ach.id == "first_click" and score >= ach.threshold:
                     ach.unlocked = True
+                    ach.unlock_date = self._get_current_datetime()
                 elif ach.id == "hundred_points" and score >= ach.threshold:
                     ach.unlocked = True
+                    ach.unlock_date = self._get_current_datetime()
                 elif ach.id == "thousand_points" and score >= ach.threshold:
                     ach.unlocked = True
+                    ach.unlock_date = self._get_current_datetime()
                 elif ach.id == "million_points" and score >= ach.threshold:
                     ach.unlocked = True
+                    ach.unlock_date = self._get_current_datetime()
                 elif ach.id == "billion_points" and score >= ach.threshold:
                     ach.unlocked = True
+                    ach.unlock_date = self._get_current_datetime()
                 
                 if ach.unlocked:
                     self.unlocked.add(ach.id)
@@ -190,11 +242,38 @@ class AchievementTracker:
         for ach in self.achievements:
             if ach.id == id and not ach.unlocked:
                 ach.unlocked = True
+                ach.unlock_date = self._get_current_datetime()
                 self.unlocked.add(ach.id)
                 self.achievement_queue.append(ach)
                 self._start_next_achievement()
                 self._check_triple_unlock()
                 self.check_all_achievements_completed()
+
+    def check_all_upgrades_purchased(self, upgrade_menu):
+        tudo_ativo_ach = next((ach for ach in self.achievements if ach.id == "tudo_ativo"), None)
+        
+        if tudo_ativo_ach and not tudo_ativo_ach.unlocked:
+            required_upgrades = ["hold_click", "auto_click", "double", "mega", "mini_event"]
+            
+            all_purchased = True
+            for upgrade_id in required_upgrades:
+                if upgrade_menu.purchased.get(upgrade_id, 0) == 0:
+                    all_purchased = False
+                    break
+            
+            if all_purchased and len(upgrade_menu.trabalhadores) == 0:
+                all_purchased = False
+            
+            if all_purchased:
+                tudo_ativo_ach.unlocked = True
+                tudo_ativo_ach.unlock_date = self._get_current_datetime()
+                self.unlocked.add("tudo_ativo")
+                self.achievement_queue.append(tudo_ativo_ach)
+                self._start_next_achievement()
+                self._check_triple_unlock()
+                return True
+        
+        return False
 
     def check_all_achievements_completed(self):
         all_unlocked = all(
@@ -203,9 +282,19 @@ class AchievementTracker:
         perfeicao_ach = next((ach for ach in self.achievements if ach.id == "perfeicao_15"), None)
         if all_unlocked and perfeicao_ach and not perfeicao_ach.unlocked:
             perfeicao_ach.unlocked = True
+            perfeicao_ach.unlock_date = self._get_current_datetime()
             self.unlocked.add("perfeicao_15")
             self.achievement_queue.append(perfeicao_ach)
             self._start_next_achievement()
+
+    def get_achievements_with_dates(self):
+        achievements_dict = {}
+        for ach in self.achievements:
+            if ach.unlocked and ach.id in self.unlocked:
+                if ach.unlock_date is None:
+                    ach.unlock_date = self._get_current_datetime()
+                achievements_dict[ach.id] = ach.unlock_date
+        return achievements_dict
 
     def _start_next_achievement(self):
         if self.current_achievement is None and self.achievement_queue:
@@ -213,9 +302,10 @@ class AchievementTracker:
             self.current_achievement.show_time = time.time()
             self.current_achievement.animation_state = 1
             self.current_achievement.animation_progress = 0
-            if self.sound:
+            if self.achievement_sound:
                 try:
-                    self.sound.play()
+                    self.achievement_sound.set_volume(self.volume)
+                    self.achievement_sound.play()
                 except Exception:
                     pass
 
@@ -237,6 +327,44 @@ class AchievementTracker:
                     ach.animation_state = 0
                     self.current_achievement = None
                     self._start_next_achievement()
+
+    def _draw_rounded_rect_aa(self, surface, color, rect, radius):
+        temp_surface = pygame.Surface((rect[2] + 4, rect[3] + 4), pygame.SRCALPHA)
+        temp_surface.fill((0, 0, 0, 0))
+        
+        temp_rect = pygame.Rect(2, 2, rect[2], rect[3])
+        pygame.draw.rect(temp_surface, color, temp_rect, border_radius=radius)
+        
+        surface.blit(temp_surface, (rect[0] - 2, rect[1] - 2))
+
+    def _create_glass_popup(self, width, height, alpha):
+        glass_surface = pygame.Surface((width, height), pygame.SRCALPHA)
+        glass_surface.fill((0, 0, 0, 0))
+        
+        bg_color = (230, 178, 186, int(alpha * 0.7))
+        self._draw_rounded_rect_aa(glass_surface, bg_color, (0, 0, width, height), 20)
+        
+        highlight = pygame.Surface((width, height), pygame.SRCALPHA)
+        highlight.fill((0, 0, 0, 0))
+        for i in range(height):
+            line_alpha = int((50 * (1 - i / height * 0.6)) * (alpha / 255))
+            pygame.draw.line(highlight, (255, 255, 255, line_alpha), (0, i), (width, i))
+        
+        mask = pygame.Surface((width, height), pygame.SRCALPHA)
+        mask.fill((0, 0, 0, 0))
+        self._draw_rounded_rect_aa(mask, (255, 255, 255, 255), (0, 0, width, height), 20)
+        
+        highlight.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
+        glass_surface.blit(highlight, (0, 0))
+        
+        border_color = (190, 100, 110, int(alpha * 0.63))
+        border_surface = pygame.Surface((width, height), pygame.SRCALPHA)
+        border_surface.fill((0, 0, 0, 0))
+        pygame.draw.rect(border_surface, border_color, (0, 0, width, height), 
+                        width=2, border_radius=20)
+        glass_surface.blit(border_surface, (0, 0))
+        
+        return glass_surface
 
     def draw_popup(self):
         self._update_animation()
@@ -266,11 +394,7 @@ class AchievementTracker:
                          (shadow_offset, shadow_offset, w, h), border_radius=20)
         self.screen.blit(shadow_surface, (x - 3, y - 3))
 
-        popup_surface = pygame.Surface((w, h), pygame.SRCALPHA)
-        bg_color = (230, 178, 186, alpha)
-        pygame.draw.rect(popup_surface, bg_color, (0, 0, w, h), border_radius=20)
-        border_color = (190, 100, 110, alpha)
-        pygame.draw.rect(popup_surface, border_color, (0, 0, w, h), 2, border_radius=20)
+        popup_surface = self._create_glass_popup(w, h, alpha)
         popup_surface.blit(text_surface, ((w - text_width) // 2, (h - text_height) // 2))
         self.screen.blit(popup_surface, (x, y))
 
@@ -285,33 +409,50 @@ class AchievementsMenu:
         self.config_menu = config_menu
         self.tracker = None
         
-        # CORES IGUAIS AO FullSettingsMenu
-        self.bg_color = (255, 182, 193)  # Rosa claro igual ao FullSettingsMenu
-        self.text_color = (47, 24, 63)   # Texto roxo escuro igual
+        self.bg_color = (255, 182, 193)
+        self.text_color = (47, 24, 63)
         self.box_color = (255, 255, 255)
         self.border_color = (180, 190, 210)
         self.unlocked_color = (45, 160, 90)
         self.locked_color = (160, 160, 160)
         self.shadow_color = (0, 0, 0, 25)
         
-        self.title_font = pygame.font.SysFont("None", 48, bold=True)
-        self.item_font = pygame.font.SysFont("None", 32, bold=True)  # Aumentado de 26 para 32
-        self.desc_font = pygame.font.SysFont("None", 26)  # Aumentado de 20 para 26
+        self.title_font = pygame.font.SysFont(None, 48)
+        self.item_font = pygame.font.SysFont("None", 32, bold=True)
+        self.desc_font = pygame.font.SysFont("None", 26)
+        self.date_font = pygame.font.SysFont("None", 20)
         self.icon_font = pygame.font.SysFont("Segoe UI Emoji", 80)
         self.filter_font = pygame.font.SysFont("None", 18, bold=True)
         self.instruction_font = pygame.font.SysFont("None", 22)
+        self.small_font = pygame.font.SysFont("None", 18)
         self.radius = 25
 
         self.current_filter = "all"
         self.filter_buttons = []
         self._init_filter_buttons()
-        self.close_button_rect = pygame.Rect(width - 65, 25, 40, 40)
+        
+        # Botão de fechar igual ao do primeiro código
+        self.close_button_rect = pygame.Rect(width - 80, 15, 40, 40)
+        try:
+            close_image_path = resource_path("game_assets/close.png")
+            if not os.path.exists(close_image_path):
+                close_image_path = os.path.join("..", "game_assets", "close.png")
+            self.close_image = pygame.image.load(close_image_path).convert_alpha()
+            # Tamanho reduzido para 40x40 pixels
+            target_size = (40, 40)
+            self.close_image = pygame.transform.smoothscale(self.close_image, target_size)
+        except Exception:
+            self.close_image = None
+
+        self.current_page = 0
+        self.achievements_per_page = 10
+        self.page_button_size = 40
 
     def _init_filter_buttons(self):
         button_width = 140
         button_height = 45
         start_x = self.width // 2 - (3 * button_width + 2 * 15) // 2
-        start_y = 60
+        start_y = 90
         self.filter_buttons = [
             {"rect": pygame.Rect(start_x, start_y, button_width, button_height), "text": "Todas", "filter": "all", "active": True},
             {"rect": pygame.Rect(start_x + button_width + 15, start_y, button_width, button_height), "text": "Desbloqueadas", "filter": "unlocked", "active": False},
@@ -326,31 +467,28 @@ class AchievementsMenu:
         if not self.visible:
             return
 
-        # FUNDO ROSA CLARO IGUAL AO FullSettingsMenu - SEM OVERLAY ESCURO
         self.screen.fill(self.bg_color)
 
-        # Título (apenas um)
         title_text = "Conquistas"
         title_surf = self.title_font.render(title_text, True, self.text_color)
-        self.screen.blit(title_surf, (self.width // 2 - title_surf.get_width() // 2, 8))
+        title_rect = title_surf.get_rect(center=(self.width // 2, 35))
+        self.screen.blit(title_surf, title_rect)
 
         self._draw_filter_buttons()
 
         show_hidden = False
         if self.config_menu and hasattr(self.config_menu, 'settings_menu'):
-            show_hidden = self.config_menu.settings_menu.get_option("Mostrar conquistas ocultas")
+            show_hidden = self.config_menu.settings_menu.get_option("Mostrar descrição de conquistas bloqueadas")
 
-        filtered = []
-        for ach in self.achievements:
-            if self.current_filter == "all":
-                filtered.append(ach)
-            elif self.current_filter == "unlocked" and ach.unlocked:
-                filtered.append(ach)
-            elif self.current_filter == "locked" and not ach.unlocked:
-                filtered.append(ach)
+        filtered = self._get_filtered_achievements()
+
+        total_pages = max(1, (len(filtered) + self.achievements_per_page - 1) // self.achievements_per_page)
+        start_index = self.current_page * self.achievements_per_page
+        end_index = min(start_index + self.achievements_per_page, len(filtered))
+        current_page_achievements = filtered[start_index:end_index]
 
         card_width = 260
-        card_height = 280
+        card_height = 300
         spacing_x = 25
         spacing_y = 40
         max_cols = 5
@@ -359,17 +497,22 @@ class AchievementsMenu:
         total_width_for_5 = max_cols * card_width + (max_cols - 1) * spacing_x
         cols = max_cols if total_width_for_5 <= self.width - 60 else min_cols
 
+        start_y = 220
+        
         total_grid_width = cols * card_width + (cols - 1) * spacing_x
         start_x = (self.width - total_grid_width) // 2
-        start_y = 130
 
-        for i, ach in enumerate(filtered):
+        for i, ach in enumerate(current_page_achievements):
             row = i // cols
             col = i % cols
             x = start_x + col * (card_width + spacing_x)
             y = start_y + row * (card_height + spacing_y)
             self._draw_achievement_card(ach, x, y, card_width, card_height, show_hidden)
 
+        if total_pages > 1:
+            self._draw_minimalist_navigation(total_pages)
+        
+        # Desenhar botão de fechar igual ao do primeiro código
         self._draw_close_button()
 
     def _draw_filter_buttons(self):
@@ -388,13 +531,17 @@ class AchievementsMenu:
             bg_color = (255, 255, 255)
             text_color = self.text_color
             desc_color = (68, 68, 68)
+            date_color = (100, 100, 100)
             icon = "⭐"
+            desc_text = ach.description
         else:
             border_color = self.locked_color
             bg_color = (240, 240, 240)
             text_color = (119, 119, 119)
             desc_color = (153, 153, 153)
+            date_color = (153, 153, 153)
             icon = "🔒"
+            desc_text = ach.description if show_hidden else "???"
 
         shadow_surface = pygame.Surface((width + 12, height + 12), pygame.SRCALPHA)
         pygame.draw.rect(shadow_surface, (0, 0, 0, 35), (6, 6, width, height), border_radius=self.radius)
@@ -407,10 +554,14 @@ class AchievementsMenu:
         icon_surf = self.icon_font.render(icon, True, border_color)
         self.screen.blit(icon_surf, (x + (width - icon_surf.get_width()) // 2, y + 10))
 
-        # Ajustado o posicionamento vertical para acomodar textos maiores
-        self._draw_multiline_text(ach.name, self.item_font, text_color, x, y + 100, width)  # Ajustado de 110 para 100
-        desc_text = ach.description if ach.unlocked or show_hidden else "???"
-        self._draw_multiline_text(desc_text, self.desc_font, desc_color, x, y + 160, width)  # Ajustado de 175 para 160
+        self._draw_multiline_text(ach.name, self.item_font, text_color, x, y + 100, width)
+        self._draw_multiline_text(desc_text, self.desc_font, desc_color, x, y + 160, width)
+        
+        if ach.unlocked and ach.unlock_date:
+            date_surf = self.date_font.render(ach.unlock_date, True, date_color)
+            date_x = x + (width - date_surf.get_width()) // 2
+            date_y = y + height - 30
+            self.screen.blit(date_surf, (date_x, date_y))
 
     def _draw_multiline_text(self, text, font, color, x, y, max_width):
         words = text.split()
@@ -432,32 +583,114 @@ class AchievementsMenu:
             line_x = x + (max_width - line_surf.get_width()) // 2
             self.screen.blit(line_surf, (line_x, y + i * (font.get_height() + 2)))
 
+    def _draw_minimalist_navigation(self, total_pages):
+        nav_y = self.height - 80
+        
+        self.prev_button_rect = pygame.Rect(self.width // 2 - 50, nav_y, self.page_button_size, self.page_button_size)
+        self.next_button_rect = pygame.Rect(self.width // 2 + 10, nav_y, self.page_button_size, self.page_button_size)
+        
+        page_text = f"{self.current_page + 1}/{total_pages}"
+        page_surf = self.small_font.render(page_text, True, (100, 100, 100))
+        page_rect = page_surf.get_rect(center=(self.width // 2, nav_y + self.page_button_size // 2))
+        self.screen.blit(page_surf, page_rect)
+
+        prev_color = (52, 152, 219) if self.current_page > 0 else (200, 200, 200)
+        pygame.draw.circle(self.screen, prev_color, self.prev_button_rect.center, self.page_button_size // 2)
+        pygame.draw.circle(self.screen, (30, 100, 180) if self.current_page > 0 else (150, 150, 150), 
+                          self.prev_button_rect.center, self.page_button_size // 2, 2)
+        
+        arrow_color = (255, 255, 255) if self.current_page > 0 else (220, 220, 220)
+        arrow_points = [
+            (self.prev_button_rect.centerx + 4, self.prev_button_rect.centery - 6),
+            (self.prev_button_rect.centerx - 4, self.prev_button_rect.centery),
+            (self.prev_button_rect.centerx + 4, self.prev_button_rect.centery + 6)
+        ]
+        pygame.draw.polygon(self.screen, arrow_color, arrow_points)
+
+        next_color = (52, 152, 219) if self.current_page < total_pages - 1 else (200, 200, 200)
+        pygame.draw.circle(self.screen, next_color, self.next_button_rect.center, self.page_button_size // 2)
+        pygame.draw.circle(self.screen, (30, 100, 180) if self.current_page < total_pages - 1 else (150, 150, 150), 
+                          self.next_button_rect.center, self.page_button_size // 2, 2)
+        
+        arrow_points = [
+            (self.next_button_rect.centerx - 4, self.next_button_rect.centery - 6),
+            (self.next_button_rect.centerx + 4, self.next_button_rect.centery),
+            (self.next_button_rect.centerx - 4, self.next_button_rect.centery + 6)
+        ]
+        pygame.draw.polygon(self.screen, arrow_color, arrow_points)
+
     def _draw_close_button(self):
-        pygame.draw.rect(self.screen, (255, 120, 120), self.close_button_rect, border_radius=20)
-        pygame.draw.rect(self.screen, (180, 60, 60), self.close_button_rect, 2, border_radius=20)
-        center_x, center_y = self.close_button_rect.center
-        line_length = 12
-        pygame.draw.line(self.screen, (255, 255, 255), (center_x - line_length, center_y - line_length),
-                         (center_x + line_length, center_y + line_length), 4)
-        pygame.draw.line(self.screen, (255, 255, 255), (center_x - line_length, center_y + line_length),
-                         (center_x + line_length, center_y - line_length), 4)
+        """Desenha o botão de fechar igual ao do primeiro código"""
+        if self.close_image:
+            image_rect = self.close_image.get_rect(center=self.close_button_rect.center)
+            self.screen.blit(self.close_image, image_rect)
+        else:
+            # Fallback se a imagem não carregar
+            pygame.draw.rect(self.screen, (255, 100, 100), self.close_button_rect, border_radius=6)
+            center_x, center_y = self.close_button_rect.center
+            line_length = 15
+            pygame.draw.line(self.screen, (255, 255, 255), (center_x - line_length, center_y - line_length),
+                            (center_x + line_length, center_y + line_length), 2)
+            pygame.draw.line(self.screen, (255, 255, 255), (center_x - line_length, center_y + line_length),
+                            (center_x + line_length, center_y - line_length), 2)
 
     def handle_event(self, event):
         if not self.visible:
             return False
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            self.visible = False
-            return True
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            mouse_pos = pygame.mouse.get_pos()
-            if self.close_button_rect.collidepoint(mouse_pos):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
                 self.visible = False
                 return True
+            elif event.key in (pygame.K_LEFT, pygame.K_RIGHT):
+                filtered = self._get_filtered_achievements()
+                total_pages = max(1, (len(filtered) + self.achievements_per_page - 1) // self.achievements_per_page)
+                
+                if event.key == pygame.K_LEFT and self.current_page > 0:
+                    self.current_page -= 1
+                    return True
+                elif event.key == pygame.K_RIGHT and self.current_page < total_pages - 1:
+                    self.current_page += 1
+                    return True
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_pos = pygame.mouse.get_pos()
+            # Verificar clique no botão de fechar (apenas botão esquerdo)
+            if event.button == 1 and self.close_button_rect.collidepoint(mouse_pos):
+                self.visible = False
+                return True
+            
             for button in self.filter_buttons:
                 if button["rect"].collidepoint(mouse_pos):
                     for btn in self.filter_buttons:
                         btn["active"] = (btn == button)
                     self.current_filter = button["filter"]
+                    self.current_page = 0
                     return True
+            
+            filtered = self._get_filtered_achievements()
+            total_pages = max(1, (len(filtered) + self.achievements_per_page - 1) // self.achievements_per_page)
+            
+            prev_distance = ((mouse_pos[0] - self.prev_button_rect.centerx) ** 2 + 
+                           (mouse_pos[1] - self.prev_button_rect.centery) ** 2) ** 0.5
+            next_distance = ((mouse_pos[0] - self.next_button_rect.centerx) ** 2 + 
+                           (mouse_pos[1] - self.next_button_rect.centery) ** 2) ** 0.5
+            
+            if prev_distance <= self.page_button_size // 2 and self.current_page > 0:
+                self.current_page -= 1
+                return True
+            if next_distance <= self.page_button_size // 2 and self.current_page < total_pages - 1:
+                self.current_page += 1
+                return True
+            
             return True
         return True
+
+    def _get_filtered_achievements(self):
+        filtered = []
+        for ach in self.achievements:
+            if self.current_filter == "all":
+                filtered.append(ach)
+            elif self.current_filter == "unlocked" and ach.unlocked:
+                filtered.append(ach)
+            elif self.current_filter == "locked" and not ach.unlocked:
+                filtered.append(ach)
+        return filtered

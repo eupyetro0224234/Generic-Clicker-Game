@@ -1,15 +1,11 @@
-import pygame
-import os
-import sys
+import pygame, sys, os
 from PIL import Image
 
 
 def resource_path(relative_path):
-    """Retorna o caminho absoluto de um recurso, compatível com PyInstaller"""
     try:
-        base_path = sys._MEIPASS  # Diretório temporário usado pelo PyInstaller
+        base_path = sys._MEIPASS
     except Exception:
-        # Volta um diretório (para encontrar game_assets) quando rodando no código-fonte
         base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     return os.path.join(base_path, relative_path)
 
@@ -30,7 +26,6 @@ class AnimatedButton:
         self.height = int(height * 1.8)
         self.frame_duration = frame_duration
 
-        # ✅ Usa resource_path para encontrar o caminho do GIF
         self.gif_abs_path = self._resolve_gif_path(gif_path)
         
         self.frames = self._load_gif_frames(self.gif_abs_path)
@@ -46,12 +41,9 @@ class AnimatedButton:
         self._update_rect()
 
     def _resolve_gif_path(self, gif_path):
-        """Resolve o caminho absoluto para o arquivo GIF (funciona no exe e no código normal)"""
-        # Se já for caminho absoluto, apenas retorna
         if os.path.isabs(gif_path):
             return gif_path
         
-        # 🔄 Usa resource_path para localizar o GIF dentro do pacote PyInstaller
         absolute_path = resource_path(gif_path)
         
         if not os.path.exists(absolute_path):

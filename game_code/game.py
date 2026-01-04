@@ -1,11 +1,6 @@
-import pygame
-import random
-import os
-import sys
-import time
-import math
-import webbrowser
-from game_code.background import draw_background, WIDTH, HEIGHT
+import os, pygame, pytz, random, sys, webbrowser, time
+from datetime import datetime
+from game_code.background import draw_background, WIDTH, HEIGHT, set_game_reference
 from game_code.button import AnimatedButton
 from game_code.score_manager import ScoreManager
 from game_code.menu import ConfigMenu
@@ -16,9 +11,15 @@ from game_code.console import Console
 from game_code.exit_handler import ExitHandler
 from game_code import updates
 from game_code.mini_event import MiniEvent
-from game_code.trabalhador import Trabalhador
 from game_code.eventos import GerenciadorEventos, EventosMenu
 from game_code.image_viewer import ImageViewer
+from game_code.estatisticas import StatisticsMenu
+from game_code.mod_manager import load_mod
+from game_code import background
+
+mod = load_mod()
+if mod:
+    background.set_mod(mod)
 
 def resource_path(relative_path):
     try:
@@ -34,6 +35,11 @@ class Game:
         pygame.mixer.init()
 
         self.score_manager = ScoreManager()
+        
+        self.inicializar_dados_zerados()
+        
+        self.pontos_acumulados = 0.0
+        
         self.load_game_data()
         
         self.config_menu = ConfigMenu(screen, WIDTH, HEIGHT, score_manager=self.score_manager)
@@ -43,55 +49,198 @@ class Game:
         self.setup_console()
         self.setup_event_handling()
         
-        self.verificar_update()
-        self.last_save_time = pygame.time.get_ticks()
-        self.last_backup_save_time = pygame.time.get_ticks()
+        self.game_start_time = pygame.time.get_ticks()
+        self.last_session_time = self.saved_total_time
+        self.session_start_time = self.game_start_time
+        self.is_paused = False
         self.last_scroll_time = 0
         
+        self.achievement_sound_volume = 1.0
+        self.minigame_sound_volume = 1.0
+        self.load_volume_settings()
+        self.update_volumes()
+        
+        set_game_reference(self)
+        
+        self.calcular_ganhos_offline()
+        self.verificar_update()
+        self.last_save_time = pygame.time.get_ticks()
+        
+        self.statistics_menu = StatisticsMenu(screen, WIDTH, HEIGHT, self)
+        self.config_menu.settings_menu.statistics_menu = self.statistics_menu
+        
+        self.update_daily_streak()
+
+    def inicializar_dados_zerados(self):
+        self.score = 0
+        self.controls_visible = False
+        self.saved_achievements = []
+        self.saved_upgrades = {}
+        self.mini_event_click_count = 0
+        self.saved_trabalhadores_data = []
+        self.saved_trabalhador_limit_enabled = True
+        self.eventos_participados = {}
+        self.saved_total_time = 0
+        self.last_timestamp = None
+        self.max_score = 0
+        self.total_score_earned = 0
+        self.mini_event1_total = 0
+        self.mini_event2_total = 0
+        self.mini_event1_session = 0
+        self.mini_event2_session = 0
+        self.saved_normal_clicks = 0
+        self.offline_time_bank = 0
+        
+        tz_brasilia = pytz.timezone('America/Sao_Paulo')
+        self.first_join_date = datetime.now(tz_brasilia).strftime("%d/%m/%Y - %H:%M")
+        self.streak_data = {"current_streak": 0, "last_login_date": None, "max_streak": 0}
+
+    def calcular_ganhos_offline(self):
+        if not self.upgrade_menu.ganhos_offline_enabled():
+            return
+    
+        if not self.last_timestamp:
+            return
+    
+        current_timestamp = int(time.time())
+        tempo_offline = current_timestamp - self.last_timestamp
+    
+        tempo_offline = min(tempo_offline, self.upgrade_menu.offline_time_bank)
+    
+        if tempo_offline <= 0:
+            return
+    
+        pontos_offline = 0
+        
+        if self.upgrade_menu.auto_click_enabled():
+            ciclos_auto_click = tempo_offline // (40 / 60)
+            bonus_auto = self.upgrade_menu.get_auto_click_bonus()
+            pontos_offline += int(ciclos_auto_click * bonus_auto)
+        
+        for trabalhador in self.upgrade_menu.trabalhadores:
+            if hasattr(trabalhador, 'get_offline_production'):
+                pontos_trabalhador = trabalhador.get_offline_production(tempo_offline)
+                pontos_offline += pontos_trabalhador
+        
+        if pontos_offline > 0:
+            self.adicionar_pontos(pontos_offline)
+            self.tracker.check_unlock(self.score)
+    
+            self.click_effects.append(
+                ClickEffect(
+                    WIDTH // 2, 
+                    HEIGHT // 2,
+                    
+                    f"+{pontos_offline} pts Offline! ({self.format_time(tempo_offline)})",
+                    color=(100, 255, 100)
+                )
+            )
+    
+        self.upgrade_menu.offline_time_bank = max(0, self.upgrade_menu.offline_time_bank - tempo_offline)
+
+    def adicionar_pontos(self, pontos):
+        self.pontos_acumulados += pontos
+        pontos_inteiros = int(self.pontos_acumulados)
+        if pontos_inteiros > 0:
+            self.score += pontos_inteiros
+            self.pontos_acumulados -= pontos_inteiros
+            self.total_score_earned += pontos_inteiros
+            if self.score > self.max_score:
+                self.max_score = self.score
+        return pontos_inteiros
+        
+    def update_daily_streak(self):
+        tz_brasilia = pytz.timezone('America/Sao_Paulo')
+        today = datetime.now(tz_brasilia).strftime("%Y-%m-%d")
+        
+        if self.streak_data["last_login_date"] != today:
+            if self.streak_data["last_login_date"]:
+                last_login = datetime.strptime(self.streak_data["last_login_date"], "%Y-%m-%d")
+                today_date = datetime.strptime(today, "%Y-%m-%d")
+                days_diff = (today_date - last_login).days
+                
+                if days_diff == 1:
+                    self.streak_data["current_streak"] += 1
+                elif days_diff > 1:
+                    self.streak_data["current_streak"] = 1
+            else:
+                self.streak_data["current_streak"] = 1
+            
+            self.streak_data["last_login_date"] = today
+            
+            if self.streak_data["current_streak"] > self.streak_data["max_streak"]:
+                self.streak_data["max_streak"] = self.streak_data["current_streak"]
+            
+            self.save_game_data()
+
+    def get_mini_events_session_total(self):
+        return getattr(self, 'mini_event1_session', 0) + getattr(self, 'mini_event2_session', 0)
+
+    def load_volume_settings(self):
+        volume_settings = self.config_menu.settings_menu.get_volume_settings()
+        self.achievement_sound_volume = volume_settings["achievement_volume"]
+        self.minigame_sound_volume = volume_settings["minievent_volume"]
+
     def load_game_data(self):
         try:
             (self.score, self.controls_visible, saved_achievements, 
              saved_upgrades, mini_event_click_count, trabalhadores_data, 
-             trabalhador_limit_enabled, self.eventos_participados) = self.score_manager.load_data()
+             trabalhador_limit_enabled, self.eventos_participados, 
+             self.saved_total_time, self.last_timestamp, self.max_score,
+             self.total_score_earned, self.mini_event1_total, self.mini_event2_total,
+             self.saved_normal_clicks, self.first_join_date, self.streak_data,
+             self.mini_event1_session, self.mini_event2_session,
+             self.offline_time_bank) = self.score_manager.load_data()
             
-            self.saved_trabalhadores_data = trabalhadores_data
+            self.score = max(0, int(self.score))
+            self.max_score = max(self.score, int(self.max_score))
+            self.total_score_earned = max(0, int(self.total_score_earned))
+            self.mini_event1_total = max(0, int(self.mini_event1_total))
+            self.mini_event2_total = max(0, int(self.mini_event2_total))
+            self.mini_event1_session = max(0, int(self.mini_event1_session))
+            self.mini_event2_session = max(0, int(self.mini_event2_session))
+            
             self.saved_trabalhador_limit_enabled = trabalhador_limit_enabled
-                
+            self.saved_trabalhadores_data = trabalhadores_data
+            self.saved_achievements = saved_achievements
+            self.saved_upgrades = saved_upgrades
+            self.mini_event_click_count = mini_event_click_count
+            
         except Exception as e:
-            restore_backup = self.show_confirmation_dialog(
-                "Erro ao carregar os dados do jogo.\nDeseja restaurar o backup antigo?"
+            print(f"Erro ao carregar dados: {e}")
+            print("Iniciando com dados padrão...")
+            self.inicializar_dados_zerados()
+
+    def save_game_data(self):
+        try:
+            achievements_to_save = self.tracker.get_achievements_with_dates()
+            
+            self.score_manager.save_data(
+                self.score,
+                self.config_menu.controls_menu.visible,
+                achievements_to_save,
+                self.upgrade_menu.purchased,
+                self.tracker.mini_event_clicks,
+                self.upgrade_menu.get_trabalhador_limit_status(),
+                self.eventos_participados,
+                self.get_total_play_time(),
+                int(time.time()),
+                self.max_score,
+                self.total_score_earned,
+                self.mini_event1_total,
+                self.mini_event2_total,
+                self.tracker.normal_clicks,
+                self.first_join_date,
+                self.streak_data,
+                False,
+                self.mini_event1_session,
+                self.mini_event2_session,
+                self.upgrade_menu.offline_time_bank
             )
-
-            if restore_backup:
-                backup_data = self.score_manager.load_backup()
-                if backup_data:
-                    (self.score, self.controls_visible, saved_achievements, 
-                     saved_upgrades, mini_event_click_count, trabalhadores_data, 
-                     trabalhador_limit_enabled, self.eventos_participados) = backup_data
-                    self.score_manager.save_data(
-                        self.score, self.controls_visible, saved_achievements, 
-                        saved_upgrades, mini_event_click_count, trabalhador_limit_enabled,
-                        self.eventos_participados
-                    )
-                    
-                    self.saved_trabalhadores_data = trabalhadores_data
-                    self.saved_trabalhador_limit_enabled = trabalhador_limit_enabled
-                else:
-                    (self.score, self.controls_visible, saved_achievements, 
-                     saved_upgrades, mini_event_click_count) = 0, False, [], {}, 0
-                    self.saved_trabalhadores_data = []
-                    self.saved_trabalhador_limit_enabled = True
-                    self.eventos_participados = {}
-            else:
-                (self.score, self.controls_visible, saved_achievements, 
-                 saved_upgrades, mini_event_click_count) = 0, False, [], {}, 0
-                self.saved_trabalhadores_data = []
-                self.saved_trabalhador_limit_enabled = True
-                self.eventos_participados = {}
-
-        self.saved_achievements = saved_achievements
-        self.saved_upgrades = saved_upgrades
-        self.mini_event_click_count = mini_event_click_count
+            return True
+        except Exception as e:
+            print(f"Erro ao salvar dados: {e}")
+            return False
 
     def setup_fonts(self):
         self.FONT = pygame.font.SysFont(None, 64)
@@ -100,6 +249,18 @@ class Game:
         self.fonte_aviso = pygame.font.SysFont(None, 28)
         self.fonte_evento = pygame.font.SysFont(None, 26)
         self.fonte_evento_pequena = pygame.font.SysFont(None, 20)
+        self.fonte_tempo = pygame.font.SysFont(None, 22)
+        self.fonte_streak = pygame.font.SysFont(None, 28)
+        try:
+            self.fonte_emoji = pygame.font.SysFont("seguiemj", 32)
+        except:
+            try:
+                self.fonte_emoji = pygame.font.SysFont("apple color emoji", 32)
+            except:
+                try:
+                    self.fonte_emoji = pygame.font.SysFont("noto color emoji", 32)
+                except:
+                    self.fonte_emoji = pygame.font.SysFont(None, 32)
 
     def setup_game_components(self):
         button_path = resource_path(os.path.join("game_assets", "button.gif"))
@@ -110,14 +271,16 @@ class Game:
 
         self.config_menu.controls_menu.visible = self.controls_visible
 
-        self.tracker = AchievementTracker(self.screen)
+        self.tracker = AchievementTracker(self.screen, game=self)
         self.tracker.load_unlocked(self.saved_achievements)
         self.tracker.load_sound()
         self.tracker.mini_event_clicks = self.mini_event_click_count
+        self.tracker.normal_clicks = self.saved_normal_clicks
 
         self.upgrade_menu = UpgradeMenu(self.screen, WIDTH, HEIGHT, achievement_tracker=self.tracker)
         self.upgrade_menu.load_upgrades(self.saved_upgrades)
         self.upgrade_menu.set_trabalhador_limit(self.saved_trabalhador_limit_enabled)
+        self.upgrade_menu.offline_time_bank = self.offline_time_bank
 
         if hasattr(self, 'saved_trabalhadores_data'):
             self.upgrade_menu.load_trabalhadores(self.saved_trabalhadores_data)
@@ -161,11 +324,60 @@ class Game:
         self.texto_update = ""
         self.update_rect = None
 
+    def update_volumes(self):
+        self.load_volume_settings()
+        
+        if hasattr(self.tracker, 'set_volume'):
+            self.tracker.set_volume(self.achievement_sound_volume)
+        
+        if hasattr(self, 'mini_event') and self.mini_event and hasattr(self.mini_event, 'set_volume'):
+            self.mini_event.set_volume(self.minigame_sound_volume)
+        if hasattr(self, 'mini_event2') and self.mini_event2 and hasattr(self.mini_event2, 'set_volume'):
+            self.mini_event2.set_volume(self.minigame_sound_volume)
+
+    def get_total_play_time(self):
+        if self.is_paused:
+            return self.last_session_time
+        
+        current_time = pygame.time.get_ticks()
+        current_session_time = (current_time - self.session_start_time) // 1000
+        return self.last_session_time + current_session_time
+
+    def format_time(self, total_seconds):
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+        return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
+    def pause_timer(self):
+        if not self.is_paused:
+            self.is_paused = True
+            current_time = pygame.time.get_ticks()
+            current_session_time = (current_time - self.session_start_time) // 1000
+            self.last_session_time += current_session_time
+
+    def resume_timer(self):
+        if self.is_paused:
+            self.is_paused = False
+            self.session_start_time = pygame.time.get_ticks()
+
     def resetar_trabalhadores(self):
         self.upgrade_menu.trabalhadores = []
 
     def adicionar_trabalhador(self):
         pass
+
+    def increment_mini_event1_total(self):
+        self.mini_event1_total += 1
+        self.mini_event1_session += 1
+
+    def increment_mini_event2_total(self):
+        self.mini_event2_total += 1
+        self.mini_event2_session += 1
+
+    def add_to_total_score_earned(self, amount):
+        amount_int = int(amount)
+        self.total_score_earned += amount_int
 
     def setup_console(self):
         def get_score():
@@ -196,7 +408,8 @@ class Game:
             on_open_callback=on_console_open,
             tracker=self.tracker,
             config_menu=self.config_menu,
-            upgrade_manager=self.upgrade_menu
+            upgrade_manager=self.upgrade_menu,
+            game=self
         )
         self.console.set_score_accessors(get_score, set_score)
         self.config_menu.set_score_accessors(get_score, set_score)
@@ -225,85 +438,17 @@ class Game:
             self.texto_update = ""
 
     def registrar_participacao_evento(self, evento_id):
-        if evento_id in self.eventos_participados:
-            self.eventos_participados[evento_id] += 1
-        else:
+        if evento_id not in self.eventos_participados:
             self.eventos_participados[evento_id] = 1
-
-    def show_confirmation_dialog(self, message):
-        class ConfirmationDialog:
-            def __init__(self, screen, width, height, message):
-                self.screen = screen
-                self.width = width
-                self.height = height
-                self.message = message
-                self.font = pygame.font.SysFont(None, 32)
-                self.prompt_font = pygame.font.SysFont(None, 28)
-                self.text_color = (40, 40, 60)
-                self.bg_box_color = (180, 210, 255)
-                self.box_color = (255, 255, 255)
-                self.bg_rect = pygame.Rect(width // 2 - 250, height // 2 - 100, 500, 200)
-                btn_width = 120
-                btn_height = 45
-                self.yes_btn = pygame.Rect(width // 2 - 140, height // 2 + 30, btn_width, btn_height)
-                self.no_btn = pygame.Rect(width // 2 + 20, height // 2 + 30, btn_width, btn_height)
-                self.result = None
-
-            def handle_event(self, event):
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_r:
-                        self.result = True
-                        return True
-                    elif event.key == pygame.K_ESCAPE:
-                        self.result = False
-                        return True
-
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if self.yes_btn.collidepoint(event.pos):
-                        self.result = True
-                        return True
-                    elif self.no_btn.collidepoint(event.pos):
-                        self.result = False
-                        return True
-
-                return False
-
-            def draw(self):
-                pygame.draw.rect(self.screen, self.bg_box_color, self.bg_rect, border_radius=16)
-                lines = [self.message[i:i + 50] for i in range(0, len(self.message), 50)]
-                for i, line in enumerate(lines):
-                    prompt_surf = self.prompt_font.render(line, True, self.text_color)
-                    prompt_rect = prompt_surf.get_rect(center=(self.width // 2, self.bg_rect.y + 60 + i * 30))
-                    self.screen.blit(prompt_surf, prompt_rect)
-                pygame.draw.rect(self.screen, (70, 180, 70), self.yes_btn, border_radius=8)
-                pygame.draw.rect(self.screen, (200, 70, 70), self.no_btn, border_radius=8)
-                yes_text = self.font.render("Sim (R)", True, (255, 255, 255))
-                no_text = self.font.render("Não (ESC)", True, (255, 255, 255))
-                self.screen.blit(yes_text, (self.yes_btn.centerx - yes_text.get_width() // 2,
-                                            self.yes_btn.centery - yes_text.get_height() // 2))
-                self.screen.blit(no_text, (self.no_btn.centerx - no_text.get_width() // 2,
-                                           self.no_btn.centery - no_text.get_height() // 2))
-
-        dialog = ConfirmationDialog(self.screen, WIDTH, HEIGHT, message)
-        s = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
-        s.fill((0, 0, 0, 150))
-        self.screen.blit(s, (0, 0))
-        waiting = True
-        while waiting:
-            dialog.draw()
-            pygame.display.flip()
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    return False
-                if dialog.handle_event(event):
-                    waiting = False
-            pygame.time.delay(10)
-        return dialog.result
 
     def handle_events(self):
         for event in pygame.event.get():
             if self.image_viewer.handle_event(event):
                 continue
+
+            if self.statistics_menu.visible:
+                if self.statistics_menu.handle_event(event):
+                    continue
 
             if self.config_menu.achievements_menu.visible:
                 if self.config_menu.achievements_menu.handle_event(event):
@@ -329,6 +474,7 @@ class Game:
 
             if self.config_menu.settings_menu.visible:
                 if self.config_menu.settings_menu.handle_event(event):
+                    self.update_volumes()
                     continue
 
             if self.config_menu.eventos_menu.visible:
@@ -342,7 +488,8 @@ class Game:
                     self.config_menu.eventos_menu.visible or
                     self.config_menu.is_open or
                     self.upgrade_menu.visible or
-                    self.image_viewer.visible
+                    self.image_viewer.visible or
+                    self.statistics_menu.visible
                 )
                 
                 if not menus_abertos and not self.exit_handler.active:
@@ -361,6 +508,9 @@ class Game:
 
     def handle_keydown(self, event):
         if event.key == pygame.K_ESCAPE:
+            if self.statistics_menu.visible:
+                self.statistics_menu.visible = False
+                return True
             if self.image_viewer.visible:
                 self.image_viewer.visible = False
                 return True
@@ -378,6 +528,7 @@ class Game:
                 return True
             if self.config_menu.settings_menu.visible:
                 self.config_menu.settings_menu.visible = False
+                self.update_volumes()
                 return True
             if self.config_menu.eventos_menu.visible:
                 self.config_menu.eventos_menu.visible = False
@@ -385,30 +536,6 @@ class Game:
             if self.config_menu.is_open:
                 self.config_menu.is_open = False
                 return True
-            return True
-
-        if event.key == pygame.K_r and not self.console.visible:
-            confirmed = self.show_confirmation_dialog(
-                "Deseja realmente resetar TODOS os dados do jogo?"
-            )
-            if confirmed:
-                self.score = 0
-                self.tracker.unlocked.clear()
-                self.tracker.normal_clicks = 0
-                self.tracker.mini_event_clicks = 0
-                self.eventos_participados = {}
-                for ach in self.tracker.achievements:
-                    ach.unlocked = False
-                self.upgrade_menu.reset_upgrades()
-                self.score_manager.save_data(
-                    self.score,
-                    self.config_menu.controls_menu.visible,
-                    list(self.tracker.unlocked),
-                    self.upgrade_menu.purchased,
-                    self.tracker.mini_event_clicks,
-                    self.upgrade_menu.get_trabalhador_limit_status(),
-                    self.eventos_participados
-                )
             return True
 
         if event.key == pygame.K_t and pygame.key.get_mods() & pygame.KMOD_CTRL:
@@ -434,7 +561,8 @@ class Game:
             self.config_menu.achievements_menu.visible or
             self.config_menu.eventos_menu.visible or
             self.config_menu.is_open or
-            self.upgrade_menu.visible
+            self.upgrade_menu.visible or
+            self.statistics_menu.visible
         )
         
         if event.button in (4, 5):
@@ -453,6 +581,8 @@ class Game:
             
             if upgrade or new_score != prev_score:
                 self.tracker.add_mini_event_click()
+                self.increment_mini_event1_total()
+                self.tracker._check_click_achievements("mini_event")
                 self.tracker.check_unlock(new_score)
                 
                 pontos_com_evento = self.gerenciador_eventos.aplicar_efeitos_pontos(pontos_ganhos)
@@ -465,15 +595,7 @@ class Game:
                     self.click_effects.append(
                         ClickEffect(event.pos[0], event.pos[1], f"+{pontos_com_evento}"))
                 
-                self.score_manager.save_data(
-                    self.score,
-                    self.config_menu.controls_menu.visible,
-                    list(self.tracker.unlocked),
-                    self.upgrade_menu.purchased,
-                    self.tracker.mini_event_clicks,
-                    self.upgrade_menu.get_trabalhador_limit_status(),
-                    self.eventos_participados
-                )
+                self.save_game_data()
                 return
 
         if self.mini_event2 and self.mini_event2.visible and not menus_ativos:
@@ -482,6 +604,8 @@ class Game:
             
             if upgrade or new_score != prev_score:
                 self.tracker.add_mini_event_click()
+                self.increment_mini_event2_total()
+                self.tracker._check_click_achievements("mini_event")
                 self.tracker.check_unlock(new_score)
                 
                 pontos_com_evento = self.gerenciador_eventos.aplicar_efeitos_pontos(pontos_ganhos)
@@ -494,15 +618,7 @@ class Game:
                     self.click_effects.append(
                         ClickEffect(event.pos[0], event.pos[1], f"+{pontos_com_evento}!"))
                 
-                self.score_manager.save_data(
-                    self.score,
-                    self.config_menu.controls_menu.visible,
-                    list(self.tracker.unlocked),
-                    self.upgrade_menu.purchased,
-                    self.tracker.mini_event_clicks,
-                    self.upgrade_menu.get_trabalhador_limit_status(),
-                    self.eventos_participados
-                )
+                self.save_game_data()
                 return
 
         button_clicked = self.button.is_clicked(event.pos)
@@ -528,30 +644,28 @@ class Game:
             if self.config_menu.settings_menu.is_click_allowed(event.button):
                 if button_clicked:
                     self.button.click()
+                    self.upgrade_menu.add_offline_time(30)
                     
                     bonus_base = self.upgrade_menu.get_bonus()
                     bonus_com_evento = self.gerenciador_eventos.aplicar_efeitos_pontos(bonus_base)
                     
-                    self.score += bonus_com_evento
-                    self.tracker.check_unlock(self.score)
-                    self.click_effects.append(
-                        ClickEffect(event.pos[0], event.pos[1], f"+{bonus_com_evento}"))
+                    self.adicionar_pontos(bonus_com_evento)
                     
-                    self.score_manager.save_data(
-                        self.score,
-                        self.config_menu.controls_menu.visible,
-                        list(self.tracker.unlocked),
-                        self.upgrade_menu.purchased,
-                        self.tracker.mini_event_clicks,
-                        self.upgrade_menu.get_trabalhador_limit_status(),
-                        self.eventos_participados
-                    )
+                    self.tracker.check_unlock(self.score)
+                    
+                    self.click_effects.append(
+                        ClickEffect(event.pos[0], event.pos[1], f"+{int(bonus_com_evento)}"))
+                    
+                    self.save_game_data()
                     return
 
         if self.console.visible:
             self.console.handle_event(event)
 
     def update(self):
+        if self.score > self.max_score:
+            self.max_score = self.score
+
         self.config_menu.achievements_menu.achievements = self.tracker.achievements
         self.config_menu.achievements_menu.unlocked = self.tracker.unlocked
 
@@ -559,7 +673,7 @@ class Game:
 
         eventos_ativos = self.gerenciador_eventos.atualizar_eventos()
         for evento in eventos_ativos:
-            if evento.ativo:
+            if evento.ativo and evento.id not in self.eventos_participados:
                 self.registrar_participacao_evento(evento.id)
 
         if self.upgrade_menu.auto_click_enabled():
@@ -568,10 +682,14 @@ class Game:
                 self.auto_click_counter = 0
                 bonus_auto = self.upgrade_menu.get_auto_click_bonus()
                 bonus_com_evento = self.gerenciador_eventos.aplicar_efeitos_pontos(bonus_auto)
-                self.score += bonus_com_evento
-                self.tracker.check_unlock(self.score)
+                
+                pontos_adicionados = self.adicionar_pontos(bonus_com_evento)
+                
+                if pontos_adicionados > 0:
+                    self.tracker.check_unlock(self.score)
+                
                 self.click_effects.append(
-                    ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{bonus_com_evento} (Auto)"))
+                    ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{int(bonus_com_evento)} (Auto)"))
 
         mouse_buttons = pygame.mouse.get_pressed()
         mouse_pos = pygame.mouse.get_pos()
@@ -592,19 +710,26 @@ class Game:
                         if self.hold_click_accumulator >= 500:
                             self.hold_click_accumulator = 0
                             hold_com_evento = self.gerenciador_eventos.aplicar_efeitos_pontos(hold_click_qtd)
-                            self.score += hold_com_evento
-                            self.tracker.check_unlock(self.score)
+                            
+                            pontos_adicionados = self.adicionar_pontos(hold_com_evento)
+                            
+                            if pontos_adicionados > 0:
+                                self.tracker.check_unlock(self.score)
+                            
                             self.click_effects.append(
-                                ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{hold_com_evento}"))
+                                ClickEffect(WIDTH // 2, HEIGHT // 2, f"+{int(hold_com_evento)}"))
         else:
             self.hold_click_start_time = None
             self.hold_click_accumulator = 0
 
-        pontos_trabalhadores = self.upgrade_menu.update_trabalhadores(current_time)
+        pontos_trabalhadores, self.score = self.upgrade_menu.update_trabalhadores(current_time, self.score)
         if pontos_trabalhadores > 0:
             pontos_com_evento = self.gerenciador_eventos.aplicar_efeitos_pontos(pontos_trabalhadores)
-            self.score += pontos_com_evento
-            self.tracker.check_unlock(self.score)
+            
+            pontos_adicionados = self.adicionar_pontos(pontos_com_evento)
+            
+            if pontos_adicionados > 0:
+                self.tracker.check_unlock(self.score)
 
         if self.mini_event and self.mini_event.visible and self.upgrade_menu.mini_event_enabled():
             for trab in self.upgrade_menu.trabalhadores:
@@ -622,13 +747,17 @@ class Game:
                         if success:
                             pontos_ganhos = random.randint(1, 1000)
                             pontos_com_evento = self.gerenciador_eventos.aplicar_efeitos_pontos(pontos_ganhos)
-                            self.score += pontos_com_evento
-                            self.tracker.check_unlock(self.score)
+                            
+                            pontos_adicionados = self.adicionar_pontos(pontos_com_evento)
+                            
+                            if pontos_adicionados > 0:
+                                self.tracker.check_unlock(self.score)
+                            
                             self.click_effects.append(
                                 ClickEffect(
                                     self.mini_event.x + 25, 
                                     self.mini_event.y + 25, 
-                                    f"+{pontos_com_evento}! (Trabalhador)"
+                                    f"+{int(pontos_com_evento)}! (Trabalhador)"
                                 )
                             )
                             self.mini_event.visible = False
@@ -650,13 +779,17 @@ class Game:
                         if success:
                             pontos_ganhos = random.randint(1, 1000) * 2
                             pontos_com_evento = self.gerenciador_eventos.aplicar_efeitos_pontos(pontos_ganhos)
-                            self.score += pontos_com_evento
-                            self.tracker.check_unlock(self.score)
+                            
+                            pontos_adicionados = self.adicionar_pontos(pontos_com_evento)
+                            
+                            if pontos_adicionados > 0:
+                                self.tracker.check_unlock(self.score)
+                            
                             self.click_effects.append(
                                 ClickEffect(
                                     self.mini_event2.x + 30, 
                                     self.mini_event2.y + 30, 
-                                    f"+{pontos_com_evento}! (Trabalhador)"
+                                    f"+{int(pontos_com_evento)}! (Trabalhador)"
                                 )
                             )
                             self.mini_event2.visible = False
@@ -666,12 +799,14 @@ class Game:
                 not self.mini_event and
                 random.random() < 0.3):
             self.mini_event = MiniEvent(self.screen, WIDTH, HEIGHT, "normal")
+            self.mini_event.set_volume(self.minigame_sound_volume)
             self.last_mini_event_time = current_time
 
         if (current_time - self.last_mini_event2_time > self.mini_event2_cooldown and
                 not self.mini_event2 and
                 random.random() < 0.2):
             self.mini_event2 = MiniEvent(self.screen, WIDTH, HEIGHT, "rare")
+            self.mini_event2.set_volume(self.minigame_sound_volume)
             self.last_mini_event2_time = current_time
 
         if self.mini_event:
@@ -690,28 +825,8 @@ class Game:
                 self.click_effects.remove(eff)
 
         if current_time - self.last_save_time >= 1000:
-            self.score_manager.save_data(
-                self.score,
-                self.config_menu.controls_menu.visible,
-                list(self.tracker.unlocked),
-                self.upgrade_menu.purchased,
-                self.tracker.mini_event_clicks,
-                self.upgrade_menu.get_trabalhador_limit_status(),
-                self.eventos_participados
-            )
+            self.save_game_data()
             self.last_save_time = current_time
-
-        if self.aviso_update and (current_time - self.last_backup_save_time >= 1000):
-            self.score_manager.save_backup(
-                self.score,
-                self.config_menu.controls_menu.visible,
-                list(self.tracker.unlocked),
-                self.upgrade_menu.purchased,
-                self.tracker.mini_event_clicks,
-                self.upgrade_menu.get_trabalhador_limit_status(),
-                self.eventos_participados
-            )
-            self.last_backup_save_time = current_time
 
     def draw(self):
         draw_background(self.screen)
@@ -720,7 +835,6 @@ class Game:
         
         self.button.draw(self.screen)
 
-        self.tracker.draw_popup()
         for eff in self.click_effects:
             eff.draw(self.screen)
 
@@ -733,6 +847,40 @@ class Game:
         score_surf = self.FONT.render(str(self.score), True, self.TEXT_COLOR_SCORE)
         score_rect = score_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 180))
         self.screen.blit(score_surf, score_rect)
+
+        mostrar_sequencia = self.config_menu.settings_menu.get_option("Mostrar sequência")
+        if mostrar_sequencia and self.streak_data["current_streak"] > 0:
+            self.fonte_emoji = pygame.font.SysFont("Segoe UI Emoji", 20)
+            emoji_surf = self.fonte_emoji.render("🔥", True, (255, 100, 0))
+
+            numero_surf = self.fonte_streak.render(str(self.streak_data['current_streak']), True, (40, 40, 60))
+            
+            margin = 20
+            total_width = emoji_surf.get_width() + numero_surf.get_width() + 2
+            total_height = max(emoji_surf.get_height(), numero_surf.get_height())
+            
+            x_pos = WIDTH - total_width - margin
+            y_pos = HEIGHT - total_height - margin
+            
+            self.screen.blit(emoji_surf, (x_pos, y_pos))
+            self.screen.blit(numero_surf, (x_pos + emoji_surf.get_width() + 2, y_pos))
+
+        if self.upgrade_menu.ganhos_offline_enabled():
+            tempo_offline_text = f"Offline: {self.upgrade_menu.get_offline_time_formatted()}"
+            tempo_offline_surf = self.fonte_tempo.render(tempo_offline_text, True, (100, 150, 255))
+            
+            x_pos = (WIDTH - tempo_offline_surf.get_width()) // 2
+            y_pos = 20
+            
+            bg_width = tempo_offline_surf.get_width() + 10
+            bg_height = tempo_offline_surf.get_height() + 6
+            bg_surface = pygame.Surface((bg_width, bg_height), pygame.SRCALPHA)
+            pygame.draw.rect(bg_surface, (50, 50, 80, 180), (0, 0, bg_width, bg_height), border_radius=8)
+            self.screen.blit(bg_surface, (x_pos - 5, y_pos - 3))
+            
+            self.screen.blit(tempo_offline_surf, (x_pos, y_pos))
+
+        self.tracker.draw_popup()
 
         eventos_ativos = self.gerenciador_eventos.get_eventos_ativos()
         if eventos_ativos:
@@ -752,16 +900,13 @@ class Game:
                     bg_height
                 )
                 
-                # Criar uma superfície com alpha para o fundo
                 bg_surface = pygame.Surface((bg_width, bg_height), pygame.SRCALPHA)
                 
-                # Desenhar um retângulo com bordas arredondadas
                 pygame.draw.rect(bg_surface, (100, 100, 100, 180), (0, 0, bg_width, bg_height), 
-                               border_radius=8)  # Ajuste o valor para mudar o arredondamento
+                               border_radius=8)
                 
-                # Desenhar a borda com cantos arredondados
                 pygame.draw.rect(bg_surface, (150, 150, 150), (0, 0, bg_width, bg_height), 
-                               2, border_radius=8)  # Mesmo valor de border_radius
+                               2, border_radius=8)
                 
                 self.screen.blit(bg_surface, bg_rect)
                 
@@ -786,6 +931,8 @@ class Game:
         self.config_menu.achievements_menu.draw()
         self.config_menu.eventos_menu.draw()
         
+        self.statistics_menu.draw()
+
         if self.console.visible:
             self.console.draw()
 
@@ -800,6 +947,9 @@ class Game:
             self.draw()
             pygame.display.flip()
             self.clock.tick(60)
+            
+            if pygame.time.get_ticks() % 30 == 0:
+                self.update_volumes()
 
         pygame.quit()
         sys.exit()
