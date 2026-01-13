@@ -1,6 +1,6 @@
 # Generic Clicker Game
 
-[![Projeto no Itch.io](https://i.postimg.cc/hPsCTZ9m/image.png)](https://eupyetro022.itch.io/generic-clicker-game) ![Badge de versão](https://img.shields.io/badge/version-0.0.06-yellow) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
+[![Projeto no Itch.io][![Projeto no Itch.io](https://i.postimg.cc/hPsCTZ9m/image.png)](https://eupyetro022.itch.io/generic-clicker-game) ![Badge de versão](https://img.shields.io/badge/version-0.0.06-yellow) ![Licença Proprietária Customizada](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
 
 **Desative o tradutor do seu navegador ao ler**
 
