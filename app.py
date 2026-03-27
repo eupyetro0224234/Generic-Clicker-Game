@@ -1,30 +1,17 @@
-import os, sys, pygame, threading, math
-
-def resource_path(relative_path):
-    try:
-        base_path = sys._MEIPASS
-    except AttributeError:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
-
-sys.path.append(resource_path("game_code"))
-
+import sys, pygame, threading, math, io
 from game_code.game import Game
 from game_code.background import WIDTH, HEIGHT
 
 def carregar_icone():
-    icon_path = resource_path(os.path.join("game_assets", "icone.ico"))
-    if not os.path.exists(icon_path):
-        return None
     try:
+        from game_assets.game_assets_packed import load_image_raw
+        icon_bytes = load_image_raw("icone.ico")
         try:
             from PIL import Image
-            img = Image.open(icon_path)
-            icon = pygame.image.fromstring(img.tobytes(), img.size, img.mode)
-            return icon
+            img = Image.open(io.BytesIO(icon_bytes))
+            return pygame.image.fromstring(img.tobytes(), img.size, img.mode)
         except ImportError:
-            icon = pygame.image.load(icon_path)
-            return icon
+            return pygame.image.load(io.BytesIO(icon_bytes))
     except Exception:
         return None
 
@@ -48,8 +35,6 @@ def show_loading_screen(screen, loading_done, angle, center):
         theta = 2 * math.pi * i / num_balls + angle
         x = int(center[0] + radius * math.cos(theta))
         y = int(center[1] + radius * math.sin(theta))
-        alpha = int(255 * (i + 1) / num_balls)
-        color = (ball_color[0], ball_color[1], ball_color[2], alpha)
         pygame.draw.circle(screen, ball_color, (x, y), 5)
     
     return angle + 0.1
@@ -78,7 +63,6 @@ def main():
             finally:
                 loading_done = True
         
-        # Inicia o carregamento em thread
         t = threading.Thread(target=carregar_jogo, daemon=True)
         t.start()
         
@@ -98,7 +82,6 @@ def main():
             pygame.display.flip()
             clock.tick(60)
         
-        # Quando o carregamento terminar, verifica se deve iniciar o jogo
         if running and loading_done and game_loaded and game_instance:
             game_instance.run()
         else:

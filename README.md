@@ -1,7 +1,7 @@
 # Generic Clicker Game
 
 [![Projeto no Itch.io](https://i.postimg.cc/hPsCTZ9m/image.png)](https://eupyetro022.itch.io/generic-clicker-game)
-![Versão](https://img.shields.io/badge/version-0.0.06-yellow)
+![Versão](https://img.shields.io/badge/version-0.0.06.1-yellow)
 ![Downloads](https://img.shields.io/github/downloads/eupyetro0224234/Generic-Clicker-Game/total)
 ![Licença](https://img.shields.io/badge/license-Proprietária%20Customizada-blue)
 
@@ -179,6 +179,58 @@ Pyetro — contato.eupyetro022@gmail.com
 * Dragon Mania: Botão de fechar os menus
 
 ## Changelogs
+<details> <summary> 0.0.06.1 - 28/03/26 </summary>
+
+Como aparentemente virou rotina, toma aqui uma versão .1 a mais kaakak. Essa aqui demorou mais do que deveria pois tive uns problemas com a máquina que eu uso pra desenvolver. Eu infelizmente não consegui recuperar o instalador. Então, pelo menos por enquanto, será apenas o executável (to pensando numa maneira melhor de se intalar o jogo) Além disso, voltei ao PyInstaller para gerar o exe:
+
+- Opções ajustadas para a resolução 100% do Windows (pois aparentemente a grande maioria dos PCs usam ela).
+
+Correções de bugs:
+
+- Corrigido bug em que ao abrir o menu de conquistas ou eventos com os controles sendo exibidos, ele era fechado.
+- Corrigido bug em que ao reiniciar o jogo ou ao comprar o upgrade de auto compra do trabalhador, ele simplesmente não comprava.
+
+Trabalhadores:
+
+- Trabalhadores agora têm maior chance de dar mais pontos.
+- O auto compra dos trabalhadores agora compra um novo a cada 5 segundos (aperte P para ativar ou desativar a auto compra).
+- A mensagem no menu de sair avisando que os trabalhadores ativos seriam perdidos agora só aparece caso realmente existam trabalhadores ativos.
+
+Menus e interface:
+
+- Re-design e padronização do menu de eventos (amém), configurações e estatísticas,
+- Todos os menus agora podem ser fechados com Alt + F4.
+- Ao apertar C, os controles podem ser mostrados ou ocultos.
+- Formatação dos números adicionada (para voltar a padrão, basta clicar em cima da pontuação).
+- Ajustes no design do sistema de exibir imagens.
+- Adicionada nova opção nas configurações.
+
+Console:
+
+- Novos comandos e ajustes no console.
+
+Sistema de upgrades e conquistas:
+
+- Sistema onde é necessário comprar certa quantidade de upgrades para liberar o próximo.
+- Ao segurar, é possível comprar vários upgrades.
+- Novos upgrades e novas conquistas adicionados.
+- A conquista do console não é mais obrigatória pra se zerar.
+
+Otimizações:
+- Otimização no menu, trabalhadores, sistema de conquistas e upgrades.
+- Os dados agora só são salvos ao fechar o jogo (por motivos de otimização, então tome cuidado).
+
+Arquivos do jogo:
+- Assets do jogo e senhas agora não são mais editáveis (compactados junto com o código).
+
+Outras mudanças:
+- A página que abre ao clicar no aviso de atualização agora é a do itch.io, e não mais a do GitHub.
+- Diversos pequenos ajustes,
+- Você pode ter quanto tempo offline quiser,
+- Pela última vez (eu prometo), arquivo que controla o save atualizado para um padrão eterno agora, com uma nova key.
+
+
+</details>
 <details> <summary> 0.0.06 - 04/01/26 </summary>
 
 Como prometido, um bom tempo sem atualizações. Essa atualização ficou pronta a tipo, uma ou duas semanas atrás. Só esperei mais um pouco e adicionei umas coisas que viriam na 0.0.06.1 (ou 07) pois hoje fazem 6 meses desde que começei o projeto e lancei a primeira release. Além disso, é a primeira release de 2026. Feliz ano novo!

@@ -1,7 +1,7 @@
 import pygame
 
 class ClickEffect:
-    def __init__(self, x, y, text="+1", color=None):
+    def __init__(self, x, y, text="+1", color=None, alpha_decay=5):
         self.x = x
         self.y = y
         self.text = text
@@ -11,10 +11,11 @@ class ClickEffect:
         self.font = pygame.font.SysFont(None, 32)
         self.finished = False
         self.lifetime = 60
+        self.alpha_decay = alpha_decay
 
     def update(self):
         self.y += self.dy
-        self.alpha -= 5
+        self.alpha -= self.alpha_decay
         if self.alpha <= 0:
             self.alpha = 0
             self.finished = True

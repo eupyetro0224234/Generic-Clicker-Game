@@ -1,14 +1,6 @@
-import pygame, sys, os
+import pygame, sys, os, io
 from PIL import Image
-
-
-def resource_path(relative_path):
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    return os.path.join(base_path, relative_path)
-
+from game_assets.game_assets_packed import load_image_raw
 
 class AnimatedButton:
     def __init__(
@@ -26,30 +18,15 @@ class AnimatedButton:
         self.height = int(height * 1.8)
         self.frame_duration = frame_duration
 
-        self.gif_abs_path = self._resolve_gif_path(gif_path)
-        
-        self.frames = self._load_gif_frames(self.gif_abs_path)
+        self.frames = self._load_gif_frames()
         self.frame_count = len(self.frames)
         self.current_frame = 0
         self.last_update = pygame.time.get_ticks()
-
         self.is_animating_click = False
         self.click_anim_progress = 0.0
         self.click_anim_speed = 0.1
-
         self.current_scale = 1.0
         self._update_rect()
-
-    def _resolve_gif_path(self, gif_path):
-        if os.path.isabs(gif_path):
-            return gif_path
-        
-        absolute_path = resource_path(gif_path)
-        
-        if not os.path.exists(absolute_path):
-            raise FileNotFoundError(f"Arquivo GIF não encontrado: {absolute_path}")
-        
-        return absolute_path
 
     def _update_rect(self):
         w = int(self.width * self.current_scale)
@@ -58,8 +35,9 @@ class AnimatedButton:
         y = self.center_y - h // 2
         self.rect = pygame.Rect(x, y, w, h)
 
-    def _load_gif_frames(self, file_path):
-        pil_gif = Image.open(file_path)
+    def _load_gif_frames(self):
+        gif_bytes = load_image_raw("button.gif")
+        pil_gif = Image.open(io.BytesIO(gif_bytes))
         frames = []
         try:
             while True:
@@ -83,7 +61,6 @@ class AnimatedButton:
         if now - self.last_update > self.frame_duration:
             self.current_frame = (self.current_frame + 1) % self.frame_count
             self.last_update = now
-
         if self.is_animating_click:
             self.click_anim_progress += self.click_anim_speed
             if self.click_anim_progress >= 1.0:

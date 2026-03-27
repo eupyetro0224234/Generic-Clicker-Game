@@ -1,11 +1,5 @@
-import pygame, random, os, sys
-
-def resource_path(relative_path):
-    try:
-        base_path = sys._MEIPASS
-    except AttributeError:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
+import pygame, random, io
+from game_assets.game_assets_packed import load_image, load_sound as packed_load_sound
 
 class MiniEvent:
     def __init__(self, screen, width, height, event_type="normal"):
@@ -44,11 +38,8 @@ class MiniEvent:
             self.reward_multiplier = 1
             self.upgrade_chance = 0.05
 
-        self.image_path = resource_path(os.path.join("game_assets", self.image_name))
-        self.sound_path = resource_path(os.path.join("game_assets", self.sound_name))
-
         try:
-            self.image = pygame.image.load(self.image_path).convert_alpha()
+            self.image = load_image(self.image_name)
             self.image = pygame.transform.scale(self.image, (self.size, self.size))
         except Exception:
             self.image = pygame.Surface((self.size, self.size))
@@ -63,7 +54,7 @@ class MiniEvent:
         self.sound_channel = None
         
         try:
-            self.sound = pygame.mixer.Sound(self.sound_path)
+            self.sound = packed_load_sound(self.sound_name)
             self.sound.set_volume(self.volume)
         except Exception:
             self.sound = None
@@ -89,19 +80,38 @@ class MiniEvent:
     def _get_weighted_clicks(self):
         num = int(random.triangular(1, 50, 45))
         return max(1, min(50, num))
-    
-    def _get_normal_event_reward(self):
-        rand = random.random()
-        
-        if rand < 0.6:
-            return random.randint(500, 800)
-        elif rand < 0.9:
-            return random.randint(800, 1000)
-        else:
-            return random.randint(1000, 1500)
-    
-    def _get_rare_event_reward(self):
-        return random.randint(1, 10000)
+
+    def _get_max_reward(self, score):
+        if score <= 0:
+            return 1
+
+        if score < 1000:
+            return max(1, score)
+
+        if score <= 5000:
+            return (score // 1000) * 1000
+
+        if score < 10000:
+            return max(1, int(score * 0.5))
+
+        if score < 50000:
+            return max(1, score // 2)
+
+        extra = (score - 50000) // 50000
+        divisor = 3 + extra
+        return max(1, score // divisor)
+
+    def _get_normal_event_reward(self, score):
+        max_reward = self._get_max_reward(score)
+        if max_reward <= 1:
+            return 1
+        return random.randint(1, max_reward)
+
+    def _get_rare_event_reward(self, score):
+        max_reward = self._get_max_reward(score)
+        if max_reward <= 1:
+            return 1
+        return random.randint(1, max_reward)
 
     def update(self):
         if not self.visible:
@@ -134,7 +144,6 @@ class MiniEvent:
 
         elapsed_time = pygame.time.get_ticks() - self.spawn_time
         time_left = max(0, self.time_to_live - elapsed_time) // 1000
-
         text_color = (255, 255, 255) if self.event_type == "rare" else (0, 0, 0)
 
         if self.event_type == "rare":
@@ -173,7 +182,11 @@ class MiniEvent:
                             upgrade_menu.purchase_random_upgrade()
                         return score, True, 0
 
-                    pontos_ganhos = self._get_rare_event_reward()
+                    if random.random() < 0.01:
+                        pontos_ganhos = score
+                    else:
+                        pontos_ganhos = self._get_rare_event_reward(score)
+
                     novo_score = score + pontos_ganhos
                     return novo_score, False, pontos_ganhos
                 else:
@@ -190,7 +203,11 @@ class MiniEvent:
                         upgrade_menu.purchase_random_upgrade()
                     return score, True, 0
 
-                pontos_ganhos = self._get_normal_event_reward()
+                if random.random() < 0.01:
+                    pontos_ganhos = score
+                else:
+                    pontos_ganhos = self._get_normal_event_reward(score)
+
                 novo_score = score + pontos_ganhos
                 return novo_score, False, pontos_ganhos
 

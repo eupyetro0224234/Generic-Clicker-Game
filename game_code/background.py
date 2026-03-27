@@ -15,7 +15,7 @@ def set_mod(mod_instance):
 def _apply_mod_settings():
     global TILE_SIZE, BASE_COLORS, FREQ, ENABLE_ANIMATION, BACKGROUND_STYLE
     global adjust_brightness, draw_background_override
-    
+
     if mod and hasattr(mod, 'CustomBackground'):
         custom_bg = mod.CustomBackground()
         TILE_SIZE = custom_bg.tile_size
@@ -36,11 +36,11 @@ def _apply_mod_settings():
         FREQ = 0.5
         ENABLE_ANIMATION = True
         BACKGROUND_STYLE = 'quadriculado'
-    
+
     adjust_brightness = getattr(mod, 'adjust_brightness', None) if mod else None
     draw_background_override = getattr(mod, 'draw_background_override', None) if mod else None
 
-TILE_SIZE = 60
+TILE_SIZE = 56
 BASE_COLORS = [
     (200, 230, 201),
     (255, 224, 178),
@@ -55,13 +55,11 @@ BACKGROUND_STYLE = 'quadriculado'
 adjust_brightness = None
 draw_background_override = None
 
-def generate_grid_colors(screen_width, screen_height, tile_size):
-    grid_width = screen_width // tile_size + 2
-    grid_height = screen_height // tile_size + 2
+def generate_grid_colors(tiles_x, tiles_y):
     grid = []
-    for y in range(grid_height):
+    for y in range(tiles_y):
         row = []
-        for x in range(grid_width):
+        for x in range(tiles_x):
             if BACKGROUND_STYLE == 'horizontal':
                 index = y % len(BASE_COLORS)
             elif BACKGROUND_STYLE == 'vertical':
@@ -72,7 +70,7 @@ def generate_grid_colors(screen_width, screen_height, tile_size):
                 index = (x + y) % len(BASE_COLORS)
             row.append(BASE_COLORS[index])
         grid.append(row)
-    return grid, grid_width, grid_height
+    return grid
 
 def default_adjust_brightness(color, factor):
     r = max(0, min(255, int(color[0] * factor)))
@@ -83,8 +81,7 @@ def default_adjust_brightness(color, factor):
 def adjust_brightness_func(color, factor):
     if adjust_brightness:
         return adjust_brightness(color, factor)
-    else:
-        return default_adjust_brightness(color, factor)
+    return default_adjust_brightness(color, factor)
 
 game_reference = None
 
@@ -94,28 +91,41 @@ def set_game_reference(game):
 
 def draw_background(screen):
     screen_width, screen_height = screen.get_size()
-    
-    grid_colors, grid_width, grid_height = generate_grid_colors(screen_width, screen_height, TILE_SIZE)
-    
+
+    tiles_x = math.ceil(screen_width / TILE_SIZE) + 1
+    tiles_y = math.ceil(screen_height / TILE_SIZE) + 1
+
+    # Centraliza o grid: distribui o excesso igualmente nos 4 lados
+    total_w = tiles_x * TILE_SIZE
+    total_h = tiles_y * TILE_SIZE
+    offset_x = -((total_w - screen_width) // 2)
+    offset_y = -((total_h - screen_height) // 2)
+
+    grid_colors = generate_grid_colors(tiles_x, tiles_y)
+
     if draw_background_override:
         return draw_background_override(screen, grid_colors, TILE_SIZE)
-    
+
     t = time.time()
-    
+
     brightness_factor = 1.0
     if game_reference and hasattr(game_reference, 'config_menu'):
         brightness_factor = game_reference.config_menu.settings_menu.get_brightness_settings()
-    
-    for y in range(grid_height):
-        for x in range(grid_width):
+
+    for y in range(tiles_y):
+        for x in range(tiles_x):
             base_color = grid_colors[y][x]
             brightness = 1
             if ENABLE_ANIMATION:
                 brightness = 1 + 0.15 * math.sin(2 * math.pi * FREQ * t + (x + y))
-            
+
             final_brightness = brightness * brightness_factor
             color = adjust_brightness_func(base_color, final_brightness)
-            rect = pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+            rect = pygame.Rect(
+                x * TILE_SIZE + offset_x,
+                y * TILE_SIZE + offset_y,
+                TILE_SIZE, TILE_SIZE
+            )
             pygame.draw.rect(screen, color, rect)
 
 class Background:

@@ -11,7 +11,7 @@ class ExitHandler:
         self.font = pygame.font.SysFont(None, 32)
         self.prompt_font = pygame.font.SysFont(None, 28)
         self.input_rect = pygame.Rect(self.width // 2 - 150, self.height // 2 + 10, 300, 40)
-        self.bg_rect = pygame.Rect(self.width // 2 - 540, self.height // 2 - 60, 1080, 130)
+        self.bg_rect = None
         self.text_color = (40, 40, 60)
         self.bg_box_color = (180, 210, 255)
         self.box_color = (255, 255, 255)
@@ -25,9 +25,33 @@ class ExitHandler:
         self.fading_cancel = False
         self.cancel_alpha = 0
         self.cancel_speed = 20
-        self.prompt = "Tem certeza que deseja sair? Todos os trabalhadores ativos serão perdidos. Digite 'sim' para confirmar:"
+        self.prompt_base = "Tem certeza que deseja sair?"
+        self.prompt_trabalhadores = " Todos os trabalhadores ativos serão perdidos."
+        self.prompt_confirmacao = " Digite 'sim' para confirmar:"
         self.blur_surface = None
         self.pre_blurs = []
+        self.cursor_moved_at = 0
+        self.game_ref = None
+
+    def set_game_reference(self, game):
+        self.game_ref = game
+
+    def get_prompt_text(self):
+        if self.game_ref and hasattr(self.game_ref, 'upgrade_menu'):
+            trabalhadores_ativos = len(self.game_ref.upgrade_menu.trabalhadores)
+            if trabalhadores_ativos > 0:
+                return self.prompt_base + self.prompt_trabalhadores + self.prompt_confirmacao
+        return self.prompt_base + self.prompt_confirmacao
+
+    def calculate_bg_rect(self):
+        current_prompt = self.get_prompt_text()
+        prompt_surf = self.prompt_font.render(current_prompt, True, self.text_color)
+        padding = 40
+        bg_width = max(prompt_surf.get_width() + padding * 2, 400)
+        bg_height = 130
+        bg_x = self.width // 2 - bg_width // 2
+        bg_y = self.height // 2 - 60
+        return pygame.Rect(bg_x, bg_y, bg_width, bg_height)
 
     def start(self):
         self.active = True
@@ -39,6 +63,7 @@ class ExitHandler:
         self.exit_alpha = 0
         self.fading_cancel = False
         self.cancel_alpha = 0
+        self.cursor_moved_at = pygame.time.get_ticks()
         self.blur_surface = self.screen.copy()
         small = pygame.transform.smoothscale(self.blur_surface, (self.width // 8, self.height // 8))
         self.blur_surface = pygame.transform.smoothscale(small, (self.width, self.height))
@@ -56,17 +81,24 @@ class ExitHandler:
     def handle_event(self, event):
         if not self.active:
             return False
+
+        self.bg_rect = self.calculate_bg_rect()
+
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if not self.bg_rect.collidepoint(event.pos):
+            if event.button == 1 and not self.bg_rect.collidepoint(event.pos):
                 self.fading_cancel = True
                 return True
         if event.type == pygame.KEYDOWN:
+            self.cursor_moved_at = pygame.time.get_ticks()
             if event.key == pygame.K_BACKSPACE:
                 self.user_text = self.user_text[:-1]
                 return True
             elif event.key == pygame.K_RETURN:
                 txt = self.user_text.strip().lower()
                 if txt == "sim":
+                    if self.game_ref:
+                        print("Salvando jogo antes de sair...")
+                        self.game_ref.save_game_data()
                     self.fading_out = True
                 elif txt == "console":
                     self.detected_console = True
@@ -76,8 +108,10 @@ class ExitHandler:
                 self.fading_cancel = True
                 return True
             else:
-                if len(event.unicode) == 1 and event.unicode.isprintable() and len(self.user_text) < 20:
+                # Aceita apenas letras (a-z, A-Z) e limita a 20 caracteres
+                if event.unicode and event.unicode.isalpha() and len(self.user_text) < 20:
                     self.user_text += event.unicode
+                # Ignora qualquer outro caractere (números, símbolos, acentos, til, etc.)
                 return True
         return False
 
@@ -120,23 +154,41 @@ class ExitHandler:
         return True
 
     def _draw_box(self, alpha):
+        current_prompt = self.get_prompt_text()
+        self.bg_rect = self.calculate_bg_rect()
+
         bg_surf = pygame.Surface((self.bg_rect.width, self.bg_rect.height), pygame.SRCALPHA)
         pygame.draw.rect(bg_surf, (*self.bg_box_color, alpha), bg_surf.get_rect(), border_radius=20)
         self.screen.blit(bg_surf, self.bg_rect)
-        prompt_surf = self.prompt_font.render(self.prompt, True, self.text_color)
+
+        prompt_surf = self.prompt_font.render(current_prompt, True, self.text_color)
         prompt_surf.set_alpha(alpha)
         prompt_rect = prompt_surf.get_rect(center=(self.width // 2, self.bg_rect.y + 40))
         self.screen.blit(prompt_surf, prompt_rect)
+
         input_surf = pygame.Surface((self.input_rect.width, self.input_rect.height), pygame.SRCALPHA)
         pygame.draw.rect(input_surf, (*self.box_color, alpha), input_surf.get_rect(), border_radius=10)
         pygame.draw.rect(input_surf, (*self.border_color, alpha), input_surf.get_rect(), width=3, border_radius=10)
         self.screen.blit(input_surf, self.input_rect)
+
+        user_x = self.input_rect.x + 12
+        user_y = self.input_rect.y + (self.input_rect.height - self.font.get_height()) // 2
+
         if self.user_text:
             user_surface = self.font.render(self.user_text, True, self.text_color)
             user_surface.set_alpha(alpha)
-            user_x = self.input_rect.x + 12
-            user_y = self.input_rect.y + (self.input_rect.height - user_surface.get_height()) // 2
             self.screen.blit(user_surface, (user_x, user_y))
+            cursor_x = user_x + user_surface.get_width()
+        else:
+            cursor_x = user_x
+
+        ticks = pygame.time.get_ticks()
+        cursor_visible = (ticks - self.cursor_moved_at < 500) or (ticks // 500) % 2 == 0
+        if cursor_visible:
+            cursor_color = (*self.text_color, alpha)
+            cursor_surf = pygame.Surface((2, self.font.get_height()), pygame.SRCALPHA)
+            cursor_surf.fill(cursor_color)
+            self.screen.blit(cursor_surf, (cursor_x, user_y))
 
     def draw(self):
         if not self.active:
