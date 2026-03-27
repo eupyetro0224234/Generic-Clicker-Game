@@ -179,7 +179,7 @@ Pyetro — contato.eupyetro022@gmail.com
 * Dragon Mania: Botão de fechar os menus
 
 ## Changelogs
-<details> <summary> 0.0.06.1 - 28/03/26 </summary>
+<details> <summary> 0.0.06.1 - 27/03/26 </summary>
 
 Como aparentemente virou rotina, toma aqui uma versão .1 a mais kaakak. Essa aqui demorou mais do que deveria pois tive uns problemas com a máquina que eu uso pra desenvolver. Eu infelizmente não consegui recuperar o instalador. Então, pelo menos por enquanto, será apenas o executável (to pensando numa maneira melhor de se intalar o jogo) Além disso, voltei ao PyInstaller para gerar o exe:
 
