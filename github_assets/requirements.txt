@@ -1,0 +1,5 @@
+pillow
+pycryptodome
+pygame
+requests
+pytz
